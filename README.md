@@ -2,7 +2,7 @@
 
 AquaSecure est une application web de démonstration pour le suivi et la gestion d’un réseau d’eau. Elle propose des espaces adaptés aux habitants, aux techniciens, aux gestionnaires et aux administrateurs.
 
-> **Prototype de démonstration :** plusieurs écrans s’appuient sur des données fictives et des actions simulées. AquaSecure est une plateforme logicielle ; ce projet ne fournit pas de capteurs ni de matériel IoT.
+> **Prototype de démonstration :** plusieurs écrans s’appuient sur des données fictives et des actions simulées. AquaSecure est une plateforme SaaS .
 
 ## Fonctionnalités
 
