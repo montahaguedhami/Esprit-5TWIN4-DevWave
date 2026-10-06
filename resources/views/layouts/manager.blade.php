@@ -14,7 +14,7 @@
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
                     <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
                 </div>
-                <span class="font-display font-bold text-white hidden sm:block">AquaSecure</span>
+                <a href="{{ route('manager.dashboard') }}" class="font-display font-bold text-white hidden sm:block">AquaSecure</a>
                 <x-badge color="#3b82f6" class="hidden sm:inline-flex">Espace Gestionnaire</x-badge>
             </div>
         </div>
@@ -28,11 +28,30 @@
     </nav>
 
     <!-- Tab Bar -->
-    @hasSection('tabs')
     <div class="sticky top-[57px] z-40 glass px-4 py-2 flex gap-2 overflow-x-auto">
-        @yield('tabs')
+        @hasSection('tabs')
+            @yield('tabs')
+        @else
+            @php
+                $mgrTabs = [
+                    ['route' => 'manager.dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard'],
+                    ['route' => 'manager.incidents', 'label' => 'Incidents', 'icon' => 'alert-triangle'],
+                    ['route' => 'manager.teams',     'label' => 'Équipes',   'icon' => 'users'],
+                    ['route' => 'manager.projets.index',  'label' => 'Projets',   'icon' => 'briefcase'],
+                    ['route' => 'manager.map',       'label' => 'Carte',     'icon' => 'map'],
+                    ['route' => 'manager.analytics', 'label' => 'Analytics', 'icon' => 'bar-chart-2'],
+                ];
+            @endphp
+            @foreach($mgrTabs as $tab)
+            <a href="{{ route($tab['route']) }}"
+               class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors
+                      {{ request()->routeIs($tab['route']) ? 'bg-cyan-500/15 text-white border border-cyan-400/25' : 'text-cyan-100/60 hover:text-white hover:bg-white/5' }}">
+                <i data-lucide="{{ $tab['icon'] }}" class="w-4 h-4"></i>
+                {{ $tab['label'] }}
+            </a>
+            @endforeach
+        @endif
     </div>
-    @endif
 
     <!-- Content -->
     <div class="px-4 sm:px-6 py-6 max-w-7xl mx-auto pb-8">

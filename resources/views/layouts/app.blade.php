@@ -95,6 +95,19 @@
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
+            
+            // Show flash messages
+            @if(session('success'))
+                showToast('{{ session('success') }}', 'success');
+            @endif
+            
+            @if(session('error'))
+                showToast('{{ session('error') }}', 'error');
+            @endif
+            
+            @if(session('info'))
+                showToast('{{ session('info') }}', 'info');
+            @endif
         });
     </script>
 </body>

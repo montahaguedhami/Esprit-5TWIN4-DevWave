@@ -1972,4 +1972,97 @@ class PlaceholderData
             ],
         ];
     }
+
+    /**
+     * Projets d'infrastructure (vue Gestionnaire)
+     */
+    public static function managerProjects(): array
+    {
+        return [
+            [
+                'id'       => 'PRJ-08',
+                'name'     => 'Réhabilitation conduite principale Tunis Nord',
+                'zone'     => 'Tunis Nord',
+                'type'     => 'Réseau',
+                'status'   => 'in_progress',
+                'progress' => 62,
+                'budget'   => '1,24 M DT',
+                'spent'    => '768 k DT',
+                'start'    => '12 mars 2026',
+                'end'      => '30 nov. 2026',
+                'lead'     => 'Ines Mansouri',
+                'team'     => 'Équipe Alpha',
+            ],
+            [
+                'id'       => 'PRJ-07',
+                'name'     => 'Campagne détection fuites (acoustique)',
+                'zone'     => 'Grand Tunis',
+                'type'     => 'Maintenance',
+                'status'   => 'in_progress',
+                'progress' => 41,
+                'budget'   => '420 k DT',
+                'spent'    => '168 k DT',
+                'start'    => '02 juin 2026',
+                'end'      => '15 déc. 2026',
+                'lead'     => 'Sami Ben Ali',
+                'team'     => 'Équipe Beta',
+            ],
+            [
+                'id'       => 'PRJ-06',
+                'name'     => 'Modernisation compteurs intelligents Ariana',
+                'zone'     => 'Ariana',
+                'type'     => 'IoT',
+                'status'   => 'planned',
+                'progress' => 12,
+                'budget'   => '890 k DT',
+                'spent'    => '45 k DT',
+                'start'    => '01 oct. 2026',
+                'end'      => '28 fév. 2027',
+                'lead'     => 'Ines Mansouri',
+                'team'     => 'Équipe Gamma',
+            ],
+            [
+                'id'       => 'PRJ-05',
+                'name'     => 'Station de chloration La Marsa',
+                'zone'     => 'La Marsa',
+                'type'     => 'Qualité',
+                'status'   => 'in_progress',
+                'progress' => 78,
+                'budget'   => '310 k DT',
+                'spent'    => '241 k DT',
+                'start'    => '18 jan. 2026',
+                'end'      => '20 oct. 2026',
+                'lead'     => 'Sara Mechri',
+                'team'     => 'Équipe Delta',
+            ],
+            [
+                'id'       => 'PRJ-04',
+                'name'     => 'Renforcement pression Ben Arous Est',
+                'zone'     => 'Ben Arous',
+                'type'     => 'Réseau',
+                'status'   => 'completed',
+                'progress' => 100,
+                'budget'   => '215 k DT',
+                'spent'    => '198 k DT',
+                'start'    => '04 nov. 2025',
+                'end'      => '22 août 2026',
+                'lead'     => 'Ines Mansouri',
+                'team'     => 'Équipe Alpha',
+            ],
+            [
+                'id'       => 'PRJ-03',
+                'name'     => 'Cartographie SIG Sfax Centre',
+                'zone'     => 'Sfax Centre',
+                'type'     => 'Digital',
+                'status'   => 'on_hold',
+                'progress' => 34,
+                'budget'   => '95 k DT',
+                'spent'    => '31 k DT',
+                'start'    => '10 avr. 2026',
+                'end'      => '31 jan. 2027',
+                'lead'     => 'Karim Manager',
+                'team'     => 'Équipe Epsilon',
+            ],
+        ];
+    }
 }

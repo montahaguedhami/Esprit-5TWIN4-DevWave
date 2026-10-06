@@ -123,6 +123,12 @@ Route::get('/citizen/invoices/{id}', function ($id) {
     return view('citizen.invoices.show', ['id' => $id]);
 })->name('citizen.invoices.show');
 
+// Citizen - Projets (Lecture seule - Module Projet/Financement)
+Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
+    Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
+});
+
 // Technician Space (BackOffice) - DEMO
 Route::get('/technician/dashboard', function () {
     if (!session('user') || session('user.role') !== 'technician') {
@@ -171,6 +177,30 @@ Route::get('/manager/dashboard', function () {
     return view('manager.dashboard');
 })->name('manager.dashboard');
 
+// Manager - Projets CRUD (Module Projet/Financement)
+Route::prefix('manager/projets')->name('manager.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\ProjetController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\ProjetController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\ProjetController::class, 'store'])->name('store');
+    Route::get('/map', [App\Http\Controllers\Manager\ProjetController::class, 'map'])->name('map');
+    Route::get('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'show'])->name('show');
+    Route::get('/{projet}/edit', [App\Http\Controllers\Manager\ProjetController::class, 'edit'])->name('edit');
+    Route::put('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'update'])->name('update');
+    Route::delete('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'destroy'])->name('destroy');
+});
+
+// Manager - Financements CRUD (Module Projet/Financement)
+Route::prefix('manager/financements')->name('manager.financements.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\FinancementController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\FinancementController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
+    Route::get('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
+    Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
+    Route::put('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
+    Route::delete('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});
+
+// Manager - Autres routes démo
 Route::get('/manager/map', function () {
     if (!session('user') || session('user.role') !== 'manager') {
         return redirect()->route('auth.login');
@@ -199,13 +229,6 @@ Route::get('/manager/teams', function () {
     return view('manager.teams');
 })->name('manager.teams');
 
-Route::get('/manager/map', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
-    }
-    return view('manager.map');
-})->name('manager.map');
-
 Route::get('/manager/projects', function () {
     if (!session('user') || session('user.role') !== 'manager') {
         return redirect()->route('auth.login');
@@ -219,13 +242,6 @@ Route::get('/manager/reports', function () {
     }
     return view('manager.reports');
 })->name('manager.reports');
-
-Route::get('/manager/analytics', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
-    }
-    return view('manager.analytics');
-})->name('manager.analytics');
 
 // Admin Space (BackOffice) - DEMO
 Route::get('/admin/dashboard', function () {
