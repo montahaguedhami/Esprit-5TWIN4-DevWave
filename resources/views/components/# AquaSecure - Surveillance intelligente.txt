@@ -1,0 +1,94 @@
+# AquaSecure - Surveillance intelligente des infrastructures d'eau potable
+
+[AquaSecure SaaS](http://127.0.0.1:8000/manager/dashboard)
+[System Administrator](http://127.0.0.1:8000/switch-role/admin)
+[Utility Manager](http://127.0.0.1:8000/switch-role/manager)
+[Water Quality Specialist](http://127.0.0.1:8000/switch-role/quality)
+[Field Technician](http://127.0.0.1:8000/switch-role/technician)
+[Finance Manager](http://127.0.0.1:8000/switch-role/finance)
+[Resident Citizen](http://127.0.0.1:8000/switch-role/citizen)
+
+### Notifications
+3 non lues
+
+#### Mise à jour système disponible
+Une nouvelle version d'AquaSecure est disponible avec des améliorations de sécurité
+[Voir les détails →](http://127.0.0.1:8000/manager/dashboard)
+
+#### Alerte qualité - Zone Ariana
+Taux de chlore légèrement élevé détecté. Analyse en cours
+[Consulter →](http://127.0.0.1:8000/manager/dashboard)
+
+#### Intervention programmée
+Maintenance préventive prévue demain à 9h - Zone Tunis Nord
+
+#### Problème résolu
+La fuite d'eau rue Habib Bourguiba a été réparée avec succès
+
+#### Nouvelle déclaration
+Un citoyen a signalé un problème de pression dans votre zone
+
+#### Rapport mensuel disponible
+Le rapport de performance de septembre 2026 est maintenant disponible
+[Voir toutes les notifications](http://127.0.0.1:8000/notifications)
+
+### Ines Mansouri
+gestionnaire@aquasecure.tn
+[Mon Profil
+                    Informations personnelles](http://127.0.0.1:8000/profile)
+[Paramètres
+                    Préférences et configuration](http://127.0.0.1:8000/settings)
+[Notifications
+                    Gérer les alertes](http://127.0.0.1:8000/settings/notifications)
+[System Administrator](http://127.0.0.1:8000/switch-role/admin)
+[Utility Manager](http://127.0.0.1:8000/switch-role/manager)
+[Water Quality Specialist](http://127.0.0.1:8000/switch-role/quality)
+[Field Technician](http://127.0.0.1:8000/switch-role/technician)
+[Finance Manager](http://127.0.0.1:8000/switch-role/finance)
+[Citizen Portal](http://127.0.0.1:8000/switch-role/citizen)
+[Centre d'aide
+                    Documentation et support](http://127.0.0.1:8000/manager/dashboard)
+Platform Navigation
+[Overview Dashboard](http://127.0.0.1:8000/manager/dashboard)
+[Infrastructure Map](http://127.0.0.1:8000/manager/map)
+[Water Quality](http://127.0.0.1:8000/manager/quality)
+[Incident Dispatch](http://127.0.0.1:8000/manager/incidents)
+[Maintenance & Projects](http://127.0.0.1:8000/manager/projects)
+[Funding & Budget](http://127.0.0.1:8000/manager/budget)
+[Analytics & Reports](http://127.0.0.1:8000/manager/analytics)
+Public & Admin
+[Citizen Reporting Portal](http://127.0.0.1:8000/citizen/dashboard)
+[Roles & Permissions](http://127.0.0.1:8000/admin/roles)
+Water quality records and report accessibility.
+
+# Water Infrastructure Dashboard
+Network information, incident tracking, and budget allocation for Tunis Grand Water Utility.
+[Live GIS Map](http://127.0.0.1:8000/manager/map)
++12 new this month
+2 Critical, 1 Unassigned
+Avg MTTR Repair: 2.4h
+98.5% Compliance Rate
+$4.85M Total Value
+73.8% of $4.85M
+
+## GIS Infrastructure & Incident Tracking Map
+Distribution Pipelines, Water Reservoirs, Treatment Plants, and Reported Leaks
+[Full Screen Map →](http://127.0.0.1:8000/manager/map)
+
+### Incident Frequency & Repair Trends
+Monthly reported water leaks vs resolved incidents
+
+### Water Quality Parameters
+Recorded water-quality results compared with EPA / INNORPI threshold limits
+
+### Recent Incident Log & Dispatch
+Citizen reported leaks, quality alerts, and pipe bursts
+[View All Incidents →](http://127.0.0.1:8000/manager/incidents)
+
+### Funding Sources Allocation
+[Budget Details →](http://127.0.0.1:8000/manager/budget)
+
+### AquaSecure AI
+👋 Bonjour ! Je suis votre assistant IA AquaSecure.
+Comment puis-je vous aider aujourd'hui ?
+IA peut faire des erreurs. Vérifiez les informations importantes.
