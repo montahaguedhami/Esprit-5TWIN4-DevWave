@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="dark">
+<html lang="fr" data-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'AquaSecure' }} - Surveillance intelligente des infrastructures d'eau potable</title>
+    <title>{{ $title ?? 'AquaSecure' }} - Gestion du réseau d'eau potable</title>
 
-    <!-- Fonts -->
+    <!-- Fonts: Inter & Inter Tight (Liquid Glass UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
 
     <!-- Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -20,9 +21,16 @@
     <!-- Additional Styles -->
     @stack('styles')
 </head>
-<body class="antialiased">
-    <div id="app">
+<body class="antialiased bg-[#04121b] text-white min-h-screen">
+    <div id="app" class="min-h-screen flex flex-col">
         @yield('content')
+    </div>
+
+    <div class="fixed bottom-20 left-3 z-[60] max-w-[calc(100vw-1.5rem)] rounded-2xl border border-cyan-300/20 bg-slate-950/90 px-3 py-2 text-xs text-cyan-50 shadow-xl shadow-black/20 backdrop-blur-md sm:bottom-5 sm:left-5 sm:px-4 sm:py-2.5" role="status" aria-label="Mode démonstration">
+        <span class="inline-flex items-center gap-2">
+            <i data-lucide="flask-conical" class="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true"></i>
+            <span><strong class="font-semibold text-cyan-200">Mode démonstration</strong><span class="hidden sm:inline"> · Données fictives, actions simulées</span></span>
+        </span>
     </div>
 
     <!-- AI Assistant (Global) -->
@@ -95,19 +103,6 @@
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
-            
-            // Show flash messages
-            @if(session('success'))
-                showToast('{{ session('success') }}', 'success');
-            @endif
-            
-            @if(session('error'))
-                showToast('{{ session('error') }}', 'error');
-            @endif
-            
-            @if(session('info'))
-                showToast('{{ session('info') }}', 'info');
-            @endif
         });
     </script>
 </body>

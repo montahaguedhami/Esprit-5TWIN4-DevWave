@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,12 +16,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Créer les utilisateurs de démo
-        User::factory()->create([
+        // Créer les utilisateurs de démo (version équipe)
+        User::firstOrCreate(['email' => 'test@example.com'], [
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        User::firstOrCreate(['email' => 'citoyen@aquasecure.tn'], [
+            'name' => 'Yassine Hamdi',
+            'password' => Hash::make('password'),
         ]);
 
+        // Seeders de l'équipe (Incidents, Actions, Techniciens)
+        $this->call([
+            IncidentSeeder::class,
+            ActionCorrectiveSeeder::class,
+            TechnicienSeeder::class,
+        ]);
+
+        // === MODULE PROJETS/FINANCEMENTS (Ghada) ===
+        
         // Créer 15 projets avec des financements variés
         $projets = \App\Models\Projet::factory(15)->create();
 

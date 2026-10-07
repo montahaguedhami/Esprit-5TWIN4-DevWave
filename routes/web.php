@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\ActionCorrectiveController;
+use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\TechnicienController;
+use App\Http\Controllers\TravauxController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -123,12 +128,6 @@ Route::get('/citizen/invoices/{id}', function ($id) {
     return view('citizen.invoices.show', ['id' => $id]);
 })->name('citizen.invoices.show');
 
-// Citizen - Projets (Lecture seule - Module Projet/Financement)
-Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
-    Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
-});
-
 // Technician Space (BackOffice) - DEMO
 Route::get('/technician/dashboard', function () {
     if (!session('user') || session('user.role') !== 'technician') {
@@ -169,76 +168,105 @@ Route::get('/technician/equipment', function () {
     return view('technician.equipment');
 })->name('technician.equipment');
 
+// Role Switcher Route (Instant DEMO role switching)
+Route::get('/switch-role/{role}', function ($role) {
+    $rolesMap = [
+        'admin'      => ['name' => 'Amina Kacem (System Admin)', 'email' => 'admin@aquasecure.tn', 'role' => 'admin', 'route' => 'admin.dashboard'],
+        'manager'    => ['name' => 'Ines Mansouri (Utility Manager)', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.dashboard'],
+        'quality'    => ['name' => 'Dr. Selim Dridi (Water Quality Specialist)', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.quality'],
+        'technician' => ['name' => 'Amira Ben Ali (Field Technician)', 'email' => 'amira@aquasecure.tn', 'role' => 'technician', 'route' => 'technician.dashboard'],
+        'finance'    => ['name' => 'Moncef Triki (Finance Manager)', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.budget'],
+        'citizen'    => ['name' => 'Yassine Hamdi (Resident Citizen)', 'email' => 'citoyen@aquasecure.tn', 'role' => 'citizen', 'route' => 'citizen.dashboard'],
+    ];
+
+    if (isset($rolesMap[$role])) {
+        $user = $rolesMap[$role];
+        session(['user' => [
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'role' => $user['role'],
+            'role_key' => $role
+        ]]);
+        return redirect()->route($user['route'])->with('success', 'Passé au rôle : ' . $user['name']);
+    }
+    return redirect()->back();
+})->name('switch.role');
+
 // Manager Space (BackOffice) - DEMO
 Route::get('/manager/dashboard', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
+    if (!session('user')) {
+        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
     }
     return view('manager.dashboard');
 })->name('manager.dashboard');
 
-// Manager - Projets CRUD (Module Projet/Financement)
-Route::prefix('manager/projets')->name('manager.projets.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Manager\ProjetController::class, 'index'])->name('index');
-    Route::get('/create', [App\Http\Controllers\Manager\ProjetController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Manager\ProjetController::class, 'store'])->name('store');
-    Route::get('/map', [App\Http\Controllers\Manager\ProjetController::class, 'map'])->name('map');
-    Route::get('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'show'])->name('show');
-    Route::get('/{projet}/edit', [App\Http\Controllers\Manager\ProjetController::class, 'edit'])->name('edit');
-    Route::put('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'update'])->name('update');
-    Route::delete('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'destroy'])->name('destroy');
-});
-
-// Manager - Financements CRUD (Module Projet/Financement)
-Route::prefix('manager/financements')->name('manager.financements.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Manager\FinancementController::class, 'index'])->name('index');
-    Route::get('/create', [App\Http\Controllers\Manager\FinancementController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
-    Route::get('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
-    Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
-    Route::put('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
-    Route::delete('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
-});
-
-// Manager - Autres routes démo
 Route::get('/manager/map', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
+    if (!session('user')) {
+        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
     }
     return view('manager.map');
 })->name('manager.map');
 
-Route::get('/manager/analytics', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
+Route::get('/manager/quality', function () {
+    if (!session('user')) {
+        session(['user' => ['name' => 'Dr. Selim Dridi', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'role_key' => 'quality']]);
     }
-    return view('manager.analytics');
-})->name('manager.analytics');
+    return view('manager.quality');
+})->name('manager.quality');
 
-Route::get('/manager/incidents', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
-    }
-    return view('manager.incidents');
-})->name('manager.incidents');
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(function () {
+    Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
+    Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
+    Route::get('/incidents/{incident}/edit', [IncidentController::class, 'edit'])->name('incidents.edit');
+    Route::put('/incidents/{incident}', [IncidentController::class, 'update'])->name('incidents.update');
+    Route::delete('/incidents/{incident}', [IncidentController::class, 'destroy'])->name('incidents.destroy');
+    Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->name('incidents.show');
+});
 
-Route::get('/manager/teams', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
-    }
-    return view('manager.teams');
-})->name('manager.teams');
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
+    Route::get('/manager/incidents', [IncidentController::class, 'managerIndex'])->name('manager.incidents');
+    Route::get('/manager/incidents/{incident}', [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
+    Route::get('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'index'])->name('manager.actions.index');
+    Route::get('/manager/incidents/{incident}/actions/create', [ActionCorrectiveController::class, 'create'])->name('manager.actions.create');
+    Route::post('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'store'])->name('incidents.actions.store');
+    Route::get('/manager/actions/{action}/edit', [ActionCorrectiveController::class, 'edit'])->name('manager.actions.edit');
+    Route::get('/manager/actions/{action}', [ActionCorrectiveController::class, 'show'])->name('manager.actions.show');
+    Route::put('/manager/actions/{action}', [ActionCorrectiveController::class, 'update'])->name('manager.actions.update');
+    Route::delete('/manager/actions/{action}', [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
+});
 
 Route::get('/manager/projects', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
+    if (!session('user')) {
+        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
     }
     return view('manager.projects');
 })->name('manager.projects');
 
+Route::get('/manager/budget', function () {
+    if (!session('user')) {
+        session(['user' => ['name' => 'Moncef Triki', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'role_key' => 'finance']]);
+    }
+    return view('manager.budget');
+})->name('manager.budget');
+
+Route::get('/manager/analytics', function () {
+    if (!session('user')) {
+        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
+    }
+    return view('manager.analytics');
+})->name('manager.analytics');
+
+Route::get('/manager/teams', function () {
+    if (!session('user')) {
+        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
+    }
+    return view('manager.teams');
+})->name('manager.teams');
+
 Route::get('/manager/reports', function () {
-    if (!session('user') || session('user.role') !== 'manager') {
-        return redirect()->route('auth.login');
+    if (!session('user')) {
+        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
     }
     return view('manager.reports');
 })->name('manager.reports');
@@ -326,3 +354,50 @@ Route::get('/notifications', function () {
 Route::get('/ai-demo', function () {
     return view('ai-demo');
 })->name('ai.demo');
+
+// Aurora Weather Forecast (Liquid Glass UI)
+Route::get('/weather', function () {
+    return response()->file(public_path('weather.html'));
+})->name('weather');
+
+// Module Maintenance (Back Office) : Techniciens & Interventions
+// TODO : ajouter ->middleware('manager') une fois la branche de Sarra mergée
+Route::prefix('manager')->name('manager.')->group(function () {
+    Route::resource('techniciens', TechnicienController::class);
+    Route::resource('interventions', InterventionController::class);
+});
+
+// Module Maintenance (Front Office) : travaux visibles par les citoyens
+Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
+Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
+
+// === MODULE PROJETS/FINANCEMENTS (Ghada) ===
+
+// Citizen - Projets (Lecture seule)
+Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
+    Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
+});
+
+// Manager - Projets CRUD
+Route::prefix('manager/projets')->name('manager.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\ProjetController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\ProjetController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\ProjetController::class, 'store'])->name('store');
+    Route::get('/map', [App\Http\Controllers\Manager\ProjetController::class, 'map'])->name('map');
+    Route::get('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'show'])->name('show');
+    Route::get('/{projet}/edit', [App\Http\Controllers\Manager\ProjetController::class, 'edit'])->name('edit');
+    Route::put('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'update'])->name('update');
+    Route::delete('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'destroy'])->name('destroy');
+});
+
+// Manager - Financements CRUD
+Route::prefix('manager/financements')->name('manager.financements.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\FinancementController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\FinancementController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
+    Route::get('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
+    Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
+    Route::put('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
+    Route::delete('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});

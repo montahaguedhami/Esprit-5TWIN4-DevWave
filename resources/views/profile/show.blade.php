@@ -1,8 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.frontoffice')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-900">
-    <div class="container mx-auto px-4 py-8">
+<div class="space-y-6">
         @php
             $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => 'citizen']);
             $roleLabels = [
@@ -251,6 +250,5 @@
                 </x-ui.card>
             </div>
         </div>
-    </div>
 </div>
 @endsection

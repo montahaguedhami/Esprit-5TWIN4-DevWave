@@ -15,10 +15,10 @@
         'info' => ['bg' => 'bg-cyan-500/10', 'border' => 'border-cyan-400/30', 'text' => 'text-cyan-400', 'label' => 'Info'],
         'pending' => ['bg' => 'bg-slate-500/10', 'border' => 'border-slate-400/30', 'text' => 'text-slate-400', 'label' => 'En attente'],
     ];
-    
+
     $config = $statusConfig[$status] ?? $statusConfig['info'];
-    
-    $sizeClasses = match($size) {
+
+    $sizeClasses = match ($size) {
         'sm' => 'text-xs px-2 py-0.5',
         'md' => 'text-xs px-3 py-1',
         'lg' => 'text-sm px-4 py-1.5',
@@ -28,7 +28,7 @@
 
 <span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 rounded-full font-semibold border {$config['bg']} {$config['border']} {$config['text']} {$sizeClasses}"]) }}>
     @if($dot)
-    <span class="w-1.5 h-1.5 rounded-full {{ str_replace('/10', '', $config['bg']) }} animate-pulse"></span>
+        <span class="w-1.5 h-1.5 rounded-full {{ str_replace('/10', '', $config['bg']) }} animate-pulse"></span>
     @endif
     {{ $slot->isNotEmpty() ? $slot : $config['label'] }}
 </span>

@@ -12,7 +12,7 @@
                 <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
                     <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
                 </div>
-                <a href="<?php echo e(route('manager.dashboard')); ?>" class="font-display font-bold text-white hidden sm:block">AquaSecure</a>
+                <span class="font-display font-bold text-white hidden sm:block">AquaSecure</span>
                 <?php if (isset($component)) { $__componentOriginal2ddbc40e602c342e508ac696e52f8719 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal2ddbc40e602c342e508ac696e52f8719 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.badge','data' => ['color' => '#3b82f6','class' => 'hidden sm:inline-flex']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -82,31 +82,11 @@
     </nav>
 
     <!-- Tab Bar -->
+    <?php if (! empty(trim($__env->yieldContent('tabs')))): ?>
     <div class="sticky top-[57px] z-40 glass px-4 py-2 flex gap-2 overflow-x-auto">
-        <?php if (! empty(trim($__env->yieldContent('tabs')))): ?>
-            <?php echo $__env->yieldContent('tabs'); ?>
-        <?php else: ?>
-            <?php
-                $mgrTabs = [
-                    ['route' => 'manager.dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard'],
-                    ['route' => 'manager.incidents', 'label' => 'Incidents', 'icon' => 'alert-triangle'],
-                    ['route' => 'manager.teams',     'label' => 'Équipes',   'icon' => 'users'],
-                    ['route' => 'manager.projets.index',  'label' => 'Projets',   'icon' => 'briefcase'],
-                    ['route' => 'manager.map',       'label' => 'Carte',     'icon' => 'map'],
-                    ['route' => 'manager.analytics', 'label' => 'Analytics', 'icon' => 'bar-chart-2'],
-                ];
-            ?>
-            <?php $__currentLoopData = $mgrTabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <a href="<?php echo e(route($tab['route'])); ?>"
-               class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors
-                      <?php echo e(request()->routeIs($tab['route']) ? 'bg-cyan-500/15 text-white border border-cyan-400/25' : 'text-cyan-100/60 hover:text-white hover:bg-white/5'); ?>">
-                <i data-lucide="<?php echo e($tab['icon']); ?>" class="w-4 h-4"></i>
-                <?php echo e($tab['label']); ?>
-
-            </a>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        <?php endif; ?>
+        <?php echo $__env->yieldContent('tabs'); ?>
     </div>
+    <?php endif; ?>
 
     <!-- Content -->
     <div class="px-4 sm:px-6 py-6 max-w-7xl mx-auto pb-8">

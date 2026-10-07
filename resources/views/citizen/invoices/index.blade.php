@@ -10,11 +10,16 @@
 @endphp
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-display font-bold text-white mb-2">Mes factures</h1>
-        <p class="text-cyan-100/60 text-sm">Consultez et gérez vos factures d'eau</p>
+<div class="space-y-6">
+    <!-- Header with Back Navigation -->
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{{ route('citizen.dashboard') }}" class="w-10 h-10 rounded-2xl glass flex items-center justify-center text-cyan-300 hover:text-white hover:bg-white/10 transition-all shadow-sm shrink-0" title="Retour au tableau de bord">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">Mes factures & Consommation</h1>
+            <p class="text-cyan-100/60 text-xs sm:text-sm mt-0.5">Consultez votre historique de consommation et réglez vos factures d'eau</p>
+        </div>
     </div>
 
     <!-- Summary Cards -->
@@ -56,13 +61,13 @@
     <!-- Actions & Filters -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-2 flex-wrap">
-            <button class="status-filter px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-cyan-500/10 text-white border border-cyan-400/20" data-status="all">
+            <button class="status-filter px-5 py-2.5 rounded-lg font-semibold transition-colors bg-cyan-500/10 text-white border border-cyan-400/20" data-status="all" style="font-size:var(--font-size-sm);">
                 Toutes
             </button>
-            <button class="status-filter px-4 py-2 rounded-lg text-sm font-semibold transition-colors text-cyan-100/60 hover:bg-white/5" data-status="pending">
+            <button class="status-filter px-5 py-2.5 rounded-lg font-semibold transition-colors text-cyan-100/60 hover:bg-white/5" data-status="pending" style="font-size:var(--font-size-sm);">
                 En attente
             </button>
-            <button class="status-filter px-4 py-2 rounded-lg text-sm font-semibold transition-colors text-cyan-100/60 hover:bg-white/5" data-status="paid">
+            <button class="status-filter px-5 py-2.5 rounded-lg font-semibold transition-colors text-cyan-100/60 hover:bg-white/5" data-status="paid" style="font-size:var(--font-size-sm);">
                 Payées
             </button>
         </div>

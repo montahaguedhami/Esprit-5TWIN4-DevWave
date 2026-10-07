@@ -9,18 +9,23 @@
 @endphp
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h1 class="text-3xl font-display font-bold text-white mb-2">Notifications</h1>
-            <p class="text-cyan-100/60 text-sm">
-                @if($unreadCount > 0)
-                Vous avez <span class="text-cyan-300 font-semibold">{{ $unreadCount }} notification(s) non lue(s)</span>
-                @else
-                Toutes vos notifications sont à jour
-                @endif
-            </p>
+<div class="space-y-6">
+    <!-- Header with Back Navigation -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('citizen.dashboard') }}" class="w-10 h-10 rounded-2xl glass flex items-center justify-center text-cyan-300 hover:text-white hover:bg-white/10 transition-all shadow-sm shrink-0" title="Retour au tableau de bord">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">Notifications & Coupures</h1>
+                <p class="text-cyan-100/60 text-xs sm:text-sm mt-0.5">
+                    @if($unreadCount > 0)
+                    Vous avez <span class="text-cyan-300 font-semibold">{{ $unreadCount }} notification(s) non lue(s)</span>
+                    @else
+                    Toutes vos notifications sont à jour
+                    @endif
+                </p>
+            </div>
         </div>
         
         <div class="flex items-center gap-2">

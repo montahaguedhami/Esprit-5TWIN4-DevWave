@@ -1,32 +1,28 @@
 @extends('layouts.app')
 
-@section('title', 'Tableau de bord Gestionnaire — AquaSecure')
+@section('title', 'AquaSecure — Tableau de bord des infrastructures hydrauliques')
 
 @php
     use App\Data\PlaceholderData;
-    $user        = session('user', ['name' => 'Ines Mansouri', 'role' => 'manager']);
-    $zones       = PlaceholderData::mapZones();
-    $stats       = PlaceholderData::stats();
-    $technicians = PlaceholderData::adminTechnicians();
-    $reclamations= PlaceholderData::adminAllReclamations();
-    $monthly     = PlaceholderData::analyticsMonthly();
+    $user         = session('user', ['name' => 'Ines Mansouri', 'role' => 'manager']);
+    $municipalities = PlaceholderData::municipalities();
+    $zones        = PlaceholderData::mapZones();
+    $stats        = PlaceholderData::stats();
+    $reclamations = PlaceholderData::adminAllReclamations();
+    $monthly      = PlaceholderData::analyticsMonthly();
+    $projects     = PlaceholderData::projects();
+    $qualityData  = PlaceholderData::waterQualityRecords();
+    $funding      = PlaceholderData::fundingData();
 
-    $firstName   = explode(' ', $user['name'])[0];
+    $firstName    = explode(' ', $user['name'])[0];
 
-    $zoneNormal  = count(array_filter($zones, fn($z)=>$z['status']==='normal'));
-    $zoneAlert   = count(array_filter($zones, fn($z)=>$z['status']==='alert'));
-    $zoneCrit    = count(array_filter($zones, fn($z)=>$z['status']==='critical'));
-
-    $totalInc    = count($reclamations);
+    $totalInc     = count($reclamations);
+    $pendingInc   = count(array_filter($reclamations, fn($r)=>$r['status']==='pending'));
     $inProgressInc = count(array_filter($reclamations, fn($r)=>$r['status']==='in_progress'));
-    $pendingInc  = count(array_filter($reclamations, fn($r)=>$r['status']==='pending'));
-    $resolvedInc = count(array_filter($reclamations, fn($r)=>$r['status']==='resolved'));
-
-    $techOnMission = count(array_filter($technicians, fn($t)=>$t['status']==='on_mission'));
-    $techAvail     = count(array_filter($technicians, fn($t)=>$t['status']==='available'));
+    $resolvedInc  = count(array_filter($reclamations, fn($r)=>$r['status']==='resolved'));
 
     $statusStyle = [
-        'pending'     => ['bg'=>'bg-red-500/15',   'text'=>'text-red-300',   'dot'=>'bg-red-400 animate-pulse','label'=>'Non traité'],
+        'pending'     => ['bg'=>'bg-red-500/15',   'text'=>'text-red-300',   'dot'=>'bg-red-400 animate-pulse','label'=>'À affecter / ouverte'],
         'in_progress' => ['bg'=>'bg-amber-500/15', 'text'=>'text-amber-300', 'dot'=>'bg-amber-400',            'label'=>'En cours'],
         'resolved'    => ['bg'=>'bg-teal-500/15',  'text'=>'text-teal-300',  'dot'=>'bg-teal-400',             'label'=>'Résolu'],
     ];
@@ -38,353 +34,413 @@
 @endphp
 
 @push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-@keyframes barSlide { from { width: 0 } }
-.bar-grow { animation: barSlide .9s cubic-bezier(.22,1,.36,1) both; }
-#mgr-map { height: 340px; }
-.leaflet-tile-pane { filter: brightness(.68) saturate(.6) hue-rotate(185deg); }
-.leaflet-control-zoom a { background:rgba(6,21,37,.9)!important; border-color:rgba(5,191,219,.25)!important; color:#7ce8f7!important; }
-.leaflet-control-attribution { display:none!important; }
-.leaflet-popup-content-wrapper { background:rgba(6,21,37,.97)!important; border:1px solid rgba(5,191,219,.3)!important; border-radius:12px!important; color:#f0fdff!important; padding:0!important; }
-.leaflet-popup-tip { background:rgba(6,21,37,.97)!important; }
-.leaflet-popup-content { margin:0!important; padding:0!important; min-width:200px; }
-.leaflet-popup-close-button { color:rgba(156,200,216,.6)!important; }
+#mgr-map { height: 380px; border-radius: 1rem; }
+.leaflet-tile-pane { filter: brightness(.88) contrast(1.1) saturate(0.8); }
+.leaflet-control-zoom a { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; color: #38bdf8 !important; }
+.leaflet-popup-content-wrapper { background: #0f172a !important; border: 1px solid rgba(56,189,248,0.3) !important; border-radius: 12px !important; color: #f8fafc !important; }
+.leaflet-popup-tip { background: #0f172a !important; }
 </style>
 @endpush
 
 @section('content')
-<div class="min-h-screen">
+<div class="min-h-screen bg-[#070e17] text-slate-100 flex flex-col font-sans">
 
-{{-- ── TOPBAR GESTIONNAIRE ─────────────────────────────────── --}}
-<nav class="sticky top-0 z-50 glass-strong px-4 sm:px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-            <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
-        </div>
-        <span class="font-display font-bold text-white hidden sm:block">AquaSecure</span>
-        <span class="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-400/20">
-            Espace Gestionnaire
-        </span>
-    </div>
-    <div class="flex items-center gap-2">
-        <button onclick="toggleTheme()"
-                class="glass p-2 rounded-lg text-cyan-300 hover:text-white transition-colors">
-            <i data-lucide="sun"  class="w-4 h-4 sun-icon  hidden"></i>
-            <i data-lucide="moon" class="w-4 h-4 moon-icon"></i>
-        </button>
-        <x-notification-center />
-        <x-user-menu />
-    </div>
-</nav>
-
-<div class="sticky top-[57px] z-40 glass px-4 py-2 flex gap-2 overflow-x-auto">
-    @foreach([
-        ['route' => 'manager.dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard'],
-        ['route' => 'manager.incidents', 'label' => 'Incidents', 'icon' => 'alert-triangle'],
-        ['route' => 'manager.teams',     'label' => 'Équipes',   'icon' => 'users'],
-        ['route' => 'manager.projets.index',  'label' => 'Projets',   'icon' => 'briefcase'],
-        ['route' => 'manager.map',       'label' => 'Carte',     'icon' => 'map'],
-        ['route' => 'manager.analytics', 'label' => 'Analytics', 'icon' => 'bar-chart-2'],
-    ] as $tab)
-    <a href="{{ route($tab['route']) }}"
-       class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors
-              {{ request()->routeIs($tab['route']) ? 'bg-cyan-500/15 text-white border border-cyan-400/25' : 'text-cyan-100/60 hover:text-white hover:bg-white/5' }}">
-        <i data-lucide="{{ $tab['icon'] }}" class="w-4 h-4"></i>
-        {{ $tab['label'] }}
-    </a>
-    @endforeach
-</div>
-
-<div class="container mx-auto px-4 py-6 max-w-7xl space-y-6 animate-fade-in-up">
-
-    {{-- ══ HEADER ══════════════════════════════════════════════ --}}
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl sm:text-3xl font-display font-bold text-white">
-                Bonjour, {{ $firstName }} 👋
-            </h1>
-            <p class="text-cyan-100/55 text-sm mt-0.5">
-                Gestionnaire · Supervision opérationnelle du réseau
-            </p>
-        </div>
-        <div class="flex gap-2">
-            <a href="{{ route('manager.analytics') }}"
-               class="glass px-4 py-2 rounded-xl text-sm text-cyan-300 hover:text-white font-semibold
-                      flex items-center gap-2 transition-all hover:border-cyan-400/40">
-                <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                <span class="hidden sm:inline">Analytics</span>
-            </a>
-            <a href="{{ route('manager.map') }}"
-               class="glass px-4 py-2 rounded-xl text-sm text-cyan-300 hover:text-white font-semibold
-                      flex items-center gap-2 transition-all hover:border-cyan-400/40">
-                <i data-lucide="map" class="w-4 h-4"></i>
-                <span class="hidden sm:inline">Carte complète</span>
-            </a>
-        </div>
-    </div>
-
-    {{-- ══ 4 KPI CARDS ════════════════════════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        @foreach([
-            ['val'=>count($zones),  'label'=>'Zones surveillées','icon'=>'map-pin',      'bg'=>'bg-cyan-500/10',  'ic'=>'text-cyan-400',  'sub'=>$zoneNormal.' normales'],
-            ['val'=>$totalInc,      'label'=>'Incidents',        'icon'=>'alert-triangle','bg'=>'bg-red-500/10',   'ic'=>'text-red-400',   'sub'=>$pendingInc.' non traités'],
-            ['val'=>$inProgressInc, 'label'=>'Interventions',    'icon'=>'loader',        'bg'=>'bg-amber-500/10', 'ic'=>'text-amber-400', 'sub'=>'en cours'],
-            ['val'=>$techOnMission, 'label'=>'Techniciens',      'icon'=>'wrench',        'bg'=>'bg-teal-500/10',  'ic'=>'text-teal-400',  'sub'=>$techAvail.' disponibles'],
-        ] as $kpi)
-        <div class="glass rounded-2xl p-4 hover-lift">
-            <div class="w-10 h-10 rounded-xl {{ $kpi['bg'] }} flex items-center justify-center mb-3">
-                <i data-lucide="{{ $kpi['icon'] }}" class="w-5 h-5 {{ $kpi['ic'] }}"></i>
-            </div>
-            <p class="text-2xl font-display font-bold text-white">{{ $kpi['val'] }}</p>
-            <p class="text-xs font-semibold text-cyan-100/60 mt-0.5">{{ $kpi['label'] }}</p>
-            <p class="text-[10px] text-cyan-100/35">{{ $kpi['sub'] }}</p>
-        </div>
-        @endforeach
-    </div>
-
-    {{-- ══ CARTE RÉSEAU ══════════════════════════════════════ --}}
-    <div class="glass rounded-2xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <h2 class="text-white font-display font-bold">État du réseau en temps réel</h2>
-                <p class="text-cyan-100/50 text-xs mt-0.5">{{ count($zones) }} zones · Incidents actifs</p>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
-                @foreach([
-                    ['c'=>'bg-teal-400',             't'=>'text-teal-300',  'l'=>'Normal',   'n'=>$zoneNormal],
-                    ['c'=>'bg-amber-400',             't'=>'text-amber-300','l'=>'Alerte',   'n'=>$zoneAlert],
-                    ['c'=>'bg-red-400 animate-pulse', 't'=>'text-red-300',  'l'=>'Critique', 'n'=>$zoneCrit],
-                ] as $leg)
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                    <span class="w-2 h-2 rounded-full {{ $leg['c'] }}"></span>
-                    <span class="text-xs font-semibold {{ $leg['t'] }}">{{ $leg['n'] }} {{ $leg['l'] }}</span>
-                </div>
-                @endforeach
-                <a href="{{ route('manager.map') }}"
-                   class="glass px-3 py-1.5 rounded-lg text-xs text-cyan-300 hover:text-white font-semibold
-                          flex items-center gap-1 transition-all hover:border-cyan-400/40">
-                    <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-                    <span class="hidden sm:inline">Plein écran</span>
+    {{-- ══ AQUASECURE LIQUID GLASS HEADER & TOPNAV ════════════════════════════ --}}
+    <header class="sticky top-0 z-50 glass-strong border-b border-white/20 px-4 sm:px-6 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            
+            {{-- Back Arrow & Brand Logo --}}
+            <div class="flex items-center gap-3">
+                <x-back-button :fallback="route('landing')" />
+                <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-2.5 group">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
+                        <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <span class="font-display text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+                            AquaSecure <span class="liquid-chip text-[11px] py-0 px-2 font-medium">Gestionnaire</span>
+                        </span>
+                    </div>
                 </a>
+
+                {{-- Scope Utility Selector --}}
+                <div class="hidden md:flex items-center gap-2 glass px-3 py-1.5 rounded-xl text-xs">
+                    <i data-lucide="building-2" class="w-4 h-4 text-cyan-300"></i>
+                    <span class="text-white/70 font-medium">Secteur:</span>
+                    <select id="utility-selector" onchange="switchUtility(this.value)" class="bg-transparent text-white font-semibold outline-none cursor-pointer pr-1">
+                        @foreach($municipalities as $muni)
+                            <option value="{{ $muni['id'] }}" class="bg-[#04121b] text-white" {{ $muni['active'] ? 'selected' : '' }}>
+                                {{ $muni['name'] }} ({{ $muni['assets'] }} actifs)
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            {{-- Global Search Bar --}}
+            <div class="hidden lg:flex flex-1 max-w-md mx-4">
+                <div class="relative w-full">
+                    <i data-lucide="search" class="w-4 h-4 text-white/50 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" placeholder="Rechercher canalisations, réservoirs, incidents... (Ctrl+K)" 
+                           class="w-full glass rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-cyan-300 transition-all">
+                </div>
+            </div>
+
+            {{-- Right Controls: Notifications & User Menu --}}
+            <div class="flex items-center gap-3">
+                <details class="relative lg:hidden">
+                    <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300" aria-label="Ouvrir la navigation">
+                        <i data-lucide="menu" class="h-5 w-5" aria-hidden="true"></i>
+                    </summary>
+                    <nav class="absolute right-0 top-12 z-[70] w-64 rounded-2xl border border-white/15 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Navigation gestionnaire">
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.dashboard') }}">Tableau de bord</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.map') }}">Carte du réseau</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.quality') }}">Qualité de l’eau</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.incidents') }}">Incidents</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.teams') }}">Équipes</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.projects') }}">Projets</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.budget') }}">Budget</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.analytics') }}">Analyses et rapports</a>
+                    </nav>
+                </details>
+                <x-notification-center />
+                <x-user-menu />
             </div>
         </div>
-        <div id="mgr-map"></div>
-    </div>
+    </header>
 
-    {{-- ══ INCIDENTS + TECHNICIENS ════════════════════════════ --}}
-    <div class="grid lg:grid-cols-5 gap-6">
+    {{-- ══ MAIN BODY WITH SIDEBAR ═════════════════════════════════════ --}}
+    <div class="flex-1 flex max-w-7xl w-full mx-auto">
+        
+        {{-- Sidebar Navigation --}}
+        <aside class="w-64 hidden lg:block bg-[#09121f] border-r border-slate-800/80 p-4 space-y-6 shrink-0">
+            <div>
+                <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Navigation principale</p>
+                <nav class="space-y-1">
+                    <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-cyan-400"></i> Tableau de bord
+                    </a>
+                    <a href="{{ route('manager.map') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-blue-400"></i> Carte du réseau
+                    </a>
+                    <a href="{{ route('manager.quality') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i> Qualité de l’eau
+                    </a>
+                    <a href="{{ route('manager.incidents') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i> Gestion des incidents
+                    </a>
+                    <a href="{{ route('manager.projects') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i> Maintenance et projets
+                    </a>
+                    <a href="{{ route('manager.techniciens.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="wrench" class="w-4 h-4 text-orange-400"></i> Techniciens et interventions
+                    </a>
+                    <a href="{{ route('manager.budget') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> Financement et budget
+                    </a>
+                    <a href="{{ route('manager.analytics') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="line-chart" class="w-4 h-4 text-purple-400"></i> Analyses et rapports
+                    </a>
+                </nav>
+            </div>
 
-        {{-- Incidents (3/5) --}}
-        <div class="glass rounded-2xl overflow-hidden lg:col-span-3">
-            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+            <div>
+                <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Espace public et administration</p>
+                <nav class="space-y-1">
+                    <a href="{{ route('citizen.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="users" class="w-4 h-4 text-sky-400"></i> Portail de signalement citoyen
+                    </a>
+                    <a href="{{ route('admin.roles') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-indigo-400"></i> Rôles et autorisations
+                    </a>
+                </nav>
+            </div>
+
+            {{-- 120Water Compliance Badge --}}
+            <div class="bg-gradient-to-br from-cyan-950/40 to-blue-950/40 border border-cyan-500/20 rounded-2xl p-4 text-xs space-y-2">
+                <div class="flex items-center gap-2 text-cyan-300 font-bold">
+                    <i data-lucide="shield" class="w-4 h-4"></i> EPA / INNORPI Standard
+                </div>
+                <p class="text-slate-400 text-[11px]">Suivi de la qualité de l'eau selon les seuils EPA et INNORPI.</p>
+            </div>
+        </aside>
+
+        {{-- Main Dashboard Content --}}
+        <main class="flex-1 p-4 sm:p-6 space-y-6 overflow-x-hidden">
+            
+            {{-- Welcome & Subtitle --}}
+            <div class="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h2 class="text-white font-display font-bold">Incidents récents</h2>
-                    <p class="text-cyan-100/50 text-xs mt-0.5">
-                        <span class="text-red-300">{{ $pendingInc }}</span> non traités ·
-                        <span class="text-amber-300">{{ $inProgressInc }}</span> en cours
+                    <h1 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">
+                        Tableau de bord des infrastructures hydrauliques
+                    </h1>
+                    <p class="text-slate-400 text-sm mt-1">
+                        Suivi du réseau, des incidents et du budget pour <span id="current-utility-title" class="text-cyan-300 font-semibold">Régie des eaux du Grand Tunis</span>.
                     </p>
                 </div>
-                <a href="{{ route('manager.incidents') }}"
-                   class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">
-                    Gérer →
-                </a>
+                <div class="flex items-center gap-2.5">
+                    <button onclick="showToast('Exporting executive PDF summary report...', 'info')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-2 transition-all">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exporter le rapport
+                    </button>
+                    <a href="{{ route('manager.map') }}" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-semibold shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition-all">
+                        <i data-lucide="map" class="w-4 h-4"></i> Carte du réseau
+                    </a>
+                </div>
             </div>
-            <div class="divide-y divide-white/[.04]">
-                @foreach($reclamations as $rec)
-                @php
-                    $ss = $statusStyle[$rec['status']];
-                    $ps = $priorityStyle[$rec['priority']];
-                @endphp
-                <div class="flex items-center gap-3 px-5 py-3.5 hover:bg-white/[.025] transition-colors">
-                    <div class="w-2 h-2 rounded-full {{ $ss['dot'] }} shrink-0"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
-                            <span class="text-[10px] font-mono font-bold text-cyan-400">{{ $rec['id'] }}</span>
-                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold {{ $ps['bg'] }} {{ $ps['text'] }}">
-                                {{ $ps['label'] }}
-                            </span>
-                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold {{ $ss['bg'] }} {{ $ss['text'] }}">
-                                {{ $ss['label'] }}
-                            </span>
+
+            {{-- ══ 6 DASHBOARD SUMMARY CARDS (Requirement 3) ═════════════════════ --}}
+            <div class="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
+                
+                {{-- 1. Registered Assets --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-400 font-semibold">Équipements recensés</span>
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+                            <i data-lucide="database" class="w-4 h-4"></i>
                         </div>
-                        <p class="text-white text-xs font-semibold truncate">{{ $rec['type'] }}</p>
-                        <p class="text-cyan-100/45 text-[11px]">{{ $rec['zone'] }} · {{ $rec['citizen'] }}</p>
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        @if($rec['status']==='pending')
-                        <button onclick="showToast('Assignation technicien à implémenter', 'info')"
-                                class="glass px-2.5 py-1.5 rounded-lg text-[11px] text-teal-300 hover:text-white font-semibold transition-colors"
-                                title="Affecter">
-                            Affecter
-                        </button>
-                        @endif
-                        <span class="text-[10px] text-cyan-100/30 whitespace-nowrap">{{ $rec['created_at'] }}</span>
-                    </div>
+                    <div class="text-2xl font-display font-bold text-white">1,482</div>
+                    <p class="text-[11px] text-emerald-400 mt-1 flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> +12 ce mois-ci
+                    </p>
                 </div>
-                @endforeach
-            </div>
-            <div class="px-5 py-3 border-t border-white/5">
-                <a href="{{ route('manager.incidents') }}"
-                   class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">
-                    Voir tous les incidents →
-                </a>
-            </div>
-        </div>
 
-        {{-- Techniciens (2/5) --}}
-        <div class="glass rounded-2xl overflow-hidden lg:col-span-2">
-            <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                <div>
-                    <h2 class="text-white font-display font-bold">Équipes terrain</h2>
-                    <p class="text-cyan-100/50 text-xs mt-0.5">{{ $techOnMission }} en mission · {{ $techAvail }} disponibles</p>
+                {{-- 2. Active Incidents --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-400 font-semibold">Incidents en cours</span>
+                        <div class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center">
+                            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-display font-bold text-white">{{ $totalInc }}</div>
+                    <p class="text-[11px] text-amber-400 mt-1 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span> 2 critiques, {{ $pendingInc }} sans affectation
+                    </p>
                 </div>
-                <a href="{{ route('manager.teams') }}"
-                   class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">
-                    Gérer →
-                </a>
+
+                {{-- 3. Open Leak Reports --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-400 font-semibold">Fuites signalées</span>
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                            <i data-lucide="droplet-off" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-display font-bold text-white">14</div>
+                    <p class="text-[11px] text-slate-400 mt-1">Délai moyen de réparation : 2,4 h</p>
+                </div>
+
+                {{-- 4. Water Quality Alerts --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-400 font-semibold">Alertes qualité</span>
+                        <div class="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center">
+                            <i data-lucide="flask-conical" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-display font-bold text-white">3</div>
+                    <p class="text-[11px] text-teal-300 mt-1">98,5 % de conformité</p>
+                </div>
+
+                {{-- 5. Ongoing Maintenance Projects --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-400 font-semibold">Projets en cours</span>
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                            <i data-lucide="briefcase" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-display font-bold text-white">{{ count($projects) }}</div>
+                    <p class="text-[11px] text-slate-400 mt-1">Valeur totale : 4,85 M$</p>
+                </div>
+
+                {{-- 6. Renovation Budget & Utilization --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden group hover:border-slate-700 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-slate-400 font-semibold">Budget consommé</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                            <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-display font-bold text-white">${{ number_format($funding['actual_expenditure']/1000000, 2) }}M</div>
+                    <p class="text-[11px] text-emerald-400 mt-1 font-semibold">{{ $funding['utilization_rate'] }} % d’un budget de ${{ number_format($funding['total_approved_funding']/1000000, 2) }}M</p>
+                </div>
             </div>
-            <div class="divide-y divide-white/[.04]">
-                @foreach($technicians as $tech)
-                @php
-                    $ts = [
-                        'on_mission' => ['dot'=>'bg-amber-400 animate-pulse','text'=>'text-amber-300','label'=>'En mission'],
-                        'available'  => ['dot'=>'bg-teal-400',               'text'=>'text-teal-300', 'label'=>'Disponible'],
-                        'off_duty'   => ['dot'=>'bg-slate-500',              'text'=>'text-slate-400','label'=>'Hors service'],
-                    ][$tech['status']];
-                @endphp
-                <div class="flex items-center gap-3 px-5 py-3 hover:bg-white/[.02] transition-colors">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20
-                                 border border-cyan-400/15 flex items-center justify-center
-                                 text-[11px] font-bold text-cyan-300 shrink-0">
-                        {{ $tech['initials'] }}
+
+            {{-- ══ INTERACTIVE INFRASTRUCTURE MAP (Requirement 3 & 4) ════════════════ --}}
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="p-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400"></i> Carte du réseau et des incidents
+                        </h2>
+                        <p class="text-slate-400 text-xs mt-0.5">Canalisations, réservoirs, stations de traitement et fuites signalées</p>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-white text-xs font-semibold truncate">{{ $tech['name'] }}</p>
-                        <p class="text-cyan-100/40 text-[11px] truncate">{{ $tech['zone'] }}</p>
-                    </div>
-                    <div class="flex items-center gap-1.5 shrink-0">
-                        @if($tech['interventions'] > 0)
-                        <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-300 text-[10px] font-bold
-                                      flex items-center justify-center">{{ $tech['interventions'] }}</span>
-                        @endif
-                        <span class="w-2 h-2 rounded-full {{ $ts['dot'] }}"></span>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="flex items-center gap-1 text-teal-400"><span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span> Normal</span>
+                        <span class="flex items-center gap-1 text-amber-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Maintenance</span>
+                        <span class="flex items-center gap-1 text-red-400"><span class="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse"></span> Critique / fuite</span>
+                        <a href="{{ route('manager.map') }}" class="ml-2 px-3 py-1 rounded-lg bg-slate-800 text-cyan-300 hover:text-white font-semibold">Afficher la carte →</a>
                     </div>
                 </div>
-                @endforeach
+                <div id="mgr-map"></div>
             </div>
-        </div>
+
+            {{-- ══ INTERACTIVE CHARTS ROW (Requirement 3) ════════════════════════ --}}
+            <div class="grid lg:grid-cols-2 gap-6">
+                
+                {{-- Chart 1: Incident Trends & Response --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="line-chart" class="w-4 h-4 text-cyan-400"></i> Évolution des incidents et réparations
+                            </h3>
+                            <p class="text-xs text-slate-400">Fuites signalées et incidents résolus par mois</p>
+                        </div>
+                        <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">-14 % de fuites</span>
+                    </div>
+                    <div style="height: 220px;">
+                        <canvas id="incidentTrendsChart"></canvas>
+                    </div>
+                </div>
+
+                {{-- Chart 2: Historique de la qualité de l'eau (pH, Turbidité, Chlore) --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i> Indicateurs de qualité de l’eau
+                            </h3>
+                            <p class="text-xs text-slate-400">Résultats de qualité de l'eau et seuils EPA / INNORPI</p>
+                        </div>
+                        <span class="text-xs font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg">Plage optimale</span>
+                    </div>
+                    <div style="height: 220px;">
+                        <canvas id="qualityHistoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ══ RECENT INCIDENTS TABLE & BUDGET ALLOCATION ════════════════════ --}}
+            <div class="grid lg:grid-cols-3 gap-6">
+                
+                {{-- Recent Incidents Table (2/3) --}}
+                <div class="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="list" class="w-4 h-4 text-cyan-400"></i> Incidents récents
+                            </h3>
+                            <p class="text-xs text-slate-400">Fuites signalées, alertes qualité et ruptures de canalisation</p>
+                        </div>
+                        <a href="{{ route('manager.incidents') }}" class="text-xs font-semibold text-cyan-400 hover:text-cyan-300">Voir tous les incidents →</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-950/60 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="px-4 py-3">ID & Type</th>
+                                    <th class="px-4 py-3">Lieu</th>
+                                    <th class="px-4 py-3">Priorité</th>
+                                    <th class="px-4 py-3">Statut</th>
+                                    <th class="px-4 py-3">Équipe affectée</th>
+                                    <th class="px-4 py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                                @foreach($reclamations as $rec)
+                                    @php
+                                        $ss = $statusStyle[$rec['status']];
+                                        $ps = $priorityStyle[$rec['priority']];
+                                    @endphp
+                                    <tr class="hover:bg-slate-800/40 transition-colors">
+                                        <td class="px-4 py-3 font-semibold text-white">
+                                            <div class="font-mono text-cyan-400 text-[11px]">{{ $rec['id'] }}</div>
+                                            <div>{{ $rec['type'] }}</div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="text-slate-200 font-medium">{{ $rec['zone'] }}</div>
+                                            <div class="text-[10px] text-slate-400 truncate max-w-[140px]">{{ $rec['address'] }}</div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $ps['bg'] }} {{ $ps['text'] }}">
+                                                {{ $ps['label'] }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $ss['bg'] }} {{ $ss['text'] }} inline-flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full {{ $ss['dot'] }}"></span> {{ $ss['label'] }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-300">
+                                            {{ $rec['technician'] ?? 'Unassigned' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <button onclick="showToast('Dispatching team for {{ $rec['id'] }}...', 'info')" class="px-2.5 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold border border-cyan-500/20">
+                                                Manage
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Project Budget Allocation (1/3) --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-400"></i> Répartition des financements
+                        </h3>
+                        <a href="{{ route('manager.budget') }}" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300">Détails du budget →</a>
+                    </div>
+                    <div style="height: 180px;" class="mb-4">
+                        <canvas id="fundingDoughnutChart"></canvas>
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        @foreach($funding['funding_sources'] as $source)
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ $source['color'] }}"></span>
+                                    <span class="text-slate-300">{{ $source['name'] }}</span>
+                                </div>
+                                <span class="font-bold text-white">${{ number_format($source['amount']/1000) }}k ({{ $source['pct'] }}%)</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
     </div>
-
-    {{-- ══ PERFORMANCE GRAPHIQUE ═══════════════════════════════ --}}
-    <div class="grid sm:grid-cols-3 gap-4">
-
-        {{-- Incidents/mois sparkline --}}
-        <div class="glass rounded-2xl p-5 sm:col-span-2">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-white font-display font-bold text-sm">Incidents / résolutions</h3>
-                    <p class="text-cyan-100/45 text-xs mt-0.5">12 derniers mois</p>
-                </div>
-                <div class="flex items-center gap-3 text-xs text-cyan-100/50">
-                    <span class="flex items-center gap-1">
-                        <span class="w-3 h-1 rounded bg-red-400/70 inline-block"></span>Incidents
-                    </span>
-                    <span class="flex items-center gap-1">
-                        <span class="w-3 h-1 rounded bg-teal-400/70 inline-block"></span>Résolus
-                    </span>
-                </div>
-            </div>
-            <div style="height:100px">
-                <svg id="mgr-sparkline" width="100%" height="100" viewBox="0 0 600 100"
-                     preserveAspectRatio="none" class="overflow-visible"></svg>
-            </div>
-            <div class="flex justify-between mt-1">
-                @foreach($monthly['labels'] as $lbl)
-                <span class="text-[9px] text-cyan-100/30">{{ $lbl }}</span>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- Taux de résolution --}}
-        <div class="glass rounded-2xl p-5">
-            <h3 class="text-white font-display font-bold text-sm mb-1">Taux de résolution</h3>
-            <p class="text-cyan-100/45 text-xs mb-4">Incidents résolus / total</p>
-
-            @php $resRate = $totalInc > 0 ? round($resolvedInc/$totalInc*100) : 0; @endphp
-
-            <div class="flex flex-col items-center">
-                <svg width="110" height="110" viewBox="0 0 110 110">
-                    @php
-                        $r = 42; $circ = 2*M_PI*$r;
-                        $dash = ($resRate/100)*$circ;
-                    @endphp
-                    <circle cx="55" cy="55" r="{{ $r }}" fill="none" stroke="rgba(5,191,219,.12)" stroke-width="10"/>
-                    <circle cx="55" cy="55" r="{{ $r }}" fill="none" stroke="#2dd4bf" stroke-width="10"
-                            stroke-dasharray="{{ $dash }} {{ $circ - $dash }}"
-                            stroke-dashoffset="{{ $circ * 0.25 }}"
-                            transform="rotate(-90 55 55)"/>
-                    <text x="55" y="51" text-anchor="middle" font-size="20" font-weight="700"
-                          fill="#f0fdff" font-family="Space Grotesk">{{ $resRate }}%</text>
-                    <text x="55" y="64" text-anchor="middle" font-size="9"
-                          fill="rgba(156,200,216,.5)" font-family="Plus Jakarta Sans">résolution</text>
-                </svg>
-            </div>
-
-            <div class="mt-3 space-y-2">
-                @foreach([
-                    ['label'=>'Non traités','val'=>$pendingInc,  'color'=>'#ef4444'],
-                    ['label'=>'En cours',   'val'=>$inProgressInc,'color'=>'#f97316'],
-                    ['label'=>'Résolus',    'val'=>$resolvedInc, 'color'=>'#2dd4bf'],
-                ] as $row)
-                <div class="flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full" style="background:{{ $row['color'] }}"></span>
-                        <span class="text-cyan-100/60">{{ $row['label'] }}</span>
-                    </div>
-                    <span class="font-bold text-white">{{ $row['val'] }}</span>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
-    {{-- ══ LIENS RAPIDES ══════════════════════════════════════ --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        @foreach([
-            ['route'=>'manager.incidents', 'icon'=>'alert-triangle','label'=>'Incidents',   'color'=>'red'],
-            ['route'=>'manager.teams',     'icon'=>'users',          'label'=>'Équipes',     'color'=>'cyan'],
-            ['route'=>'manager.projets.index',  'icon'=>'briefcase',      'label'=>'Projets',     'color'=>'blue'],
-            ['route'=>'manager.analytics', 'icon'=>'bar-chart-2',    'label'=>'Analytics',   'color'=>'teal'],
-        ] as $link)
-        <a href="{{ route($link['route']) }}"
-           class="glass rounded-2xl p-4 flex items-center gap-3 hover-lift group transition-all hover:border-{{ $link['color'] }}-400/30">
-            <div class="w-9 h-9 rounded-xl bg-{{ $link['color'] }}-500/10 flex items-center justify-center shrink-0">
-                <i data-lucide="{{ $link['icon'] }}" class="w-4.5 h-4.5 text-{{ $link['color'] }}-400" style="width:18px;height:18px"></i>
-            </div>
-            <span class="text-sm font-semibold text-cyan-100/70 group-hover:text-white transition-colors">{{ $link['label'] }}</span>
-            <i data-lucide="arrow-right" class="w-4 h-4 text-cyan-100/20 group-hover:text-cyan-400 ml-auto transition-colors shrink-0"></i>
-        </a>
-        @endforeach
-    </div>
-
-</div>{{-- /container --}}
-</div>{{-- /min-h-screen --}}
+</div>
 @endsection
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLI=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const MAP_ZONES    = @json($zones);
+const MAP_ZONES = @json($zones);
 const RECLAMATIONS = @json($reclamations);
 
-/* ── Carte ──────────────────────────────────────────── */
+function switchUtility(id) {
+    const selector = document.getElementById('utility-selector');
+    const selectedText = selector.options[selector.selectedIndex].text.split(' (')[0];
+    document.getElementById('current-utility-title').textContent = selectedText;
+    showToast('Switched utility scope to ' + selectedText, 'info');
+}
+
+/* ── Leaflet Map Setup ──────────────────────────── */
 (function() {
     const map = L.map('mgr-map', {
-        center: [34.0, 9.4], zoom: 6,
-        zoomControl: false, attributionControl: false, scrollWheelZoom: false
+        center: [35.8, 10.2], zoom: 7,
+        zoomControl: false, attributionControl: false
     });
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
@@ -392,78 +448,128 @@ const RECLAMATIONS = @json($reclamations);
     const zoneC = { normal:'#2dd4bf', alert:'#fbbf24', critical:'#ef4444' };
     MAP_ZONES.forEach(z => {
         const c = zoneC[z.status] ?? '#2dd4bf';
-        const size = 26, half = 13;
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-            <circle cx="${half}" cy="${half}" r="${half-2}" fill="${c}" fill-opacity="0.15" stroke="${c}" stroke-width="1.5" stroke-dasharray="3,2"/>
+        const size = 28, half = 14;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+            <circle cx="${half}" cy="${half}" r="${half-2}" fill="${c}" fill-opacity="0.2" stroke="${c}" stroke-width="2"/>
         </svg>`;
         L.marker([z.lat, z.lng], {
-            icon: L.divIcon({ html: svg, iconSize:[size,size], iconAnchor:[half,half], className:'' }),
-            zIndexOffset: -100
-        }).addTo(map).bindTooltip(
-            `<b style="color:#f0fdff;font-size:11px">${z.emoji} ${z.name}</b><br>
-             <span style="color:${c};font-size:10px">${z.incidents} incident(s)</span>`,
-            { sticky: true, className: '' }
-        );
+            icon: L.divIcon({ html: svg, iconSize:[size,size], iconAnchor:[half,half], className:'' })
+        }).addTo(map).bindTooltip(`<b>${z.emoji} ${z.name} Zone</b><br>Quality: ${z.quality}% | Pressure: ${z.pressure} bar`, { sticky: true });
     });
 
     const recC = { pending:'#ef4444', in_progress:'#f97316', resolved:'#2dd4bf' };
-    const recI = { pending:'⚠', in_progress:'🔧', resolved:'✓' };
     RECLAMATIONS.forEach(r => {
         const c = recC[r.status] ?? '#9ca3af';
-        const pulse = r.status !== 'resolved';
-        const size = r.status === 'pending' ? 36 : 30, half = size/2;
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-            ${pulse ? `<circle cx="${half}" cy="${half}" r="${half}" fill="${c}" opacity="0.18">
-                <animate attributeName="r" from="${half}" to="${size}" dur="2s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" from="0.25" to="0" dur="2s" repeatCount="indefinite"/>
-            </circle>` : ''}
-            <circle cx="${half}" cy="${half}" r="${half-3}" fill="${c}" fill-opacity="0.25" stroke="${c}" stroke-width="2"/>
-            <circle cx="${half}" cy="${half}" r="${half-9}" fill="${c}" fill-opacity="0.9"/>
-            <text x="${half}" y="${half+4}" text-anchor="middle" font-size="10" fill="white">${recI[r.status]}</text>
+        const size = 32, half = 16;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+            <circle cx="${half}" cy="${half}" r="${half-3}" fill="${c}" fill-opacity="0.9" stroke="#ffffff" stroke-width="2"/>
         </svg>`;
         L.marker([r.lat, r.lng], {
-            icon: L.divIcon({ html: svg, iconSize:[size,size], iconAnchor:[half,half], className:'' }),
-            zIndexOffset: 100
-        }).addTo(map).bindPopup(
-            `<div style="padding:12px;font-family:'Plus Jakarta Sans',sans-serif">
-                <p style="color:rgba(156,200,216,.6);font-size:10px;font-family:monospace;margin:0 0 3px">${r.id}</p>
-                <p style="color:#f0fdff;font-size:13px;font-weight:700;margin:0 0 4px">${r.type}</p>
-                <p style="color:rgba(156,200,216,.6);font-size:11px;margin:0 0 8px">${r.zone}</p>
-                <p style="color:rgba(156,200,216,.5);font-size:10px;margin:0">Citoyen: ${r.citizen}</p>
-                ${r.technician ? `<p style="color:#5ee5f7;font-size:10px;margin:4px 0 0">Technicien: ${r.technician}</p>` : ''}
-            </div>`, { maxWidth: 220 }
-        );
+            icon: L.divIcon({ html: svg, iconSize:[size,size], iconAnchor:[half,half], className:'' })
+        }).addTo(map).bindPopup(`
+            <div style="font-family:sans-serif;padding:6px">
+                <div style="color:#38bdf8;font-weight:bold;font-size:12px">${r.id} - ${r.type}</div>
+                <div style="color:#e2e8f0;font-size:11px;margin-top:2px">${r.description}</div>
+                <div style="color:#94a3b8;font-size:10px;margin-top:4px">Location: ${r.address}</div>
+            </div>
+        `);
     });
 })();
 
-/* ── Sparkline incidents/résolus ────────────────────── */
+/* ── Chart 1: Incident Trends Chart ────────────────────────── */
 (function() {
-    const inc = @json($monthly['incidents']);
-    const res = @json($monthly['resolved']);
-    const svg = document.getElementById('mgr-sparkline');
-    if (!svg) return;
-    const W = 600, H = 100, pad = 10;
-    const max = Math.max(...inc, ...res) * 1.15;
-    const sx = i => pad + (i/(inc.length-1))*(W-pad*2);
-    const sy = v => pad + (1-v/max)*(H-pad*2);
-    const pts = (arr) => arr.map((v,i) => ({x:sx(i),y:sy(v)}));
-    const path = (arr, color) => {
-        const p = pts(arr);
-        const d = p.map((pt,i)=>`${i===0?'M':'L'}${pt.x},${pt.y}`).join(' ');
-        const el = document.createElementNS('http://www.w3.org/2000/svg','path');
-        el.setAttribute('d',d); el.setAttribute('fill','none');
-        el.setAttribute('stroke',color); el.setAttribute('stroke-width','2');
-        el.setAttribute('stroke-linecap','round'); el.setAttribute('opacity','0.8');
-        svg.appendChild(el);
-    };
-    path(inc, '#ef4444');
-    path(res, '#2dd4bf');
-    // dots
-    pts(inc).forEach((p,i) => {
-        const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-        c.setAttribute('cx',p.x); c.setAttribute('cy',p.y); c.setAttribute('r',3);
-        c.setAttribute('fill','#ef4444');
-        svg.appendChild(c);
+    const ctx = document.getElementById('incidentTrendsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+            datasets: [
+                {
+                    label: 'Leaks Reported',
+                    data: [18, 24, 21, 15, 14, 11],
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Repairs Completed',
+                    data: [16, 22, 20, 15, 14, 10],
+                    borderColor: '#2dd4bf',
+                    backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+            scales: {
+                x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+})();
+
+/* ── Chart 2: Water Quality History ──────────────────────── */
+(function() {
+    const ctx = document.getElementById('qualityHistoryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Tunis Nord', 'Ariana', 'Ben Arous', 'Sousse', 'Sfax'],
+            datasets: [
+                {
+                    label: 'pH Level (Optimal 6.5-8.5)',
+                    data: [7.42, 7.82, 8.45, 7.20, 7.30],
+                    backgroundColor: '#0284c7'
+                },
+                {
+                    label: 'Turbidity (NTU <1.0)',
+                    data: [0.45, 1.25, 2.45, 0.22, 0.41],
+                    backgroundColor: '#0d9488'
+                },
+                {
+                    label: 'Chlore résiduel (mg/L)',
+                    data: [0.85, 0.35, 0.12, 1.10, 0.95],
+                    backgroundColor: '#3b82f6'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+            scales: {
+                x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+})();
+
+/* ── Chart 3: Funding Allocation Doughnut Chart ───────────── */
+(function() {
+    const ctx = document.getElementById('fundingDoughnutChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['EU Water Fund', 'Federal Grant', 'Municipal Bond', 'AfDB Eco-Fund'],
+            datasets: [{
+                data: [2100000, 1450000, 800000, 500000],
+                backgroundColor: ['#0284c7', '#0d9488', '#3b82f6', '#8b5cf6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            cutout: '70%'
+        }
     });
 })();
 

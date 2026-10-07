@@ -1,18 +1,30 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900">
+<div class="min-h-screen bg-gradient-to-br from-[#04121b] via-[#082236] to-[#04121b]">
     <div class="container mx-auto px-4 py-8">
+        {{-- Header Navigation --}}
+        <div class="flex items-center justify-between mb-8">
+            <a href="{{ route('landing') }}" class="liquid-tool text-cyan-300 hover:text-white flex items-center gap-2 text-xs font-semibold">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Retour à l'accueil</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
+                    <i data-lucide="droplet" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="font-display font-bold text-white text-base">AquaSecure AI</span>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="text-center mb-12">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 mb-6">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                </svg>
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-400 to-blue-600 shadow-xl shadow-cyan-500/20 mb-6">
+                <i data-lucide="bot" class="w-10 h-10 text-white"></i>
             </div>
-            <h1 class="text-4xl font-bold text-white mb-4">AquaSecure AI Assistant</h1>
-            <p class="text-xl text-slate-400 max-w-2xl mx-auto">
-                Votre assistant intelligent pour la gestion de l'eau potable
+            <h1 class="text-4xl font-display font-extrabold text-white mb-4">AquaSecure AI Assistant</h1>
+            <p class="text-lg text-cyan-100/70 max-w-2xl mx-auto font-medium">
+                Votre assistant intelligent pour la gestion et le suivi de l'eau potable
             </p>
         </div>
 
@@ -22,7 +34,7 @@
                 [
                     'icon' => 'droplet',
                     'title' => 'Qualité de l\'eau',
-                    'desc' => 'Consultez en temps réel la qualité de l\'eau dans votre zone',
+                    'desc' => 'Consultez les résultats de qualité de l\'eau disponibles pour votre zone',
                     'color' => 'cyan',
                     'example' => 'Quelle est la qualité de l\'eau dans ma zone ?'
                 ],

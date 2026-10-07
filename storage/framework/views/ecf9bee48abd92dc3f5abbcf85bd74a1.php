@@ -115,25 +115,6 @@
     </div>
 </nav>
 
-<div class="sticky top-[57px] z-40 glass px-4 py-2 flex gap-2 overflow-x-auto">
-    <?php $__currentLoopData = [
-        ['route' => 'manager.dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard'],
-        ['route' => 'manager.incidents', 'label' => 'Incidents', 'icon' => 'alert-triangle'],
-        ['route' => 'manager.teams',     'label' => 'Équipes',   'icon' => 'users'],
-        ['route' => 'manager.projets.index',  'label' => 'Projets',   'icon' => 'briefcase'],
-        ['route' => 'manager.map',       'label' => 'Carte',     'icon' => 'map'],
-        ['route' => 'manager.analytics', 'label' => 'Analytics', 'icon' => 'bar-chart-2'],
-    ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-    <a href="<?php echo e(route($tab['route'])); ?>"
-       class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors
-              <?php echo e(request()->routeIs($tab['route']) ? 'bg-cyan-500/15 text-white border border-cyan-400/25' : 'text-cyan-100/60 hover:text-white hover:bg-white/5'); ?>">
-        <i data-lucide="<?php echo e($tab['icon']); ?>" class="w-4 h-4"></i>
-        <?php echo e($tab['label']); ?>
-
-    </a>
-    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-</div>
-
 <div class="container mx-auto px-4 py-6 max-w-7xl space-y-6 animate-fade-in-up">
 
     
@@ -395,7 +376,7 @@
         <?php $__currentLoopData = [
             ['route'=>'manager.incidents', 'icon'=>'alert-triangle','label'=>'Incidents',   'color'=>'red'],
             ['route'=>'manager.teams',     'icon'=>'users',          'label'=>'Équipes',     'color'=>'cyan'],
-            ['route'=>'manager.projets.index',  'icon'=>'briefcase',      'label'=>'Projets',     'color'=>'blue'],
+            ['route'=>'manager.projects',  'icon'=>'briefcase',      'label'=>'Projets',     'color'=>'blue'],
             ['route'=>'manager.analytics', 'icon'=>'bar-chart-2',    'label'=>'Analytics',   'color'=>'teal'],
         ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $link): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <a href="<?php echo e(route($link['route'])); ?>"

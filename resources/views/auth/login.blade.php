@@ -6,51 +6,51 @@
 @endphp
 
 @section('auth-content')
-<div class="w-full max-w-5xl grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-stretch">
+<div class="w-full max-w-6xl xl:max-w-7xl grid lg:grid-cols-[1.1fr_1fr] gap-10 items-stretch my-auto">
     <!-- Left Section - Info (Desktop only) -->
-    <section class="hidden lg:flex flex-col justify-between glass p-9 animate-fade-in-up">
+    <section class="hidden lg:flex flex-col justify-between glass p-10 xl:p-14 animate-fade-in-up">
         <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-400/10 border border-cyan-400/25 text-cyan-200 text-xs font-semibold mb-8">
-                <span class="w-2 h-2 rounded-full bg-teal-400 pulse-glow"></span>
-                Plateforme nationale de surveillance
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-400/10 border border-cyan-400/25 text-cyan-200 text-xs font-semibold mb-8">
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-400 pulse-glow"></span>
+                Plateforme Nationale de Surveillance
             </div>
-            <h1 class="text-4xl xl:text-5xl font-display font-bold text-white leading-tight mb-6">
+            <h1 class="text-4xl xl:text-6xl font-display font-extrabold text-white leading-tight mb-6">
                 Chaque goutte compte.
                 <span class="block text-gradient">Chaque intervention aussi.</span>
             </h1>
-            <p class="text-cyan-100/65 leading-relaxed max-w-lg">
+            <p class="text-cyan-100/75 text-base xl:text-lg leading-relaxed max-w-xl font-medium">
                 AquaSecure relie les citoyens, techniciens et gestionnaires autour d'un réseau d'eau potable plus sûr, plus transparent et plus résilient.
             </p>
         </div>
 
-        <div class="grid grid-cols-3 gap-3 mt-12">
+        <div class="grid grid-cols-3 gap-4 mt-12">
             @foreach([
                 ['value' => '14', 'label' => 'zones suivies', 'icon' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['value' => '24/7', 'label' => 'surveillance', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
                 ['value' => '100%', 'label' => 'transparent', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
             ] as $stat)
-            <div class="glass-strong p-4 rounded-2xl">
+            <div class="glass-strong p-5 rounded-2xl">
                 <div class="text-cyan-300 mb-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $stat['icon'] }}"></path>
                     </svg>
                 </div>
-                <div class="text-xl font-display font-bold text-white">{{ $stat['value'] }}</div>
-                <div class="text-[11px] text-cyan-100/50 mt-1">{{ $stat['label'] }}</div>
+                <div class="text-2xl font-display font-bold text-white">{{ $stat['value'] }}</div>
+                <div class="text-xs text-cyan-100/60 mt-1 font-medium">{{ $stat['label'] }}</div>
             </div>
             @endforeach
         </div>
     </section>
 
     <!-- Right Section - Login Form -->
-    <section class="glass-strong p-6 sm:p-8 animate-fade-in-up" style="animation-delay: 0.12s">
-        <div class="flex items-center justify-between mb-7">
+    <section class="glass-strong p-8 sm:p-10 xl:p-12 animate-fade-in-up flex flex-col justify-between" style="animation-delay: 0.12s">
+        <div class="flex items-center justify-between mb-8">
             <div>
-                <p class="text-xs font-semibold tracking-wider text-cyan-300 uppercase">Accès sécurisé</p>
-                <h2 class="text-2xl font-display font-bold text-white mt-1">Heureux de vous revoir</h2>
+                <p class="text-xs font-bold tracking-wider text-cyan-400 uppercase">Accès Sécurisé</p>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white mt-1">Heureux de vous revoir</h2>
             </div>
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/25 flex items-center justify-center">
-                <svg class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/30 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                 </svg>
             </div>
@@ -122,32 +122,6 @@
                 </svg>
             </x-ripple-button>
         </form>
-
-        <!-- Demo Accounts -->
-        <div class="mt-7">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="h-px flex-1 bg-white/10"></span>
-                <span class="text-[11px] uppercase tracking-wider text-cyan-100/35">Comptes de démonstration</span>
-                <span class="h-px flex-1 bg-white/10"></span>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                @foreach([
-                    ['label' => 'Citoyenne', 'email' => 'citoyen@aquasecure.tn', 'role' => 'Front', 'desc' => 'Espace citoyen'],
-                    ['label' => 'Technicien', 'email' => 'amira@aquasecure.tn', 'role' => 'Back', 'desc' => 'Interventions terrain'],
-                    ['label' => 'Gestionnaire', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'Back', 'desc' => 'Back office réseau'],
-                    ['label' => 'Administrateur', 'email' => 'admin@aquasecure.tn', 'role' => 'Back', 'desc' => 'Administration complète'],
-                ] as $account)
-                <button onclick="fillDemo('{{ $account['email'] }}')" class="text-left glass p-3 rounded-xl hover:border-cyan-400/40 hover:bg-cyan-400/5 transition-all">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-xs font-semibold text-white">{{ $account['label'] }}</span>
-                        <x-badge color="#2dd4bf">{{ $account['role'] }}</x-badge>
-                    </div>
-                    <span class="block text-[10px] text-cyan-100/40 mt-1 truncate">{{ $account['desc'] }}</span>
-                </button>
-                @endforeach
-            </div>
-            <p class="text-[11px] text-cyan-100/35 mt-3">Mot de passe commun : <span class="text-cyan-300 font-semibold">demo123</span></p>
-        </div>
     </section>
 </div>
 
@@ -167,12 +141,6 @@
             eyeIcon.classList.remove('hidden');
             eyeOffIcon.classList.add('hidden');
         }
-    }
-    
-    function fillDemo(email) {
-        document.querySelector('input[name="email"]').value = email;
-        document.querySelector('input[name="password"]').value = 'demo123';
-        showToast('Compte prérempli avec succès', 'info');
     }
 </script>
 @endpush
