@@ -93,7 +93,7 @@
                         <i data-lucide="map"></i>
                         <span>Carte réseau</span>
                     </a></li>
-                    <li><a href="/manager/projects" class="mobile-nav-link {{ $currentRoute === 'manager.projects' ? 'active' : '' }}">
+                    <li><a href="{{ route('manager.projets.index') }}" class="mobile-nav-link {{ $currentRoute === 'manager.projets.index' ? 'active' : '' }}">
                         <i data-lucide="list"></i>
                         <span>Projets</span>
                     </a></li>
