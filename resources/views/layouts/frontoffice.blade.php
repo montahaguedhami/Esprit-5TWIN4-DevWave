@@ -37,6 +37,10 @@
                     <i data-lucide="file-text" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-teal-300"></i>
                     <span>Factures & consommation</span>
                 </a>
+                <a href="{{ route('citizen.travaux.index') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 {{ request()->routeIs('citizen.travaux.*') ? 'bg-white/10 text-white' : '' }}">
+                    <i data-lucide="construction" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-orange-300"></i>
+                    <span>Travaux</span>
+                </a>
                 <a href="{{ route('citizen.notifications') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="bell" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-sky-300"></i>
                     <span>Alertes & coupures</span>

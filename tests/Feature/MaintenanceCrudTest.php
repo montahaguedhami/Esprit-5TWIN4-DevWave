@@ -137,6 +137,31 @@ class MaintenanceCrudTest extends TestCase
         $this->assertDatabaseCount('interventions', 0);
     }
 
+    public function test_citizen_sees_public_maintenance_works_without_personal_data(): void
+    {
+        $technicien = Technicien::factory()->create(['specialite' => 'Canalisations', 'telephone' => '+216 99 888 777']);
+        $enCours = Intervention::factory()->for($technicien)->create(['statut' => 'En cours', 'description' => 'Réparation rue de Marseille']);
+        Intervention::factory()->for($technicien)->create(['statut' => 'Annulée', 'description' => 'Travaux annulés']);
+
+        $this->get(route('citizen.travaux.index'))
+            ->assertOk()
+            ->assertSee('Réparation rue de Marseille')
+            ->assertDontSee('Travaux annulés')
+            ->assertDontSee('+216 99 888 777');
+
+        $this->get(route('citizen.travaux.show', $enCours))
+            ->assertOk()
+            ->assertSee('Canalisations')
+            ->assertDontSee('+216 99 888 777');
+    }
+
+    public function test_cancelled_intervention_is_hidden_from_citizens(): void
+    {
+        $annulee = Intervention::factory()->create(['statut' => 'Annulée']);
+
+        $this->get(route('citizen.travaux.show', $annulee))->assertNotFound();
+    }
+
     public function test_interventions_can_be_filtered_by_technicien(): void
     {
         $amira = Technicien::factory()->create(['nom' => 'Amira Ben Ali']);
