@@ -54,9 +54,7 @@
             
             {{-- Back Arrow & Brand Logo --}}
             <div class="flex items-center gap-3">
-                <a href="{{ route('landing') }}" class="liquid-tool text-white/80 hover:text-white" title="Retour Accueil" aria-label="Retour Accueil">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </a>
+                <x-back-button :fallback="route('landing')" />
                 <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-2.5 group">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
                         <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
@@ -136,6 +134,9 @@
                     </a>
                     <a href="{{ route('manager.projects') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
                         <i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i> Maintenance et projets
+                    </a>
+                    <a href="{{ route('manager.techniciens.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="wrench" class="w-4 h-4 text-orange-400"></i> Techniciens et interventions
                     </a>
                     <a href="{{ route('manager.budget') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
                         <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> Financement et budget

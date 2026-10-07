@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\ActionCorrectiveController;
+use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\TechnicienController;
+use App\Http\Controllers\TravauxController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -357,3 +360,13 @@ Route::get('/weather', function () {
     return response()->file(public_path('weather.html'));
 })->name('weather');
 
+// Module Maintenance (Back Office) : Techniciens & Interventions
+// TODO : ajouter ->middleware('manager') une fois la branche de Sarra mergée
+Route::prefix('manager')->name('manager.')->group(function () {
+    Route::resource('techniciens', TechnicienController::class);
+    Route::resource('interventions', InterventionController::class);
+});
+
+// Module Maintenance (Front Office) : travaux visibles par les citoyens
+Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
+Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
