@@ -29,31 +29,38 @@
 @endphp
 
 @section('content')
-<div class="min-h-screen">
+<div class="min-h-screen bg-[#04121b] text-white flex flex-col font-sans relative">
 
-{{-- ── TOPBAR TECHNICIEN ──────────────────────────────────── --}}
-<nav class="sticky top-0 z-50 glass-strong px-4 sm:px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-            <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
+{{-- ── TOPBAR TECHNICIEN (Liquid Glass with Back Arrow) ── --}}
+<nav class="sticky top-0 z-50 glass-strong border-b border-white/20 px-4 sm:px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <x-back-button :fallback="route('landing')" />
+        <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="font-display font-semibold text-white text-lg tracking-tight hidden sm:block">AquaSecure</span>
+            <div class="liquid-chip">
+                <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span>
+                <span class="text-[11px] font-medium text-white/90">Espace Technicien</span>
+            </div>
         </div>
-        <span class="font-display font-bold text-white hidden sm:block">AquaSecure</span>
-        <span class="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-400/20">
-            Espace Technicien
-        </span>
     </div>
-    <div class="flex items-center gap-2">
-        <button onclick="toggleTheme()"
-                class="glass p-2 rounded-lg text-cyan-300 hover:text-white transition-colors">
-            <i data-lucide="sun"  class="w-4 h-4 sun-icon  hidden"></i>
-            <i data-lucide="moon" class="w-4 h-4 moon-icon"></i>
-        </button>
+
+    {{-- Dedicated Technician Navigation Menu --}}
+    <div class="hidden md:flex items-center gap-1.5 glass p-1.5 rounded-2xl text-xs font-medium">
+        <a href="{{ route('technician.dashboard') }}" class="px-3.5 py-1.5 rounded-xl text-white bg-white/15 transition-all">Tableau de bord</a>
+        <a href="{{ route('technician.interventions.index') }}" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Interventions</a>
+        <a href="{{ route('technician.equipment') }}" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Équipement & Matériel</a>
+    </div>
+
+    <div class="flex items-center gap-3">
         <x-notification-center />
         <x-user-menu />
     </div>
 </nav>
 
-<div class="container mx-auto px-4 py-6 max-w-5xl space-y-6 animate-fade-in-up">
+<div class="max-w-[1550px] w-full mx-auto px-4 sm:px-8 py-8 space-y-6 animate-fade-in-up">
 
     {{-- ══ HEADER ══════════════════════════════════════════════ --}}
     <div class="glass rounded-2xl p-5">
@@ -242,7 +249,7 @@
                         <span class="text-lg shrink-0">{{ $zone['emoji'] }}</span>
                         <div class="flex-1 min-w-0">
                             <p class="text-white text-sm font-semibold">{{ $zone['name'] }}</p>
-                            <p class="text-cyan-100/40 text-xs">{{ $zone['sensors'] }} capteurs · {{ $zone['quality'] }}% qualité</p>
+                            <p class="text-cyan-100/40 text-xs">Qualité de l'eau : {{ $zone['quality'] }}%</p>
                         </div>
                         <span class="w-2 h-2 rounded-full shrink-0
                             {{ $zone['status']==='normal' ? 'bg-teal-400' : ($zone['status']==='alert' ? 'bg-amber-400' : 'bg-red-400') }}">

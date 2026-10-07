@@ -15,24 +15,6 @@
         </div>
         <div class="flex items-center gap-2">
             
-            <div class="hidden md:flex items-center gap-1">
-                <a href="<?php echo e(route('citizen.dashboard')); ?>"
-                   class="flex items-center gap-1.5 glass px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors <?php echo e(request()->routeIs('citizen.dashboard') ? 'bg-cyan-500/10 text-white border border-cyan-400/20' : 'text-cyan-300 hover:text-white'); ?>">
-                    <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
-                    Accueil
-                </a>
-                <a href="<?php echo e(route('citizen.projets.index')); ?>"
-                   class="flex items-center gap-1.5 glass px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors <?php echo e(request()->routeIs('citizen.projets.*') ? 'bg-cyan-500/10 text-white border border-cyan-400/20' : 'text-cyan-300 hover:text-white'); ?>">
-                    <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
-                    Projets
-                </a>
-                <a href="<?php echo e(route('citizen.invoices.index')); ?>"
-                   class="flex items-center gap-1.5 glass px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors <?php echo e(request()->routeIs('citizen.invoices.*') ? 'bg-cyan-500/10 text-white border border-cyan-400/20' : 'text-cyan-300 hover:text-white'); ?>">
-                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
-                    Factures
-                </a>
-            </div>
-            
             <a href="<?php echo e(route('citizen.reports.create')); ?>"
                class="hidden sm:flex items-center gap-1.5 glass px-3 py-1.5 rounded-lg text-xs text-cyan-300 hover:text-white font-semibold transition-colors">
                 <i data-lucide="plus" class="w-3.5 h-3.5"></i>
@@ -96,34 +78,29 @@
     </nav>
 
     
-    <div class="fixed bottom-0 left-0 right-0 z-50 glass-strong border-t border-white/5 px-1 py-2 flex justify-around sm:hidden">
+    <div class="fixed bottom-0 left-0 right-0 z-50 glass-strong border-t border-white/5 px-2 py-2 flex justify-around sm:hidden">
         <a href="<?php echo e(route('citizen.dashboard')); ?>"
-           class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors <?php echo e(request()->routeIs('citizen.dashboard') ? 'bg-cyan-500/10 text-cyan-300' : ''); ?>">
+           class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors">
             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
             <span class="text-[9px] font-medium">Accueil</span>
         </a>
-        <a href="<?php echo e(route('citizen.projets.index')); ?>"
-           class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors <?php echo e(request()->routeIs('citizen.projets.*') ? 'bg-cyan-500/10 text-cyan-300' : ''); ?>">
-            <i data-lucide="briefcase" class="w-5 h-5"></i>
-            <span class="text-[9px] font-medium">Projets</span>
-        </a>
         <a href="<?php echo e(route('citizen.reports.create')); ?>"
-           class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-400/25 text-cyan-300">
+           class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-400/25 text-cyan-300">
             <i data-lucide="plus" class="w-5 h-5"></i>
             <span class="text-[9px] font-medium">Signaler</span>
         </a>
         <a href="<?php echo e(route('citizen.invoices.index')); ?>"
-           class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors <?php echo e(request()->routeIs('citizen.invoices.*') ? 'bg-cyan-500/10 text-cyan-300' : ''); ?>">
+           class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors">
             <i data-lucide="file-text" class="w-5 h-5"></i>
             <span class="text-[9px] font-medium">Factures</span>
         </a>
         <a href="<?php echo e(route('citizen.notifications')); ?>"
-           class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors <?php echo e(request()->routeIs('citizen.notifications') ? 'bg-cyan-500/10 text-cyan-300' : ''); ?>">
+           class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors">
             <i data-lucide="bell" class="w-5 h-5"></i>
             <span class="text-[9px] font-medium">Notifs</span>
         </a>
         <a href="<?php echo e(route('profile.show')); ?>"
-           class="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors <?php echo e(request()->routeIs('profile.*') ? 'bg-cyan-500/10 text-cyan-300' : ''); ?>">
+           class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-cyan-100/60 hover:text-cyan-300 transition-colors">
             <i data-lucide="user" class="w-5 h-5"></i>
             <span class="text-[9px] font-medium">Profil</span>
         </a>

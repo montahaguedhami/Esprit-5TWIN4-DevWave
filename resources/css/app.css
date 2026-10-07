@@ -967,58 +967,6 @@ textarea:focus-visible {
   outline: none;
 }
 
-/* ========== SELECT DROPDOWN ========== */
-
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
-  padding-right: 40px;
-  cursor: pointer;
-}
-
-select option {
-  background: rgba(6, 21, 37, 0.98);
-  color: #ffffff;
-  padding: 8px 12px;
-  font-size: 14px;
-}
-
-select option:hover,
-select option:focus,
-select option:checked {
-  background: linear-gradient(180deg, rgba(56, 189, 248, 0.25) 0%, rgba(5, 191, 219, 0.20) 100%);
-  color: #ffffff;
-}
-
-/* Dark background for select dropdown on all browsers */
-select::-webkit-scrollbar {
-  width: 8px;
-  background: rgba(6, 21, 37, 0.98);
-}
-
-select::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.4);
-  border-radius: 4px;
-}
-
-/* Firefox-specific styles */
-@-moz-document url-prefix() {
-  select option {
-    background: #061525;
-    color: #ffffff;
-  }
-  
-  select option:checked {
-    background: linear-gradient(180deg, rgba(56, 189, 248, 0.25) 0%, rgba(5, 191, 219, 0.20) 100%);
-    color: #ffffff;
-  }
-}
-
 /* ========== RESPONSIVE ========== */
 
 /* Mobile First Approach - Base styles pour mobile, puis override pour desktop */

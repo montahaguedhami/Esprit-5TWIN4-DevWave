@@ -51,11 +51,7 @@
                         <i data-lucide="layout-dashboard"></i>
                         <span>Tableau de bord</span>
                     </a></li>
-                    <li><a href="{{ route('citizen.projets.index') }}" class="mobile-nav-link {{ request()->routeIs('citizen.projets.*') ? 'active' : '' }}">
-                        <i data-lucide="briefcase"></i>
-                        <span>Projets</span>
-                    </a></li>
-                    <li><a href="/citizen/reports" class="mobile-nav-link {{ $currentRoute === 'citizen.reports' ? 'active' : '' }}">
+                    <li><a href="{{ route('incidents.index') }}" class="mobile-nav-link {{ request()->routeIs('incidents.*') ? 'active' : '' }}">
                         <i data-lucide="alert-circle"></i>
                         <span>Mes signalements</span>
                     </a></li>
@@ -97,8 +93,8 @@
                         <i data-lucide="map"></i>
                         <span>Carte réseau</span>
                     </a></li>
-                    <li><a href="{{ route('manager.projets.index') }}" class="mobile-nav-link {{ request()->routeIs('manager.projets.*') ? 'active' : '' }}">
-                        <i data-lucide="briefcase"></i>
+                    <li><a href="/manager/projects" class="mobile-nav-link {{ $currentRoute === 'manager.projects' ? 'active' : '' }}">
+                        <i data-lucide="list"></i>
                         <span>Projets</span>
                     </a></li>
                     <li><a href="/manager/reports" class="mobile-nav-link {{ $currentRoute === 'manager.reports' ? 'active' : '' }}">

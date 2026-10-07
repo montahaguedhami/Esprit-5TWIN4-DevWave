@@ -34,7 +34,7 @@
     <!-- User Dropdown -->
     <div 
         id="user-menu-dropdown" 
-        class="hidden absolute right-0 mt-2 w-72 glass-strong rounded-2xl shadow-2xl border border-white/10 overflow-hidden z-50"
+        class="hidden absolute right-0 mt-2 w-80 bg-[#0d1726] rounded-2xl shadow-2xl border border-slate-700 overflow-hidden z-[9999]"
     >
         <!-- User Info Header -->
         <div class="p-4 border-b border-white/10 bg-gradient-to-br from-cyan-500/10 to-blue-600/10">
@@ -84,6 +84,34 @@
                     <div class="text-sm font-medium text-white">Notifications</div>
                     <div class="text-xs text-cyan-100/60">Gérer les alertes</div>
                 </div>
+            </a>
+
+            <!-- Divider -->
+            <div class="my-2 border-t border-white/10"></div>
+            <div class="px-4 py-1 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">Changer de rôle (Demo 120Water)</div>
+            <a href="{{ route('switch.role', 'admin') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-white/5 transition-colors">
+                <i data-lucide="shield" class="w-4 h-4 text-purple-400"></i>
+                <span class="text-xs text-white">System Administrator</span>
+            </a>
+            <a href="{{ route('switch.role', 'manager') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-white/5 transition-colors">
+                <i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i>
+                <span class="text-xs text-white">Utility Manager</span>
+            </a>
+            <a href="{{ route('switch.role', 'quality') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-white/5 transition-colors">
+                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i>
+                <span class="text-xs text-white">Water Quality Specialist</span>
+            </a>
+            <a href="{{ route('switch.role', 'technician') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-white/5 transition-colors">
+                <i data-lucide="wrench" class="w-4 h-4 text-cyan-400"></i>
+                <span class="text-xs text-white">Field Technician</span>
+            </a>
+            <a href="{{ route('switch.role', 'finance') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-white/5 transition-colors">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+                <span class="text-xs text-white">Finance Manager</span>
+            </a>
+            <a href="{{ route('switch.role', 'citizen') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-white/5 transition-colors">
+                <i data-lucide="user" class="w-4 h-4 text-amber-400"></i>
+                <span class="text-xs text-white">Citizen Portal</span>
             </a>
 
             <!-- Divider -->

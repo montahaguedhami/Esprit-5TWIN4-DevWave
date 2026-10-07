@@ -242,29 +242,6 @@
     </div>
 
     
-    <div class="glass rounded-2xl p-6 bg-gradient-to-br from-cyan-500/5 to-blue-600/5 border-cyan-400/10">
-        <div class="flex items-start gap-4">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/20
-                        flex items-center justify-center shrink-0">
-                <i data-lucide="briefcase" class="w-6 h-6 text-cyan-300"></i>
-            </div>
-            <div class="flex-1">
-                <h3 class="text-white font-display font-bold text-lg mb-1">Projets d'infrastructure</h3>
-                <p class="text-cyan-100/60 text-sm mb-4">
-                    Consultez les projets de développement du réseau d'eau dans votre région. Découvrez les budgets, les financements et l'avancement des travaux.
-                </p>
-                <a href="<?php echo e(route('citizen.projets.index')); ?>"
-                   class="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600
-                          hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl
-                          transition-all hover-lift shadow-lg shadow-cyan-500/20 text-sm">
-                    <i data-lucide="map" class="w-4 h-4"></i>
-                    Explorer les projets
-                </a>
-            </div>
-        </div>
-    </div>
-
-    
     <div class="glass rounded-2xl p-6 text-center">
         <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/20
                      flex items-center justify-center mx-auto mb-4">

@@ -23,7 +23,7 @@
 @endphp
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="space-y-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div class="flex items-center gap-4">

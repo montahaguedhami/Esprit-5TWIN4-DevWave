@@ -131,7 +131,7 @@
         <div>
             <h2 class="text-white font-display font-bold">Surveillance globale des zones</h2>
             <p class="text-cyan-100/50 text-xs mt-0.5">
-                {{ count($mapZones) }} zones · {{ $totalRec }} incidents · données en temps réel
+                {{ count($mapZones) }} zones · {{ $totalRec }} incidents · données de démonstration
             </p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">

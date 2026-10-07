@@ -8,7 +8,7 @@
 @endphp
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="space-y-6">
     <!-- Header -->
     <div class="flex items-center gap-4 mb-8">
         <a href="{{ route('citizen.dashboard') }}" class="w-10 h-10 rounded-xl glass flex items-center justify-center hover:border-cyan-400/40 transition-colors">
@@ -21,7 +21,7 @@
     </div>
 
     <!-- Multi-step Form -->
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <!-- Progress Steps -->
         <div class="glass-strong p-6 rounded-2xl mb-6">
             <div class="flex items-center justify-between">

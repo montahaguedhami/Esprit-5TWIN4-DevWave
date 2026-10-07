@@ -236,11 +236,7 @@
             </div>
 
             {{-- Sidebar footer stats --}}
-            <div class="px-4 py-3 border-t border-white/5 shrink-0 grid grid-cols-3 gap-3 text-center">
-                <div>
-                    <p class="text-[10px] text-cyan-100/40 mb-0.5">Capteurs</p>
-                    <p class="text-sm font-bold text-white">{{ array_sum(array_column($zones, 'sensors')) }}</p>
-                </div>
+            <div class="px-4 py-3 border-t border-white/5 shrink-0 grid grid-cols-2 gap-3 text-center">
                 <div>
                     <p class="text-[10px] text-cyan-100/40 mb-0.5">Incidents</p>
                     <p class="text-sm font-bold text-red-400">{{ array_sum(array_column($zones, 'incidents')) }}</p>
@@ -258,12 +254,11 @@
         <div class="absolute bottom-0 left-0 right-0 z-10 glass-strong border-t border-cyan-500/10 px-4 py-2 flex items-center gap-4 overflow-x-auto">
             <div class="flex items-center gap-1.5 shrink-0">
                 <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
-                <span class="text-teal-300 text-xs font-semibold">Temps réel</span>
+                <span class="text-teal-300 text-xs font-semibold">Démo</span>
             </div>
             <div class="flex gap-6 text-xs text-cyan-100/60">
-                <span>Dernière sync: <strong class="text-white">{{ now()->format('H:i:s') }}</strong></span>
+                <span>Données de démonstration</span>
                 <span class="hidden sm:inline">Débit total: <strong class="text-cyan-300">38 200 m³/j</strong></span>
-                <span class="hidden sm:inline">Capteurs actifs: <strong class="text-teal-300">{{ array_sum(array_column($zones, 'sensors')) }}/{{ array_sum(array_column($zones, 'sensors')) }}</strong></span>
                 <span class="hidden md:inline">Pression moy: <strong class="text-cyan-300">3.42 bar</strong></span>
                 <span class="hidden md:inline">Qualité moy: <strong class="text-teal-300">{{ round(array_sum(array_column($zones, 'quality')) / count($zones)) }}%</strong></span>
             </div>
@@ -271,7 +266,7 @@
                 <a href="{{ route('manager.analytics') }}"
                    class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1 transition-colors">
                     <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
-                    Voir Analytics
+                    Voir les analyses
                 </a>
             </div>
         </div>
@@ -410,7 +405,6 @@ function buildPopup(z) {
             ${kpiBox('⚡','Pression',z.pressure+' bar','#38bdf8')}
             ${kpiBox('📊','Débit',z.flowRate+' m³/h','#818cf8')}
             ${kpiBox('👥','Population',fmtNum(z.population),'#a78bfa')}
-            ${kpiBox('🔍','Capteurs',z.sensors,'#2dd4bf')}
             ${kpiBox('⚠️','Incidents',z.incidents, z.incidents>0?'#ef4444':'#2dd4bf')}
         </div>
 
@@ -488,7 +482,7 @@ function applyFilter(search) {
 }
 
 // ── Live clock update ─────────────────────────────────────────────────────────
-// Already static; for real-time demo just tick seconds
+// Static demonstration data; the clock is only decorative.
 (function tick() {
     setTimeout(tick, 30000); // refresh page hint every 30 s
 })();

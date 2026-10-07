@@ -282,7 +282,7 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h2 class="text-white font-display font-bold text-base">État détaillé par zone</h2>
-                <p class="text-cyan-100/50 text-xs mt-0.5">{{ count($zones) }} zones surveillées — mise à jour en temps réel</p>
+                <p class="text-cyan-100/50 text-xs mt-0.5">{{ count($zones) }} zones cartographiées — données de démonstration</p>
             </div>
             <a href="{{ route('manager.map') }}"
                class="glass px-3 py-1.5 rounded-xl text-xs text-cyan-300 hover:text-white font-semibold flex items-center gap-1.5 transition-all hover:border-cyan-400/40">
@@ -301,7 +301,6 @@
                         <th class="pb-3 pr-4 text-xs font-semibold text-cyan-100/50 text-right">Débit</th>
                         <th class="pb-3 pr-4 text-xs font-semibold text-cyan-100/50 text-right">Conso.</th>
                         <th class="pb-3 pr-4 text-xs font-semibold text-cyan-100/50 text-center">Incidents</th>
-                        <th class="pb-3    text-xs font-semibold text-cyan-100/50 text-right">Capteurs</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/5">
@@ -353,9 +352,6 @@
                                 <i data-lucide="check" class="w-4 h-4 text-teal-400 mx-auto"></i>
                             @endif
                         </td>
-                        <td class="py-3 text-right">
-                            <span class="text-xs text-cyan-100/60">{{ $zone['sensors'] }}</span>
-                        </td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -377,9 +373,6 @@
                         </td>
                         <td class="pt-3 text-center text-xs font-bold text-red-400">
                             {{ array_sum(array_column($zones,'incidents')) }}
-                        </td>
-                        <td class="pt-3 text-right text-xs font-bold text-cyan-100/60">
-                            {{ array_sum(array_column($zones,'sensors')) }}
                         </td>
                     </tr>
                 </tfoot>
