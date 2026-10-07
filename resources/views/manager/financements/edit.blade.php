@@ -43,7 +43,8 @@
                         <option value="{{ $projet->id }}" 
                                 {{ old('projet_id', $financement->projet_id) == $projet->id ? 'selected' : '' }}
                                 data-budget="{{ $projet->budget }}"
-                                data-finance="{{ $projet->total_finance }}">
+                                data-finance="{{ $projet->total_finance }}"
+                                style="background-color: #1e293b; color: #f8fafc;">
                             {{ $projet->nom }} (Budget: {{ number_format($projet->budget, 0, ',', ' ') }} DT)
                         </option>
                         @endforeach
