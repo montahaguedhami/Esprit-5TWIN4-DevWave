@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\TechnicienController;
+use App\Http\Controllers\TravauxController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -348,3 +349,7 @@ Route::prefix('manager')->name('manager.')->group(function () {
     Route::resource('techniciens', TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
 });
+
+// Module Maintenance (Front Office) : travaux visibles par les citoyens
+Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
+Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
