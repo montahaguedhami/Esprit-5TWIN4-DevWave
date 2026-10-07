@@ -236,12 +236,7 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(
     Route::delete('/manager/actions/{action}', [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
 });
 
-Route::get('/manager/projects', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.projects');
-})->name('manager.projects');
+// Route démo supprimée - utiliser /manager/projets (module Ghada) à la place
 
 Route::get('/manager/budget', function () {
     if (!session('user')) {
