@@ -38,12 +38,13 @@
                             name="projet_id"
                             class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-400/50 focus:outline-none transition-colors @error('projet_id') border-red-400/50 @enderror"
                             required>
-                        <option value="">Sélectionner un projet</option>
+                        <option value="" style="background-color: #1e293b; color: #94a3b8;">Sélectionner un projet</option>
                         @foreach($projets as $projet)
                         <option value="{{ $projet->id }}" 
                                 {{ old('projet_id', $projetId ?? '') == $projet->id ? 'selected' : '' }}
                                 data-budget="{{ $projet->budget }}"
-                                data-finance="{{ $projet->total_finance }}">
+                                data-finance="{{ $projet->total_finance }}"
+                                style="background-color: #1e293b; color: #f8fafc;">
                             {{ $projet->nom }} (Budget: {{ number_format($projet->budget, 0, ',', ' ') }} DT)
                         </option>
                         @endforeach
