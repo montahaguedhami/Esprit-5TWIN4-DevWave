@@ -2,526 +2,381 @@
 
 @php
     use App\Data\PlaceholderData;
-    $zones = PlaceholderData::zones();
-    $zoneStats = PlaceholderData::zoneStats();
-    $zoneColors = PlaceholderData::zoneColors();
-    $zoneLabels = PlaceholderData::zoneLabels();
-    $kpis = PlaceholderData::landingKPIs();
+    $stats = PlaceholderData::stats();
 @endphp
 
 @section('public-content')
-<!-- Top Nav -->
-<nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-   <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-   <i data-lucide="droplet" class="w-6 h-6 text-white"></i>
-     </div>
-<span class="font-display text-xl font-bold text-white">
-    AquaSecure
-</span>
-</div>
+<div class="landing-shell min-h-screen bg-white text-slate-800 font-sans selection:bg-cyan-500 selection:text-white">
 
-    <div class="flex items-center gap-3">
-        <button onclick="toggleTheme()" class="glass p-2.5 rounded-xl text-cyan-200 hover:text-white transition-colors">
-            <svg class="w-5 h-5 sun-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-            <svg class="w-5 h-5 moon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-            </svg>
-        </button>
-    </div>
-</nav>
+    {{-- ════════════════════════════════════════════════════════
+         1. NAVBAR — Height: var(--navbar-height), ~72–84px
+    ════════════════════════════════════════════════════════ --}}
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all"
+            style="height: var(--navbar-height);">
+        <div class="fo-container h-full flex items-center justify-between gap-8">
 
-<!-- Hero Section -->
-<section class="relative min-h-screen flex items-center justify-center px-6 pt-20">
-    <x-rain-effect :count="50" />
-    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-950/60 pointer-events-none"></div>
-    <x-wave-background />
-
-    <div class="relative z-10 max-w-5xl mx-auto text-center">
-        <div class="animate-fade-in-up inline-flex items-center gap-2 glass px-4 py-2 rounded-full mb-8">
-            <span class="w-2 h-2 rounded-full bg-teal-400 pulse-glow"></span>
-            <span class="text-sm text-cyan-100/80">Surveillance en temps réel · Grand Tunis</span>
-        </div>
-
-        <h1 class="animate-fade-in-up text-5xl md:text-7xl font-display font-bold text-white mb-6 leading-tight" style="animation-delay: 0.1s">
-            L'eau de votre ville,
-            <br />
-            <span class="text-gradient">sous surveillance intelligente</span>
-        </h1>
-
-        <p class="animate-fade-in-up text-lg md:text-xl text-cyan-100/70 mb-10 max-w-2xl mx-auto" style="animation-delay: 0.2s">
-            AquaSecure connecte citoyens et gestionnaires pour protéger les infrastructures
-            d'eau potable. Surveillez, signalez et financez le réseau ensemble.
-        </p>
-
-        <div class="animate-fade-in-up flex flex-col sm:flex-row gap-4 justify-center" style="animation-delay: 0.3s">
-            <x-ripple-button size="lg" onclick="window.location.href='{{ route('auth.login') }}'" class="flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                Signaler un incident
-            </x-ripple-button>
-            <x-ripple-button size="lg" variant="secondary" onclick="window.location.href='{{ route('auth.login') }}'" class="flex items-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                </svg>
-                Se connecter
-            </x-ripple-button>
-        </div>
-
-        <!-- Stats strip -->
-        <div class="animate-fade-in-up grid grid-cols-3 gap-4 mt-16 max-w-2xl mx-auto" style="animation-delay: 0.4s">
-            @foreach($kpis as $stat)
-            <div class="glass px-4 py-5 rounded-2xl">
-                <div class="flex items-center justify-center text-cyan-400 mb-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        @if($stat['icon'] === 'activity')
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        @elseif($stat['icon'] === 'droplet')
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        @else
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        @endif
-                    </svg>
+            {{-- Brand Logo --}}
+            <a href="{{ route('landing') }}" class="flex items-center gap-3.5 group shrink-0">
+                <div class="navbar-logo rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+                    <i data-lucide="droplet" style="width:52%; height:52%;" class="text-white fill-white"></i>
                 </div>
-                <div class="text-2xl font-bold text-white">{{ $stat['value'] }}</div>
-                <div class="text-xs text-cyan-200/60 mt-1">{{ $stat['label'] }}</div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
+                <span class="font-display font-extrabold tracking-tight" style="font-size: clamp(1.3rem, 1.7vw, 1.75rem);">
+                    <span class="text-cyan-500">Aqua</span><span class="text-[#0c2a4a]">Secure</span>
+                </span>
+            </a>
 
-<!-- Concept Section -->
-<section class="relative px-6 py-24 max-w-6xl mx-auto">
-    <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-4">
-            Trois piliers, <span class="text-gradient">une mission</span>
-        </h2>
-        <p class="text-cyan-100/60 max-w-2xl mx-auto">
-            Une plateforme qui réunit la technologie, la communauté et la transparence financière
-        </p>
-    </div>
+            {{-- Center Nav Links (Desktop) --}}
+            <nav class="hidden md:flex items-center gap-8 font-semibold text-slate-600" style="font-size: var(--font-size-nav);">
+                <a href="#accueil" class="relative text-cyan-600 font-bold py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-cyan-500 after:rounded-full">Accueil</a>
+                <a href="#about"    class="hover:text-cyan-600 transition-colors py-1">À propos</a>
+                <a href="#features" class="hover:text-cyan-600 transition-colors py-1">Fonctionnalités</a>
+                <a href="#advantages" class="hover:text-cyan-600 transition-colors py-1">Avantages</a>
+                <a href="#contact"  class="hover:text-cyan-600 transition-colors py-1">Contact</a>
+            </nav>
 
-    <div class="grid md:grid-cols-3 gap-6">
-        @php
-            $concepts = [
-                ['icon' => 'activity', 'title' => 'Surveiller', 'desc' => 'Capteurs IoT et monitoring en temps réel sur tout le réseau de distribution', 'color' => 'from-cyan-500 to-blue-600'],
-                ['icon' => 'bell', 'title' => 'Signaler', 'desc' => 'Les citoyens signalent incidents et coupures, les équipes interviennent rapidement', 'color' => 'from-teal-500 to-cyan-600'],
-                ['icon' => 'wallet', 'title' => 'Financer', 'desc' => 'Suivez l\'avancement budgétaire des projets de rénovation en toute transparence', 'color' => 'from-blue-500 to-indigo-600'],
-            ];
-        @endphp
-        @foreach($concepts as $index => $concept)
-        <div class="glass p-8 rounded-2xl hover-lift animate-fade-in-up" style="animation-delay: {{ $index * 0.15 }}s">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br {{ $concept['color'] }} flex items-center justify-center text-white mb-6 shadow-lg">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    @if($concept['icon'] === 'activity')
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    @elseif($concept['icon'] === 'bell')
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                    @else
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                    @endif
-                </svg>
-            </div>
-            <h3 class="text-xl font-display font-bold text-white mb-3">{{ $concept['title'] }}</h3>
-            <p class="text-cyan-100/60 text-sm leading-relaxed">{{ $concept['desc'] }}</p>
-        </div>
-        @endforeach
-    </div>
-</section>
-
-<!-- Interactive Map Section -->
-<section class="relative px-6 py-24 max-w-6xl mx-auto">
-    <div class="text-center mb-12">
-        <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-4">
-            État du réseau <span class="text-gradient">en direct</span>
-        </h2>
-        <p class="text-cyan-100/60">Cliquez sur une zone pour voir le détail</p>
-    </div>
-
-    <div class="grid lg:grid-cols-3 gap-6">
-        <!-- Map -->
-        <div class="lg:col-span-2 glass p-6 rounded-2xl relative">
-            <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-slate-900/80 to-blue-950/80">
-                <!-- Grid lines for map feel -->
-                <svg class="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 100 75">
-                    @for($i = 0; $i < 10; $i++)
-                    <line x1="0" y1="{{ $i * 7.5 }}" x2="100" y2="{{ $i * 7.5 }}" stroke="#06b6d4" stroke-width="0.2" />
-                    @endfor
-                    @for($i = 0; $i < 14; $i++)
-                    <line x1="{{ $i * 7.14 }}" y1="0" x2="{{ $i * 7.14 }}" y2="75" stroke="#06b6d4" stroke-width="0.2" />
-                    @endfor
-                    <!-- Water body representation -->
-                    <ellipse cx="65" cy="35" rx="15" ry="8" fill="#0c4a6e" opacity="0.3" />
-                    <path d="M0 50 Q 20 45, 40 50 T 80 48 T 100 52" fill="none" stroke="#06b6d4" stroke-width="0.3" opacity="0.4" />
-                </svg>
-
-                <!-- Zone markers -->
-                @foreach($zones as $zone)
-                <button
-                    onclick="selectZone('{{ $zone['id'] }}')"
-                    onmouseenter="hoverZone('{{ $zone['id'] }}')"
-                    onmouseleave="unhoverZone()"
-                    class="absolute -translate-x-1/2 -translate-y-1/2 group zone-marker"
-                    style="left: {{ $zone['x'] }}%; top: {{ $zone['y'] }}%"
-                    data-zone-id="{{ $zone['id'] }}"
-                    data-zone-name="{{ $zone['name'] }}"
-                >
-                    <span class="absolute inset-0 rounded-full zone-pulse-ring" style="background: {{ $zoneColors[$zone['status']] }}; width: 24px; height: 24px; left: -12px; top: -12px;"></span>
-                    <span class="relative block rounded-full border-2 transition-all duration-300 group-hover:scale-150" style="width: 14px; height: 14px; background: {{ $zoneColors[$zone['status']] }}; border-color: {{ $zoneColors[$zone['status']] }}88; box-shadow: 0 0 12px {{ $zoneColors[$zone['status']] }};"></span>
-                    <span class="zone-tooltip absolute top-5 left-1/2 -translate-x-1/2 whitespace-nowrap glass-strong px-3 py-1 rounded-lg text-xs text-white pointer-events-none opacity-0">{{ $zone['name'] }}</span>
-                </button>
-                @endforeach
-
-                <!-- Legend -->
-                <div class="absolute bottom-4 left-4 glass px-4 py-3 rounded-xl flex gap-4">
-                    @foreach(['normal', 'alert', 'critical'] as $status)
-                    <div class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full" style="background: {{ $zoneColors[$status] }}"></span>
-                        <span class="text-xs text-white/70">{{ $zoneLabels[$status] }}</span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        <!-- Zone detail / summary -->
-        <div class="glass p-6 rounded-2xl">
-            <div id="zone-detail" class="hidden">
-                <!-- Will be populated by JavaScript -->
-            </div>
-            <div id="zone-summary">
-                <h3 class="text-lg font-display font-bold text-white mb-4">Vue d'ensemble</h3>
-                <div class="space-y-3">
-                    @foreach([
-                        ['label' => 'Zones normales', 'value' => $zoneStats['normal'], 'color' => '#2dd4bf'],
-                        ['label' => 'Zones en alerte', 'value' => $zoneStats['alert'], 'color' => '#fbbf24'],
-                        ['label' => 'Zones critiques', 'value' => $zoneStats['critical'], 'color' => '#ef4444'],
-                    ] as $stat)
-                    <div class="flex items-center justify-between p-3 rounded-xl" style="background: {{ $stat['color'] }}10">
-                        <span class="flex items-center gap-2 text-sm text-white/80">
-                            <span class="w-3 h-3 rounded-full" style="background: {{ $stat['color'] }}"></span>
-                            {{ $stat['label'] }}
-                        </span>
-                        <span class="text-lg font-bold" style="color: {{ $stat['color'] }}">{{ $stat['value'] }}</span>
-                    </div>
-                    @endforeach
-                </div>
-                <p class="text-xs text-cyan-200/40 mt-4 text-center">Sélectionnez une zone sur la carte</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- How It Works Section -->
-<section class="relative px-6 py-24 max-w-6xl mx-auto">
-    <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-4">
-            Comment fonctionne <span class="text-gradient">AquaSecure</span> ?
-        </h2>
-        <p class="text-cyan-100/60 max-w-2xl mx-auto">
-            Un écosystème simple qui transforme chaque citoyen en acteur de la qualité de l'eau
-        </p>
-    </div>
-
-    <div class="grid md:grid-cols-4 gap-6">
-        @php
-            $steps = [
-                ['icon' => 'user', 'title' => 'Le citoyen signale', 'desc' => 'Une fuite, une coupure ou un problème de qualité détecté'],
-                ['icon' => 'bell', 'title' => 'Le système alerte', 'desc' => 'Le gestionnaire reçoit la notification en temps réel'],
-                ['icon' => 'shield', 'title' => 'Le technicien intervient', 'desc' => 'L\'équipe de terrain se déplace et répare'],
-                ['icon' => 'check-circle', 'title' => 'Le problème est résolu', 'desc' => 'Le citoyen est notifié de la résolution'],
-            ];
-        @endphp
-        @foreach($steps as $index => $step)
-        <div class="relative">
-            <div class="glass p-6 rounded-2xl hover-lift text-center">
-                <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white mb-4 shadow-lg shadow-cyan-500/25">
-                    <i data-lucide="{{ $step['icon'] }}" class="w-8 h-8"></i>
-                </div>
-                <div class="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-display font-bold shadow-lg">
-                    {{ $index + 1 }}
-                </div>
-                <h3 class="text-lg font-display font-bold text-white mb-2">{{ $step['title'] }}</h3>
-                <p class="text-sm text-cyan-100/60">{{ $step['desc'] }}</p>
-            </div>
-            @if($index < 3)
-            <div class="hidden md:block absolute top-1/2 -right-3 z-10">
-                <i data-lucide="arrow-right" class="w-6 h-6 text-cyan-400/40"></i>
-            </div>
-            @endif
-        </div>
-        @endforeach
-    </div>
-</section>
-
-<!-- Features Section -->
-<section class="relative px-6 py-24 max-w-6xl mx-auto">
-    <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-4">
-            Fonctionnalités <span class="text-gradient">intelligentes</span>
-        </h2>
-        <p class="text-cyan-100/60 max-w-2xl mx-auto">
-            Des outils modernes pour une gestion efficace des ressources en eau
-        </p>
-    </div>
-
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @php
-            $features = [
-                ['icon' => 'droplet', 'title' => 'Signalement d\'incidents', 'desc' => 'Déclarez fuites, coupures et problèmes de qualité en quelques clics', 'color' => 'cyan'],
-                ['icon' => 'gauge', 'title' => 'Monitoring en temps réel', 'desc' => 'Suivez la pression, le débit et la qualité de l\'eau 24/7', 'color' => 'blue'],
-                ['icon' => 'flask', 'title' => 'Analyse de la qualité', 'desc' => 'Contrôle continu des paramètres physico-chimiques', 'color' => 'teal'],
-                ['icon' => 'map-pin', 'title' => 'Géolocalisation', 'desc' => 'Localisation précise des incidents et interventions', 'color' => 'emerald'],
-                ['icon' => 'bell-ring', 'title' => 'Notifications instantanées', 'desc' => 'Alertes immédiates en cas d\'anomalie détectée', 'color' => 'orange'],
-                ['icon' => 'bar-chart-2', 'title' => 'Tableaux de bord', 'desc' => 'Visualisez les KPIs et suivez les performances', 'color' => 'indigo'],
-            ];
-        @endphp
-        @foreach($features as $feature)
-        <x-ui.card hover class="group">
-            <div class="w-12 h-12 rounded-xl bg-{{ $feature['color'] }}-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <i data-lucide="{{ $feature['icon'] }}" class="w-6 h-6 text-{{ $feature['color'] }}-400"></i>
-            </div>
-            <h3 class="text-lg font-display font-bold text-white mb-2">{{ $feature['title'] }}</h3>
-            <p class="text-sm text-cyan-100/60">{{ $feature['desc'] }}</p>
-        </x-ui.card>
-        @endforeach
-    </div>
-</section>
-
-<!-- Roles Section -->
-<section class="relative px-6 py-24 max-w-6xl mx-auto">
-    <div class="text-center mb-16">
-        <h2 class="text-3xl md:text-5xl font-display font-bold text-white mb-4">
-            Quatre rôles, <span class="text-gradient">une mission commune</span>
-        </h2>
-        <p class="text-cyan-100/60 max-w-2xl mx-auto">
-            Chaque acteur contribue à la sécurité et à la qualité de l'eau
-        </p>
-    </div>
-
-    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        @php
-            $roles = [
-                ['icon' => 'user', 'title' => 'Citoyen', 'desc' => 'Signalez les incidents, suivez vos déclarations et consultez vos factures', 'color' => 'from-cyan-500 to-blue-600', 'features' => ['Signaler un problème', 'Suivre mes déclarations', 'Consulter factures']],
-                ['icon' => 'shield', 'title' => 'Technicien', 'desc' => 'Gérez vos interventions sur le terrain et créez des rapports d\'intervention', 'color' => 'from-teal-500 to-emerald-600', 'features' => ['Interventions assignées', 'Rapports terrain', 'Gestion équipement']],
-                ['icon' => 'clipboard-list', 'title' => 'Gestionnaire', 'desc' => 'Supervisez le réseau, coordonnez les équipes et analysez les performances', 'color' => 'from-blue-500 to-indigo-600', 'features' => ['Vue globale réseau', 'Gestion équipes', 'Analytics avancés']],
-                ['icon' => 'shield-check', 'title' => 'Administrateur', 'desc' => 'Gérez les utilisateurs, la sécurité et les paramètres système', 'color' => 'from-purple-500 to-pink-600', 'features' => ['Gestion utilisateurs', 'Sécurité système', 'Logs & audits']],
-            ];
-        @endphp
-        @foreach($roles as $role)
-        <x-ui.card hover class="group text-center">
-            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br {{ $role['color'] }} flex items-center justify-center text-white mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <i data-lucide="{{ $role['icon'] }}" class="w-8 h-8"></i>
-            </div>
-            <h3 class="text-xl font-display font-bold text-white mb-2">{{ $role['title'] }}</h3>
-            <p class="text-sm text-cyan-100/60 mb-4">{{ $role['desc'] }}</p>
-            <div class="pt-4 border-t border-white/5 space-y-2">
-                @foreach($role['features'] as $feature)
-                <div class="flex items-center gap-2 text-xs text-cyan-100/70">
-                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>
-                    <span>{{ $feature }}</span>
-                </div>
-                @endforeach
-            </div>
-        </x-ui.card>
-        @endforeach
-    </div>
-</section>
-
-<!-- CTA Section -->
-<section class="relative px-6 py-24 max-w-4xl mx-auto text-center">
-    <div class="glass-strong p-12 rounded-3xl">
-        <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center mb-6 shadow-xl shadow-cyan-500/30">
-            <i data-lucide="droplet" class="w-10 h-10 text-white"></i>
-        </div>
-        <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-            Rejoignez la communauté AquaSecure
-        </h2>
-        <p class="text-cyan-100/60 mb-8 max-w-xl mx-auto">
-            Que vous soyez citoyen concerné ou gestionnaire de réseau, votre rôle est essentiel
-            pour garantir une eau potable sûre et durable.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <x-ripple-button size="lg" onclick="window.location.href='{{ route('auth.login') }}'" class="flex items-center gap-2">
-                <i data-lucide="user-plus" class="w-5 h-5"></i>
-                Créer un compte
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </x-ripple-button>
-            <x-ripple-button size="lg" variant="secondary" onclick="window.location.href='{{ route('auth.login') }}'" class="flex items-center gap-2">
-                <i data-lucide="log-in" class="w-5 h-5"></i>
-                Se connecter
-            </x-ripple-button>
-        </div>
-    </div>
-</section>
-
-<!-- Footer -->
-<footer class="relative px-6 py-16 border-t border-white/5">
-    <div class="max-w-6xl mx-auto">
-        <div class="grid md:grid-cols-4 gap-8 mb-12">
-            <!-- Brand -->
-            <div class="md:col-span-1">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                        <i data-lucide="droplet" class="w-6 h-6 text-white"></i>
-                    </div>
-                    <span class="font-display text-xl font-bold text-white">AquaSecure</span>
-                </div>
-                <p class="text-sm text-cyan-100/50 leading-relaxed">
-                    Surveillance intelligente des infrastructures d'eau potable pour un avenir durable.
-                </p>
-            </div>
-            
-            <!-- Platform -->
-            <div>
-                <h4 class="text-sm font-display font-bold text-white mb-4">Plateforme</h4>
-                <ul class="space-y-2">
-                    <li><a href="{{ route('landing') }}" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Accueil</a></li>
-                    <li><a href="{{ route('auth.login') }}" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Se connecter</a></li>
-                    <li><a href="{{ route('auth.register') }}" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Créer un compte</a></li>
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Fonctionnalités</a></li>
-                </ul>
-            </div>
-            
-            <!-- Resources -->
-            <div>
-                <h4 class="text-sm font-display font-bold text-white mb-4">Ressources</h4>
-                <ul class="space-y-2">
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Documentation</a></li>
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Guide utilisateur</a></li>
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">FAQ</a></li>
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Support</a></li>
-                </ul>
-            </div>
-            
-            <!-- Legal -->
-            <div>
-                <h4 class="text-sm font-display font-bold text-white mb-4">Légal</h4>
-                <ul class="space-y-2">
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Mentions légales</a></li>
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Confidentialité</a></li>
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">CGU</a></li>
-                    <li><a href="#" class="text-sm text-cyan-100/60 hover:text-cyan-400 transition-colors">Cookies</a></li>
-                </ul>
-            </div>
-        </div>
-        
-        <!-- Bottom -->
-        <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p class="text-sm text-cyan-100/40">
-                © {{ date('Y') }} AquaSecure. Tous droits réservés.
-            </p>
+            {{-- Right CTA --}}
             <div class="flex items-center gap-4">
-                <span class="text-xs text-cyan-100/40">Grand Tunis, Tunisie</span>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="text-xs text-cyan-100/40">Système opérationnel</span>
+                <a href="{{ route('auth.login') }}"
+                   class="btn-primary-md bg-gradient-to-r from-[#0c2a4a] to-[#0e3460] hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg shadow-slate-900/15 hover:shadow-xl hover:-translate-y-0.5"
+                   style="border-radius: 999px;">
+                    <i data-lucide="user" style="width:var(--icon-sm); height:var(--icon-sm);" class="text-cyan-300"></i>
+                    <span>Se connecter</span>
+                </a>
+                <button onclick="toggleMobileNav()" class="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Menu">
+                    <i data-lucide="menu" style="width:var(--icon-md); height:var(--icon-md);"></i>
+                </button>
+            </div>
+        </div>
+
+        {{-- Mobile Nav --}}
+        <div id="mobile-nav" class="hidden md:hidden bg-white border-t border-slate-100 px-6 pb-4 pt-3 space-y-1">
+            <a href="#accueil"    class="block px-4 py-2.5 rounded-xl text-cyan-600 font-bold bg-cyan-50" style="font-size: var(--font-size-nav);">Accueil</a>
+            <a href="#about"      class="block px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 font-medium" style="font-size: var(--font-size-nav);">À propos</a>
+            <a href="#features"   class="block px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 font-medium" style="font-size: var(--font-size-nav);">Fonctionnalités</a>
+            <a href="#advantages" class="block px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 font-medium" style="font-size: var(--font-size-nav);">Avantages</a>
+            <a href="#contact"    class="block px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 font-medium" style="font-size: var(--font-size-nav);">Contact</a>
+        </div>
+    </header>
+
+
+    {{-- ════════════════════════════════════════════════════════
+         2. HERO — min-height 680px, full 2-column grid
+    ════════════════════════════════════════════════════════ --}}
+    <section id="accueil" class="relative flex items-center overflow-hidden bg-gradient-to-b from-cyan-50/40 to-white"
+             style="min-height: clamp(640px, 85vh, 900px); padding-top: var(--navbar-height);">
+
+        <div class="absolute inset-0 z-0">
+            <img src="./assets/water-background.jpg" alt="AquaSecure Infrastructure" class="w-full h-full object-cover object-center opacity-70">
+            <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/85 to-white/20"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-white"></div>
+        </div>
+
+        <div class="fo-container relative z-10 w-full" style="padding-top: clamp(2rem,4vw,4rem); padding-bottom: clamp(2rem,4vw,4rem);">
+            <div class="grid lg:grid-cols-2 items-center" style="gap: clamp(2.5rem, 5vw, 6rem);">
+
+                {{-- Left: Content --}}
+                <div style="display:flex; flex-direction:column; gap: clamp(1.25rem, 2vw, 2rem);">
+
+                    <div class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-cyan-100/90 backdrop-blur-md border border-cyan-200 text-cyan-800 font-semibold self-start shadow-sm"
+                         style="font-size: var(--font-size-sm);">
+                        <span>💧</span>
+                        <span>Une eau plus sûre, un avenir plus durable</span>
+                    </div>
+
+                    <div>
+                        <span class="block font-display font-bold text-cyan-600 mb-3" style="font-size: clamp(1.1rem,1.5vw,1.4rem);">AquaSecure</span>
+                        <h1 class="hero-title text-slate-900 font-display">
+                            Centralisez le suivi de<br class="hidden xl:block">
+                            <span class="text-cyan-500">votre réseau d'eau</span>
+                        </h1>
+                    </div>
+
+                    <p class="hero-subtitle text-slate-600 font-medium" style="max-width: 600px;">
+                        AquaSecure centralise les signalements et les informations sur le réseau d'eau pour faciliter le suivi des incidents et la coordination des interventions.
+                    </p>
+
+                    <div class="flex flex-wrap items-center" style="gap: clamp(0.75rem,1.2vw,1.25rem);">
+                        <a href="{{ route('auth.login') }}"
+                           class="btn-primary-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-xl shadow-cyan-500/25 hover:-translate-y-0.5 group">
+                            <span>Découvrir la solution</span>
+                            <i data-lucide="arrow-right" style="width:var(--icon-sm);height:var(--icon-sm);" class="group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                        <a href="#features"
+                           class="btn-primary-lg bg-white/80 hover:bg-white text-cyan-700 font-bold border-2 border-cyan-400/40 shadow-sm hover:-translate-y-0.5">
+                            En savoir plus
+                        </a>
+                    </div>
+
+                    <div class="flex items-center" style="gap: clamp(1.5rem,3vw,3rem); padding-top: 0.5rem;">
+                        <div>
+                            <div class="font-display font-black text-slate-900" style="font-size: clamp(1.5rem,2.2vw,2.2rem);">{{ $stats['totalZones'] }}</div>
+                            <div class="text-slate-500 font-medium" style="font-size: var(--font-size-xs);">Zones cartographiées</div>
+                        </div>
+                        <div class="w-px h-10 bg-slate-200"></div>
+                        <div>
+                            <div class="font-display font-black text-slate-900" style="font-size: clamp(1.5rem,2.2vw,2.2rem);">{{ $stats['activeIncidents'] }}</div>
+                            <div class="text-slate-500 font-medium" style="font-size: var(--font-size-xs);">Incidents à suivre</div>
+                        </div>
+                        <div class="w-px h-10 bg-slate-200"></div>
+                        <div>
+                            <div class="font-display font-black text-slate-900" style="font-size: clamp(1.5rem,2.2vw,2.2rem);">3</div>
+                            <div class="text-slate-500 font-medium" style="font-size: var(--font-size-xs);">Domaines de suivi</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right: Floating cards --}}
+                <div class="hidden lg:flex flex-col items-stretch" style="gap: clamp(1rem,1.5vw,1.5rem);">
+
+                    <div class="hero-float-card bg-white/97 backdrop-blur-xl border border-slate-100 shadow-2xl shadow-cyan-900/10 text-slate-900 hover:-translate-y-1 transition-transform">
+                        <div class="flex items-start" style="gap: clamp(1rem,1.5vw,1.5rem);">
+                            <div class="flex items-center justify-center bg-cyan-100/90 text-cyan-600 shrink-0"
+                                 style="width:var(--icon-wrap-md);height:var(--icon-wrap-md);border-radius:1rem;">
+                                <i data-lucide="droplet" style="width:var(--icon-md);height:var(--icon-md);"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h3 class="font-bold text-slate-900" style="font-size:var(--font-size-h4);">Suivi des fuites signalées</h3>
+                                    <i data-lucide="chevron-right" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-slate-400"></i>
+                                </div>
+                                <p class="text-slate-500 leading-relaxed" style="font-size:var(--font-size-sm);">Centralisez les signalements et suivez leur prise en charge.</p>
+                                <div class="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-700 font-bold" style="font-size:var(--font-size-xs);">
+                                    Signalement enregistré
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hero-float-card bg-gradient-to-br from-white to-cyan-50/80 border border-cyan-200/80 shadow-xl text-slate-900 flex items-center justify-between">
+                        <div class="flex items-center" style="gap: clamp(0.75rem,1.2vw,1.2rem);">
+                            <div class="relative shrink-0" style="width:var(--icon-wrap-md);height:var(--icon-wrap-md);">
+                                <div class="w-full h-full rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                                    <i data-lucide="map" style="width:var(--icon-md);height:var(--icon-md);"></i>
+                                </div>
+                                <span class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-emerald-400 border-2 border-white"></span>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-900" style="font-size:var(--font-size-sm);">Plateforme AquaSecure</div>
+                                <div class="text-slate-500 mt-0.5" style="font-size:var(--font-size-xs);">Suivi &amp; Analyse du Réseau</div>
+                            </div>
+                        </div>
+                        <div class="shrink-0 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center" style="width:var(--icon-wrap-sm);height:var(--icon-wrap-sm);">
+                            <i data-lucide="droplet" style="width:var(--icon-sm);height:var(--icon-sm);"></i>
+                        </div>
+                    </div>
+
+                    <div class="hero-float-card bg-gradient-to-r from-[#0c2a4a] to-[#0e3460] text-white shadow-xl">
+                        <div class="flex items-center" style="gap: clamp(0.75rem,1.2vw,1.2rem);">
+                            <div class="shrink-0 bg-white/10 flex items-center justify-center rounded-xl" style="width:var(--icon-wrap-sm);height:var(--icon-wrap-sm);">
+                                <i data-lucide="shield-check" style="width:var(--icon-md);height:var(--icon-md);" class="text-cyan-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold" style="font-size:var(--font-size-sm);">Données centralisées</div>
+                                <div class="text-cyan-300/80 mt-0.5" style="font-size:var(--font-size-xs);">Conduites · qualité · incidents</div>
+                            </div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse shrink-0"></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
-    </div>
-</footer>
+
+        <div class="absolute bottom-0 left-0 right-0 z-10 overflow-hidden leading-none pointer-events-none">
+            <svg class="relative block w-full text-white" style="height: clamp(40px,4vw,80px);" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0 C150,90 350,-40 500,50 C650,140 900,10 1200,40 L1200,120 L0,120 Z" fill="currentColor"></path>
+            </svg>
+        </div>
+    </section>
+
+
+    {{-- ════════════════════════════════════════════════════════
+         3. FEATURES — 4-col grid
+    ════════════════════════════════════════════════════════ --}}
+    <section id="features" class="bg-white border-b border-slate-100" style="padding: var(--section-py) 0;">
+        <div class="fo-container">
+
+            <div class="text-center" style="max-width:800px;margin:0 auto clamp(2.5rem,4vw,4rem);">
+                <span class="section-label text-cyan-600 block mb-4">Outils de gestion</span>
+                <h2 class="section-h2 text-slate-900 font-display mb-5">Des outils pour mieux gérer le réseau d'eau</h2>
+                <p class="section-body text-slate-500">Consultez les informations du réseau, gérez les signalements et préparez les interventions depuis un même espace.</p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4" style="gap: var(--card-gap);">
+                @php
+                $features = [
+                    ['icon'=>'droplet',     'bg'=>'bg-cyan-50',   'text'=>'text-cyan-500',   'title'=>'Suivi du réseau',            'desc'=>'Consultez les informations sur les conduites et les zones depuis un tableau de bord centralisé.'],
+                    ['icon'=>'clipboard-list','bg'=>'bg-blue-50',  'text'=>'text-blue-500',   'title'=>'Gestion des signalements',   'desc'=>'Enregistrez les problèmes signalés et suivez leur prise en charge par les équipes.'],
+                    ['icon'=>'leaf',        'bg'=>'bg-teal-50',   'text'=>'text-teal-500',   'title'=>"Préservation de l'eau",      'desc'=>"Identifiez les zones prioritaires et planifiez des actions pour limiter les pertes."],
+                    ['icon'=>'bar-chart-3', 'bg'=>'bg-indigo-50', 'text'=>'text-indigo-500', 'title'=>'Rapports et suivi',          'desc'=>'Consultez des rapports détaillés et suivez les actions prévues par vos équipes.'],
+                ];
+                @endphp
+                @foreach($features as $feat)
+                <div class="feature-card bg-white border border-slate-100 text-center shadow-lg shadow-slate-100 hover:shadow-xl hover:border-cyan-200 hover:-translate-y-1 transition-all group">
+                    <div class="feature-icon-wrap {{ $feat['bg'] }} {{ $feat['text'] }} mx-auto mb-6">
+                        <i data-lucide="{{ $feat['icon'] }}" style="width:var(--icon-lg);height:var(--icon-lg);"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900 mb-3" style="font-size:var(--font-size-h4);">{{ $feat['title'] }}</h3>
+                    <p class="text-slate-500 leading-relaxed" style="font-size:var(--font-size-sm);">{{ $feat['desc'] }}</p>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ════════════════════════════════════════════════════════
+         4. À PROPOS
+    ════════════════════════════════════════════════════════ --}}
+    <section id="about" class="border-b border-slate-100 bg-gradient-to-b from-white to-slate-50/70" style="padding: var(--section-py) 0;">
+        <div class="fo-container">
+            <div class="grid lg:grid-cols-2 items-center" style="gap: clamp(3rem,5vw,6rem);">
+
+                <div style="display:flex;flex-direction:column;gap:clamp(1rem,1.8vw,1.75rem);">
+                    <span class="section-label text-cyan-600">À propos d'AquaSecure</span>
+                    <h2 class="section-h2 text-slate-900 font-display leading-tight">Une plateforme pour suivre et gérer le réseau d'eau</h2>
+                    <p class="section-body text-slate-600 leading-relaxed">AquaSecure est une plateforme SaaS qui centralise les informations sur le réseau d'eau pour faciliter son suivi, la gestion des incidents et la consultation de la qualité de l'eau.</p>
+                    <p class="text-slate-500 leading-relaxed" style="font-size:var(--font-size-sm);">Les équipes retrouvent au même endroit les informations sur les zones, les incidents et la qualité de l'eau pour établir leurs priorités et planifier leurs interventions.</p>
+                    <div class="grid grid-cols-2" style="gap:var(--spacing-md);">
+                        <div class="bg-white border border-slate-100 rounded-2xl shadow-sm" style="padding:var(--card-padding);">
+                            <div class="font-display font-black text-cyan-500 stat-number">{{ $stats['totalZones'] }}</div>
+                            <div class="font-semibold text-slate-600 mt-1" style="font-size:var(--font-size-sm);">Zones cartographiées</div>
+                        </div>
+                        <div class="bg-white border border-slate-100 rounded-2xl shadow-sm" style="padding:var(--card-padding);">
+                            <div class="font-display font-black text-blue-600 stat-number">{{ $stats['activeIncidents'] }}</div>
+                            <div class="font-semibold text-slate-600 mt-1" style="font-size:var(--font-size-sm);">Incidents à suivre</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-cyan-500 to-blue-700 rounded-3xl text-white shadow-2xl" style="padding:var(--card-padding-lg);">
+                    <div class="rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-6" style="width:var(--icon-wrap-lg);height:var(--icon-wrap-lg);">
+                        <i data-lucide="cpu" style="width:var(--icon-md);height:var(--icon-md);" class="text-white"></i>
+                    </div>
+                    <h3 class="font-bold mb-4" style="font-size:var(--font-size-h3);">Suivi du réseau et des interventions</h3>
+                    <p class="text-cyan-100 leading-relaxed" style="font-size:var(--font-size-body);">La plateforme rassemble les informations sur les conduites, les signalements et les analyses de qualité afin d'aider les équipes à repérer les priorités et organiser les interventions.</p>
+                    <div class="mt-8 pt-6 border-t border-white/10 flex items-center justify-between text-cyan-200" style="font-size:var(--font-size-xs);">
+                        <span>Informations centralisées</span>
+                        <span>Suivi du réseau &amp; des interventions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ════════════════════════════════════════════════════════
+         5. AVANTAGES — 3 cols
+    ════════════════════════════════════════════════════════ --}}
+    <section id="advantages" class="bg-white border-b border-slate-100" style="padding: var(--section-py) 0;">
+        <div class="fo-container">
+            <div class="text-center" style="max-width:900px;margin:0 auto clamp(3rem,5vw,5rem);">
+                <span class="section-label text-cyan-600 block mb-4">Pourquoi Choisir AquaSecure</span>
+                <h2 class="section-h2 text-slate-900 font-display mb-5">Des avantages concrets pour vos installations</h2>
+                <p class="section-body text-slate-500">Des fonctions pratiques pour organiser le suivi du réseau, des incidents et des interventions.</p>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3" style="gap:var(--card-gap);">
+                @php
+                $advantages = [
+                    ['icon'=>'bell-ring',  'bg'=>'bg-cyan-100',    'text'=>'text-cyan-600',    'title'=>'Suivi des signalements',  'desc'=>"Consultez les problèmes remontés et l'avancement de leur prise en charge."],
+                    ['icon'=>'piggy-bank', 'bg'=>'bg-blue-100',    'text'=>'text-blue-600',    'title'=>'Économies Financières',   'desc'=>"Réduction directe des surcoûts d'eau non comptabilisée et optimisation des interventions de maintenance."],
+                    ['icon'=>'globe',      'bg'=>'bg-emerald-100', 'text'=>'text-emerald-600', 'title'=>'Empreinte Écologique',    'desc'=>'Préservation active des nappes phréatiques et alignement avec vos objectifs RSE et environnementaux.'],
+                ];
+                @endphp
+                @foreach($advantages as $adv)
+                <div class="bg-gradient-to-b from-slate-50/80 to-white border border-slate-100 rounded-3xl hover:border-cyan-200 transition-all shadow-sm" style="padding:var(--card-padding-lg);display:flex;flex-direction:column;gap:var(--spacing-md);">
+                    <div class="{{ $adv['bg'] }} {{ $adv['text'] }} rounded-2xl flex items-center justify-center" style="width:var(--icon-wrap-md);height:var(--icon-wrap-md);">
+                        <i data-lucide="{{ $adv['icon'] }}" style="width:var(--icon-md);height:var(--icon-md);"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-900" style="font-size:var(--font-size-h4);">{{ $adv['title'] }}</h3>
+                    <p class="text-slate-500 leading-relaxed" style="font-size:var(--font-size-sm);">{{ $adv['desc'] }}</p>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ════════════════════════════════════════════════════════
+         6. CONTACT
+    ════════════════════════════════════════════════════════ --}}
+    <section id="contact" class="bg-slate-50/50" style="padding: var(--section-py) 0;">
+        <div class="fo-container">
+            <div class="grid lg:grid-cols-5 items-start" style="gap:clamp(3rem,5vw,6rem);">
+
+                <div class="lg:col-span-2" style="display:flex;flex-direction:column;gap:clamp(1rem,1.8vw,2rem);">
+                    <span class="section-label text-cyan-600">Contact &amp; Démonstration</span>
+                    <h2 class="section-h2 text-slate-900 font-display leading-tight">Prêt à sécuriser vos réseaux d'eau&nbsp;?</h2>
+                    <p class="text-slate-600 leading-relaxed" style="font-size:var(--font-size-body);">Demandez une démonstration personnalisée ou contactez nos experts.</p>
+                    <div style="display:flex;flex-direction:column;gap:var(--spacing-md);">
+                        @foreach([['mail','Email','contact@aquasecure.io'],['phone','Téléphone','+33 (0)1 89 00 00 00']] as [$ic,$label,$val])
+                        <div class="flex items-center gap-4">
+                            <div class="bg-white border border-slate-200 text-cyan-600 flex items-center justify-center shadow-sm rounded-2xl shrink-0" style="width:var(--icon-wrap-sm);height:var(--icon-wrap-sm);">
+                                <i data-lucide="{{ $ic }}" style="width:var(--icon-sm);height:var(--icon-sm);"></i>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-slate-400" style="font-size:var(--font-size-xs);">{{ $label }}</div>
+                                <div class="font-bold text-slate-800" style="font-size:var(--font-size-sm);">{{ $val }}</div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="lg:col-span-3">
+                    <form onsubmit="event.preventDefault(); alert('Merci ! Notre équipe vous recontactera sous 24h.');" class="bg-white border border-slate-100 rounded-3xl shadow-xl" style="padding:var(--card-padding-lg);">
+                        <div class="grid sm:grid-cols-2" style="gap:var(--spacing-md);margin-bottom:var(--spacing-md);">
+                            <div>
+                                <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Nom complet</label>
+                                <input type="text" required placeholder="Jean Dupont" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                            </div>
+                            <div>
+                                <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Email professionnel</label>
+                                <input type="email" required placeholder="j.dupont@entreprise.com" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:var(--spacing-md);">
+                            <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Organisation / Entreprise</label>
+                            <input type="text" placeholder="Nom de votre structure" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                        </div>
+                        <div style="margin-bottom:var(--spacing-lg);">
+                            <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Message</label>
+                            <textarea rows="4" required placeholder="Décrivez votre besoin ou projet..." class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all resize-none" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary-lg w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 hover:shadow-xl" style="border-radius:9999px;">
+                            Envoyer ma demande de démonstration →
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    {{-- ════════════════════════════════════════════════════════
+         7. FOOTER
+    ════════════════════════════════════════════════════════ --}}
+    <footer class="bg-[#0c2a4a] text-slate-300" style="padding: clamp(2rem,4vw,4rem) 0;">
+        <div class="fo-container flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <div class="rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center" style="width:var(--icon-wrap-sm);height:var(--icon-wrap-sm);">
+                    <i data-lucide="droplet" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-white"></i>
+                </div>
+                <span class="font-display font-bold text-white" style="font-size:var(--font-size-h4);">AquaSecure</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);">© {{ date('Y') }} AquaSecure — Plateforme de gestion du réseau d'eau. Tous droits réservés.</p>
+            <a href="#accueil" class="hover:text-cyan-400 transition-colors" style="font-size:var(--font-size-xs);">Haut de page ↑</a>
+        </div>
+    </footer>
+
+</div>
 
 @push('scripts')
 <script>
-    // Zone data from PHP
-    const zones = @json($zones);
-    const zoneColors = @json($zoneColors);
-    const zoneLabels = @json($zoneLabels);
-    
-    let selectedZoneId = null;
-    
-    function selectZone(zoneId) {
-        selectedZoneId = zoneId;
-        const zone = zones.find(z => z.id === zoneId);
-        if (!zone) return;
-        
-        document.getElementById('zone-summary').classList.add('hidden');
-        const detailEl = document.getElementById('zone-detail');
-        detailEl.classList.remove('hidden');
-        detailEl.classList.add('animate-scale-in');
-        
-        detailEl.innerHTML = `
-            <div class="flex items-center gap-3 mb-4">
-                <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <h3 class="text-xl font-display font-bold text-white">${zone.name}</h3>
-            </div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4"
-                style="background: ${zoneColors[zone.status]}1a; color: ${zoneColors[zone.status]}; border: 1px solid ${zoneColors[zone.status]}66">
-                ${zoneLabels[zone.status]}
-            </div>
-            <div class="space-y-4">
-                ${[
-                    { label: 'Capteurs actifs', value: zone.sensors, icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-                    { label: 'Consommation', value: zone.consumption.toLocaleString() + ' m³/j', icon: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' },
-                    { label: 'Qualité eau', value: zone.quality + '%', icon: 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-                    { label: 'Pression', value: zone.pressure + ' bar', icon: 'M13 10V3L4 14h7v7l9-11h-7z' }
-                ].map(m => `
-                    <div class="flex items-center justify-between py-2 border-b border-white/5">
-                        <span class="flex items-center gap-2 text-sm text-cyan-100/60">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${m.icon}"></path>
-                            </svg>
-                            ${m.label}
-                        </span>
-                        <span class="text-sm font-semibold text-white">${m.value}</span>
-                    </div>
-                `).join('')}
-            </div>
-            <button onclick="clearZoneSelection()" class="mt-4 w-full py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-cyan-100/60 hover:text-white text-sm transition-colors">
-                Retour à la vue d'ensemble
-            </button>
-        `;
-        
-        // Update marker styles
-        document.querySelectorAll('.zone-marker').forEach(m => {
-            m.style.opacity = m.dataset.zoneId === zoneId ? '1' : '0.5';
-        });
+    function toggleMobileNav() {
+        const nav = document.getElementById('mobile-nav');
+        nav.classList.toggle('hidden');
     }
-    
-    function clearZoneSelection() {
-        selectedZoneId = null;
-        document.getElementById('zone-detail').classList.add('hidden');
-        document.getElementById('zone-summary').classList.remove('hidden');
-        document.querySelectorAll('.zone-marker').forEach(m => m.style.opacity = '1');
-    }
-    
-    function hoverZone(zoneId) {
-        if (selectedZoneId) return;
-        const marker = document.querySelector(`[data-zone-id="${zoneId}"]`);
-        const tooltip = marker?.querySelector('.zone-tooltip');
-        if (tooltip) tooltip.style.opacity = '1';
-    }
-    
-    function unhoverZone() {
-        document.querySelectorAll('.zone-tooltip').forEach(t => t.style.opacity = '0');
-    }
-    
-    // Theme toggle
-    function updateThemeIcons() {
-        const theme = document.documentElement.getAttribute('data-theme');
-        document.querySelectorAll('.sun-icon').forEach(el => {
-            theme === 'light' ? el.classList.remove('hidden') : el.classList.add('hidden');
-        });
-        document.querySelectorAll('.moon-icon').forEach(el => {
-            theme === 'light' ? el.classList.add('hidden') : el.classList.remove('hidden');
-        });
-    }
-    
-    updateThemeIcons();
-    
-    const originalToggleTheme = window.toggleTheme;
-    window.toggleTheme = function() {
-        originalToggleTheme();
-        updateThemeIcons();
-    };
 </script>
 @endpush
 @endsection
