@@ -14,6 +14,20 @@
     $ss = $statusStyle[$projet->statut];
 @endphp
 
+@push('styles')
+@if($projet->hasGeolocation())
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #projet-map {
+        height: 300px;
+    }
+    .leaflet-container {
+        border-radius: 0.75rem;
+    }
+</style>
+@endif
+@endpush
+
 @section('manager-content')
 <div class="space-y-6 animate-fade-in-up">
 
@@ -279,6 +293,9 @@
 @endsection
 
 @push('scripts')
+@if($projet->hasGeolocation())
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endif
 <script>
     // Refresh Lucide icons
     if (typeof lucide !== 'undefined') {

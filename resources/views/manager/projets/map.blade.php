@@ -4,6 +4,20 @@
     $title = 'Carte des Projets — AquaSecure';
 @endphp
 
+@push('styles')
+@if($projets->count() > 0)
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #projets-map {
+        height: 600px;
+    }
+    .leaflet-container {
+        border-radius: 0.75rem;
+    }
+</style>
+@endif
+@endpush
+
 @section('manager-content')
 <div class="space-y-6 animate-fade-in-up">
 
@@ -97,6 +111,9 @@
 @endsection
 
 @push('scripts')
+@if($projets->count() > 0)
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endif
 <script>
     // Refresh Lucide icons
     if (typeof lucide !== 'undefined') {
