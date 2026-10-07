@@ -13,6 +13,10 @@ class Intervention extends Model
 
     public const STATUTS = ['Planifiée', 'En cours', 'Terminée', 'Annulée'];
 
+    protected $attributes = [
+        'statut' => 'Planifiée',
+    ];
+
     protected $fillable = [
         'technicien_id',
         'date',

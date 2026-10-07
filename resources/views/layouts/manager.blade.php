@@ -31,6 +31,7 @@
                 <a href="{{ route('manager.incidents') }}" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Incidents</a>
                 <a href="{{ route('manager.projects') }}" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Projets</a>
                 <a href="{{ route('manager.budget') }}" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Budget</a>
+                <a href="{{ route('manager.techniciens.index') }}" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all {{ request()->routeIs('manager.techniciens.*', 'manager.interventions.*') ? 'bg-white/10 text-white' : '' }}">Maintenance</a>
             </div>
 
             {{-- Right Controls: Role Switcher, Notifications, User Menu --}}
