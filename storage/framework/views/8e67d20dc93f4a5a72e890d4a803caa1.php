@@ -52,9 +52,26 @@
             
             
             <div class="flex items-center gap-3">
-                <a href="<?php echo e(route('landing')); ?>" class="liquid-tool text-white/80 hover:text-white" title="Retour Accueil" aria-label="Retour Accueil">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </a>
+                <?php if (isset($component)) { $__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.back-button','data' => ['fallback' => route('landing')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('back-button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['fallback' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(route('landing'))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687)): ?>
+<?php $attributes = $__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687; ?>
+<?php unset($__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687)): ?>
+<?php $component = $__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687; ?>
+<?php unset($__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687); ?>
+<?php endif; ?>
                 <a href="<?php echo e(route('manager.dashboard')); ?>" class="flex items-center gap-2.5 group">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
                         <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
@@ -172,6 +189,9 @@
                     </a>
                     <a href="<?php echo e(route('manager.projects')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
                         <i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i> Maintenance et projets
+                    </a>
+                    <a href="<?php echo e(route('manager.techniciens.index')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="wrench" class="w-4 h-4 text-orange-400"></i> Techniciens et interventions
                     </a>
                     <a href="<?php echo e(route('manager.budget')); ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
                         <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> Financement et budget
