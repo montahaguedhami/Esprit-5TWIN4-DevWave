@@ -21,6 +21,7 @@ class Projet extends Model
         'date_debut',
         'date_fin',
         'budget',
+        'progression',
         'statut',
         'adresse',
         'latitude',
@@ -38,6 +39,7 @@ class Projet extends Model
             'date_debut' => 'date',
             'date_fin' => 'date',
             'budget' => 'decimal:2',
+            'progression' => 'integer',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];

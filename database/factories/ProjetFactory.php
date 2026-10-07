@@ -108,12 +108,23 @@ class ProjetFactory extends Factory
             $dateFin = fake()->dateTimeBetween($dateDebut, 'now');
         }
 
+        // Progression cohérente avec le statut
+        $progression = match($statut) {
+            'planifie' => 0,
+            'en_cours' => fake()->numberBetween(10, 95),
+            'termine' => 100,
+            'suspendu' => fake()->numberBetween(15, 75),
+            'annule' => fake()->numberBetween(0, 40),
+            default => 0,
+        };
+
         return [
             'nom' => $nom,
             'description' => $description,
             'date_debut' => $dateDebut,
             'date_fin' => $dateFin ?: ($statut === 'en_cours' ? $dateFinEstimee : null),
             'budget' => $budget,
+            'progression' => $progression,
             'statut' => $statut,
             'adresse' => $localisation['adresse'],
             'latitude' => $localisation['lat'],
