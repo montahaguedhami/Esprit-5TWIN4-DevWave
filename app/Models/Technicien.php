@@ -15,6 +15,10 @@ class Technicien extends Model
 
     public const DISPONIBILITES = ['Disponible', 'En intervention', 'En congé'];
 
+    protected $attributes = [
+        'disponibilite' => 'Disponible',
+    ];
+
     protected $fillable = [
         'nom',
         'specialite',
