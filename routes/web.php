@@ -236,18 +236,27 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(
     Route::delete('/manager/actions/{action}', [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
 });
 
-Route::get('/manager/projects', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.projects');
-})->name('manager.projects');
+// Route démo supprimée - utiliser /manager/projets (module Ghada) à la place
 
 Route::get('/manager/budget', function () {
     if (!session('user')) {
         session(['user' => ['name' => 'Moncef Triki', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'role_key' => 'finance']]);
     }
-    return view('manager.budget');
+    
+    // Récupérer les projets et financements depuis la base de données
+    $projets = \App\Models\Projet::with('financements')->get();
+    $financements = \App\Models\Financement::with('projet')->latest()->get();
+    
+    // Calculer les totaux
+    $totalBudget = $projets->sum('budget');
+    $totalFinance = $financements->sum('montant');
+    $budgetRestant = $totalBudget - $totalFinance;
+    $pourcentageUtilise = $totalBudget > 0 ? ($totalFinance / $totalBudget * 100) : 0;
+    
+    // Compter les sources de financement uniques
+    $sourcesUniques = $financements->pluck('source')->unique()->count();
+    
+    return view('manager.budget', compact('projets', 'financements', 'totalBudget', 'totalFinance', 'budgetRestant', 'pourcentageUtilise', 'sourcesUniques'));
 })->name('manager.budget');
 
 Route::get('/manager/analytics', function () {
@@ -370,3 +379,34 @@ Route::prefix('manager')->name('manager.')->group(function () {
 // Module Maintenance (Front Office) : travaux visibles par les citoyens
 Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
 Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
+
+// === MODULE PROJETS/FINANCEMENTS (Ghada) ===
+
+// Citizen - Projets (Lecture seule)
+Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
+    Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
+});
+
+// Manager - Projets CRUD
+Route::prefix('manager/projets')->name('manager.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\ProjetController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\ProjetController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\ProjetController::class, 'store'])->name('store');
+    Route::get('/map', [App\Http\Controllers\Manager\ProjetController::class, 'map'])->name('map');
+    Route::get('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'show'])->name('show');
+    Route::get('/{projet}/edit', [App\Http\Controllers\Manager\ProjetController::class, 'edit'])->name('edit');
+    Route::put('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'update'])->name('update');
+    Route::delete('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'destroy'])->name('destroy');
+});
+
+// Manager - Financements CRUD
+Route::prefix('manager/financements')->name('manager.financements.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\FinancementController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\FinancementController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
+    Route::get('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
+    Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
+    Route::put('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
+    Route::delete('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});
