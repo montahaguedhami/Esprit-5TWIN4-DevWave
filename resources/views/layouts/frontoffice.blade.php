@@ -29,9 +29,9 @@
                     <i data-lucide="layout-dashboard" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-cyan-300"></i>
                     <span>Tableau de bord</span>
                 </a>
-                <a href="{{ route('citizen.reports.create') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
+                <a href="{{ route('incidents.index') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="alert-circle" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-amber-300"></i>
-                    <span>Signaler un problème</span>
+                    <span>Mes incidents</span>
                 </a>
                 <a href="{{ route('citizen.invoices.index') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="file-text" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-teal-300"></i>
@@ -58,10 +58,10 @@
             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
             <span class="text-[9px] font-medium">Accueil</span>
         </a>
-        <a href="{{ route('citizen.reports.create') }}"
+        <a href="{{ route('incidents.index') }}"
            class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl liquid-chip text-cyan-300">
-            <i data-lucide="plus" class="w-5 h-5"></i>
-            <span class="text-[9px] font-medium">Signaler</span>
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+            <span class="text-[9px] font-medium">Incidents</span>
         </a>
         <a href="{{ route('citizen.invoices.index') }}"
            class="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-white/70 hover:text-cyan-300 transition-colors">

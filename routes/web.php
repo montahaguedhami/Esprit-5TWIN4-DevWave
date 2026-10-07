@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\ActionCorrectiveController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -209,12 +211,27 @@ Route::get('/manager/quality', function () {
     return view('manager.quality');
 })->name('manager.quality');
 
-Route::get('/manager/incidents', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.incidents');
-})->name('manager.incidents');
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(function () {
+    Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
+    Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
+    Route::get('/incidents/{incident}/edit', [IncidentController::class, 'edit'])->name('incidents.edit');
+    Route::put('/incidents/{incident}', [IncidentController::class, 'update'])->name('incidents.update');
+    Route::delete('/incidents/{incident}', [IncidentController::class, 'destroy'])->name('incidents.destroy');
+    Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->name('incidents.show');
+});
+
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
+    Route::get('/manager/incidents', [IncidentController::class, 'managerIndex'])->name('manager.incidents');
+    Route::get('/manager/incidents/{incident}', [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
+    Route::get('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'index'])->name('manager.actions.index');
+    Route::get('/manager/incidents/{incident}/actions/create', [ActionCorrectiveController::class, 'create'])->name('manager.actions.create');
+    Route::post('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'store'])->name('incidents.actions.store');
+    Route::get('/manager/actions/{action}/edit', [ActionCorrectiveController::class, 'edit'])->name('manager.actions.edit');
+    Route::get('/manager/actions/{action}', [ActionCorrectiveController::class, 'show'])->name('manager.actions.show');
+    Route::put('/manager/actions/{action}', [ActionCorrectiveController::class, 'update'])->name('manager.actions.update');
+    Route::delete('/manager/actions/{action}', [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
+});
 
 Route::get('/manager/projects', function () {
     if (!session('user')) {
