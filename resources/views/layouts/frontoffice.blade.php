@@ -8,9 +8,7 @@
             
             {{-- Brand Logo & Back Arrow --}}
             <div class="flex items-center gap-3">
-                <a href="{{ route('landing') }}" class="liquid-tool text-white/80 hover:text-white" title="Retour à l'accueil" aria-label="Retour à l'accueil">
-                    <i data-lucide="arrow-left" style="width:var(--icon-sm);height:var(--icon-sm);"></i>
-                </a>
+                <x-back-button :fallback="route('citizen.dashboard')" />
                 <a href="{{ route('citizen.dashboard') }}" class="flex items-center gap-2.5 group">
                     <div class="rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform" style="width:var(--navbar-logo-w);height:var(--navbar-logo-w);">
                         <i data-lucide="droplet" style="width:55%;height:55%;" class="text-white"></i>
@@ -36,6 +34,10 @@
                 <a href="{{ route('citizen.invoices.index') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="file-text" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-teal-300"></i>
                     <span>Factures & consommation</span>
+                </a>
+                <a href="{{ route('citizen.travaux.index') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 {{ request()->routeIs('citizen.travaux.*') ? 'bg-white/10 text-white' : '' }}">
+                    <i data-lucide="construction" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-orange-300"></i>
+                    <span>Travaux</span>
                 </a>
                 <a href="{{ route('citizen.notifications') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="bell" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-sky-300"></i>

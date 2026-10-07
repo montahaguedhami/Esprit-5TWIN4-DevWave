@@ -29,5 +29,7 @@ class DatabaseSeeder extends Seeder
             IncidentSeeder::class,
             ActionCorrectiveSeeder::class,
         ]);
+
+        $this->call([TechnicienSeeder::class]);
     }
 }

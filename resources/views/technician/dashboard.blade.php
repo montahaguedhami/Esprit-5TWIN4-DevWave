@@ -34,9 +34,7 @@
 {{-- ── TOPBAR TECHNICIEN (Liquid Glass with Back Arrow) ── --}}
 <nav class="sticky top-0 z-50 glass-strong border-b border-white/20 px-4 sm:px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
-        <a href="{{ route('landing') }}" class="liquid-tool text-white/80 hover:text-white" title="Retour Accueil" aria-label="Retour à l'accueil">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-        </a>
+        <x-back-button :fallback="route('landing')" />
         <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
                 <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
