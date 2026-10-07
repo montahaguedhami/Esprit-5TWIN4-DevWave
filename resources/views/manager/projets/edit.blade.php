@@ -4,6 +4,18 @@
     $title = 'Modifier ' . $projet->nom . ' — AquaSecure';
 @endphp
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #projet-map-form {
+        height: 24rem;
+    }
+    .leaflet-container {
+        border-radius: 0.75rem;
+    }
+</style>
+@endpush
+
 @section('manager-content')
 <div class="max-w-4xl mx-auto space-y-6 animate-fade-in-up">
 
@@ -265,6 +277,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     // Refresh Lucide icons
     if (typeof lucide !== 'undefined') {
