@@ -130,18 +130,35 @@
                 </div>
             </div>
 
-            <!-- Budget Info -->
-            <div class="mb-3">
-                <div class="flex justify-between text-[11px] text-cyan-100/50 mb-1">
-                    <span>Budget / Financé</span>
-                    <span class="font-bold text-white">{{ number_format($projet->pourcentage_finance, 1) }}%</span>
+            <!-- Budget & Progress Info -->
+            <div class="mb-3 space-y-2">
+                <!-- Progression Physique -->
+                <div>
+                    <div class="flex justify-between text-[11px] text-cyan-100/50 mb-1">
+                        <span>Progression physique</span>
+                        <span class="font-bold text-white">{{ $projet->progression }}%</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white/5 overflow-hidden">
+                        @php
+                            $progColor = $projet->progression >= 100 ? 'bg-green-400' : ($projet->progression >= 50 ? 'bg-cyan-400' : 'bg-blue-400');
+                        @endphp
+                        <div class="h-full rounded-full {{ $progColor }}" style="width: {{ min($projet->progression, 100) }}%"></div>
+                    </div>
                 </div>
-                <div class="h-2 rounded-full bg-white/5 overflow-hidden">
-                    @php
-                        $percentage = min($projet->pourcentage_finance, 100);
-                        $color = $percentage >= 100 ? 'bg-teal-400' : ($percentage >= 50 ? 'bg-cyan-400' : 'bg-blue-400');
-                    @endphp
-                    <div class="h-full rounded-full {{ $color }}" style="width: {{ $percentage }}%"></div>
+
+                <!-- Progression Financement -->
+                <div>
+                    <div class="flex justify-between text-[11px] text-cyan-100/50 mb-1">
+                        <span>Budget / Financé</span>
+                        <span class="font-bold text-white">{{ number_format($projet->pourcentage_finance, 1) }}%</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white/5 overflow-hidden">
+                        @php
+                            $percentage = min($projet->pourcentage_finance, 100);
+                            $color = $percentage >= 100 ? 'bg-teal-400' : ($percentage >= 50 ? 'bg-cyan-400' : 'bg-blue-400');
+                        @endphp
+                        <div class="h-full rounded-full {{ $color }}" style="width: {{ $percentage }}%"></div>
+                    </div>
                 </div>
             </div>
 

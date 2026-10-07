@@ -86,13 +86,27 @@
                 <p class="text-cyan-400 text-xs font-semibold">DT</p>
             </div>
             <div class="bg-white/[.03] rounded-xl px-4 py-3 col-span-2 sm:col-span-1">
-                <p class="text-cyan-100/50 text-xs mb-1">Pourcentage Financé</p>
+                <p class="text-cyan-100/50 text-xs mb-1">% Financé</p>
                 <p class="text-white font-bold text-lg">{{ number_format($projet->pourcentage_finance, 1) }}</p>
                 <p class="text-cyan-400 text-xs font-semibold">%</p>
             </div>
         </div>
 
-        <!-- Progress Bar -->
+        <!-- Progression Physique -->
+        <div class="mb-4">
+            <div class="flex justify-between text-xs text-cyan-100/50 mb-2">
+                <span>Progression du projet</span>
+                <span class="font-bold text-white">{{ $projet->progression }}%</span>
+            </div>
+            <div class="h-3 rounded-full bg-white/5 overflow-hidden">
+                @php
+                    $progColor = $projet->progression >= 100 ? 'bg-green-400' : ($projet->progression >= 50 ? 'bg-cyan-400' : 'bg-blue-400');
+                @endphp
+                <div class="h-full rounded-full {{ $progColor }} transition-all duration-500" style="width: {{ min($projet->progression, 100) }}%"></div>
+            </div>
+        </div>
+
+        <!-- Progression Financement -->
         <div class="mb-4">
             <div class="flex justify-between text-xs text-cyan-100/50 mb-2">
                 <span>Progression du financement</span>

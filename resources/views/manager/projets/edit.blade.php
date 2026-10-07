@@ -103,7 +103,7 @@
                     </div>
                 </div>
 
-                <!-- Budget & Statut -->
+                <!-- Budget & Progression -->
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div>
                         <label for="budget" class="block text-sm font-semibold text-cyan-100/80 mb-2">
@@ -125,26 +125,47 @@
                         @enderror
                     </div>
                     <div>
-                        <label for="statut" class="block text-sm font-semibold text-cyan-100/80 mb-2">
-                            Statut <span class="text-red-400">*</span>
+                        <label for="progression" class="block text-sm font-semibold text-cyan-100/80 mb-2">
+                            Progression (%) <span class="text-red-400">*</span>
                         </label>
-                        <select id="statut" 
-                                name="statut"
-                                class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-400/50 focus:outline-none transition-colors @error('statut') border-red-400/50 @enderror"
-                                required>
-                            <option value="planifie" {{ old('statut', $projet->statut) === 'planifie' ? 'selected' : '' }}>Planifié</option>
-                            <option value="en_cours" {{ old('statut', $projet->statut) === 'en_cours' ? 'selected' : '' }}>En cours</option>
-                            <option value="termine" {{ old('statut', $projet->statut) === 'termine' ? 'selected' : '' }}>Terminé</option>
-                            <option value="suspendu" {{ old('statut', $projet->statut) === 'suspendu' ? 'selected' : '' }}>Suspendu</option>
-                            <option value="annule" {{ old('statut', $projet->statut) === 'annule' ? 'selected' : '' }}>Annulé</option>
-                        </select>
-                        @error('statut')
+                        <input type="number" 
+                               id="progression" 
+                               name="progression" 
+                               value="{{ old('progression', $projet->progression) }}"
+                               min="0"
+                               max="100"
+                               class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-cyan-100/40 focus:border-cyan-400/50 focus:outline-none transition-colors @error('progression') border-red-400/50 @enderror"
+                               required>
+                        @error('progression')
                         <p class="mt-1 text-sm text-red-400 flex items-center gap-1">
                             <i data-lucide="alert-circle" class="w-3 h-3"></i>
                             {{ $message }}
                         </p>
                         @enderror
                     </div>
+                </div>
+
+                <!-- Statut -->
+                <div>
+                    <label for="statut" class="block text-sm font-semibold text-cyan-100/80 mb-2">
+                        Statut <span class="text-red-400">*</span>
+                    </label>
+                    <select id="statut" 
+                            name="statut"
+                            class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-400/50 focus:outline-none transition-colors @error('statut') border-red-400/50 @enderror"
+                            required>
+                        <option value="planifie" {{ old('statut', $projet->statut) === 'planifie' ? 'selected' : '' }}>Planifié</option>
+                        <option value="en_cours" {{ old('statut', $projet->statut) === 'en_cours' ? 'selected' : '' }}>En cours</option>
+                        <option value="termine" {{ old('statut', $projet->statut) === 'termine' ? 'selected' : '' }}>Terminé</option>
+                        <option value="suspendu" {{ old('statut', $projet->statut) === 'suspendu' ? 'selected' : '' }}>Suspendu</option>
+                        <option value="annule" {{ old('statut', $projet->statut) === 'annule' ? 'selected' : '' }}>Annulé</option>
+                    </select>
+                    @error('statut')
+                    <p class="mt-1 text-sm text-red-400 flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                        {{ $message }}
+                    </p>
+                    @enderror
                 </div>
             </div>
         </div>
