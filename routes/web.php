@@ -242,7 +242,21 @@ Route::get('/manager/budget', function () {
     if (!session('user')) {
         session(['user' => ['name' => 'Moncef Triki', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'role_key' => 'finance']]);
     }
-    return view('manager.budget');
+    
+    // Récupérer les projets et financements depuis la base de données
+    $projets = \App\Models\Projet::with('financements')->get();
+    $financements = \App\Models\Financement::with('projet')->latest()->get();
+    
+    // Calculer les totaux
+    $totalBudget = $projets->sum('budget');
+    $totalFinance = $financements->sum('montant');
+    $budgetRestant = $totalBudget - $totalFinance;
+    $pourcentageUtilise = $totalBudget > 0 ? ($totalFinance / $totalBudget * 100) : 0;
+    
+    // Compter les sources de financement uniques
+    $sourcesUniques = $financements->pluck('source')->unique()->count();
+    
+    return view('manager.budget', compact('projets', 'financements', 'totalBudget', 'totalFinance', 'budgetRestant', 'pourcentageUtilise', 'sourcesUniques'));
 })->name('manager.budget');
 
 Route::get('/manager/analytics', function () {
