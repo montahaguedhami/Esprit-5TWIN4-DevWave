@@ -6,9 +6,27 @@
             
             
             <div class="flex items-center gap-3">
-                <a href="<?php echo e(route('landing')); ?>" class="liquid-tool text-white/80 hover:text-white" aria-label="Retour à l'accueil">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </a>
+                
+                <?php if (isset($component)) { $__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.back-button','data' => ['fallback' => session('user.role') === 'technician' ? route('technician.dashboard') : route('manager.dashboard')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('back-button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['fallback' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(session('user.role') === 'technician' ? route('technician.dashboard') : route('manager.dashboard'))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687)): ?>
+<?php $attributes = $__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687; ?>
+<?php unset($__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687)): ?>
+<?php $component = $__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687; ?>
+<?php unset($__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687); ?>
+<?php endif; ?>
                 <a href="<?php echo e(route('manager.dashboard')); ?>" class="flex items-center gap-2.5 group">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
                         <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
@@ -29,6 +47,7 @@
                 <a href="<?php echo e(route('manager.incidents')); ?>" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Incidents</a>
                 <a href="<?php echo e(route('manager.projects')); ?>" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Projets</a>
                 <a href="<?php echo e(route('manager.budget')); ?>" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">Budget</a>
+                <a href="<?php echo e(route('manager.techniciens.index')); ?>" class="px-3.5 py-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all <?php echo e(request()->routeIs('manager.techniciens.*', 'manager.interventions.*') ? 'bg-white/10 text-white' : ''); ?>">Maintenance</a>
             </div>
 
             

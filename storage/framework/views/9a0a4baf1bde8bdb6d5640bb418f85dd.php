@@ -6,9 +6,26 @@
             
             
             <div class="flex items-center gap-3">
-                <a href="<?php echo e(route('landing')); ?>" class="liquid-tool text-white/80 hover:text-white" title="Retour à l'accueil" aria-label="Retour à l'accueil">
-                    <i data-lucide="arrow-left" style="width:var(--icon-sm);height:var(--icon-sm);"></i>
-                </a>
+                <?php if (isset($component)) { $__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.back-button','data' => ['fallback' => route('citizen.dashboard')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('back-button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['fallback' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(route('citizen.dashboard'))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687)): ?>
+<?php $attributes = $__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687; ?>
+<?php unset($__attributesOriginal5c84f04e4e4c3f6b2afa5416a6776687); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687)): ?>
+<?php $component = $__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687; ?>
+<?php unset($__componentOriginal5c84f04e4e4c3f6b2afa5416a6776687); ?>
+<?php endif; ?>
                 <a href="<?php echo e(route('citizen.dashboard')); ?>" class="flex items-center gap-2.5 group">
                     <div class="rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform" style="width:var(--navbar-logo-w);height:var(--navbar-logo-w);">
                         <i data-lucide="droplet" style="width:55%;height:55%;" class="text-white"></i>
@@ -34,6 +51,10 @@
                 <a href="<?php echo e(route('citizen.invoices.index')); ?>" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="file-text" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-teal-300"></i>
                     <span>Factures & consommation</span>
+                </a>
+                <a href="<?php echo e(route('citizen.travaux.index')); ?>" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2 <?php echo e(request()->routeIs('citizen.travaux.*') ? 'bg-white/10 text-white' : ''); ?>">
+                    <i data-lucide="construction" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-orange-300"></i>
+                    <span>Travaux</span>
                 </a>
                 <a href="<?php echo e(route('citizen.notifications')); ?>" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="bell" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-sky-300"></i>
