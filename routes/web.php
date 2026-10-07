@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\InfrastructureController;
+use App\Http\Controllers\ZoneController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -251,6 +253,11 @@ Route::get('/manager/reports', function () {
     return view('manager.reports');
 })->name('manager.reports');
 
+Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
+    Route::resource('zones', ZoneController::class);
+    Route::resource('infrastructures', InfrastructureController::class);
+});
+
 // Admin Space (BackOffice) - DEMO
 Route::get('/admin/dashboard', function () {
     if (!session('user') || session('user.role') !== 'admin') {
@@ -339,4 +346,3 @@ Route::get('/ai-demo', function () {
 Route::get('/weather', function () {
     return response()->file(public_path('weather.html'));
 })->name('weather');
-

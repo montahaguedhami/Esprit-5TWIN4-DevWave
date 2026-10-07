@@ -100,6 +100,8 @@
                     <nav class="absolute right-0 top-12 z-[70] w-64 rounded-2xl border border-white/15 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Navigation gestionnaire">
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.dashboard') }}">Tableau de bord</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.map') }}">Carte du réseau</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.zones.index') }}">Zones</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.infrastructures.index') }}">Infrastructures</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.quality') }}">Qualité de l’eau</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.incidents') }}">Incidents</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.teams') }}">Équipes</a>
@@ -127,6 +129,12 @@
                     </a>
                     <a href="{{ route('manager.map') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
                         <i data-lucide="map-pin" class="w-4 h-4 text-blue-400"></i> Carte du réseau
+                    </a>
+                    <a href="{{ route('manager.zones.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="map" class="w-4 h-4 text-cyan-400"></i> Zones
+                    </a>
+                    <a href="{{ route('manager.infrastructures.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
+                        <i data-lucide="construction" class="w-4 h-4 text-amber-400"></i> Infrastructures
                     </a>
                     <a href="{{ route('manager.quality') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
                         <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i> Qualité de l’eau
