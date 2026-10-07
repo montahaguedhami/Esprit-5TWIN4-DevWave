@@ -8,9 +8,7 @@
             
             {{-- Brand Logo & Back Arrow --}}
             <div class="flex items-center gap-3">
-                <a href="{{ route('landing') }}" class="liquid-tool text-white/80 hover:text-white" title="Retour à l'accueil" aria-label="Retour à l'accueil">
-                    <i data-lucide="arrow-left" style="width:var(--icon-sm);height:var(--icon-sm);"></i>
-                </a>
+                <x-back-button :fallback="route('citizen.dashboard')" />
                 <a href="{{ route('citizen.dashboard') }}" class="flex items-center gap-2.5 group">
                     <div class="rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform" style="width:var(--navbar-logo-w);height:var(--navbar-logo-w);">
                         <i data-lucide="droplet" style="width:55%;height:55%;" class="text-white"></i>

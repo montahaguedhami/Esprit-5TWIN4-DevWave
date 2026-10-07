@@ -8,9 +8,8 @@
             
             {{-- Brand Logo & Back Button --}}
             <div class="flex items-center gap-3">
-                <a href="{{ route('landing') }}" class="liquid-tool text-white/80 hover:text-white" aria-label="Retour à l'accueil">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </a>
+                {{-- layouts.manager sert aussi aux pages technicien --}}
+                <x-back-button :fallback="session('user.role') === 'technician' ? route('technician.dashboard') : route('manager.dashboard')" />
                 <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-2.5 group">
                     <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
                         <i data-lucide="droplet" class="w-5 h-5 text-white"></i>

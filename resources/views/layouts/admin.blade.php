@@ -79,9 +79,7 @@
                         flex items-center gap-3">
 
             {{-- Back Arrow & Mobile Hamburger --}}
-            <a href="{{ route('landing') }}" class="liquid-tool text-white/80 hover:text-white" title="Retour à l'accueil" aria-label="Retour à l'accueil">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            </a>
+            <x-back-button :fallback="route('admin.dashboard')" />
 
             <button onclick="openSidebar()"
                     class="lg:hidden liquid-tool text-cyan-300 hover:text-white"
