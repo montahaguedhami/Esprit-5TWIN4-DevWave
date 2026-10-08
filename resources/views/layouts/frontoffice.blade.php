@@ -22,7 +22,7 @@
             </div>
 
             {{-- Center: Desktop Navigation Bar --}}
-            <nav class="hidden md:flex items-center gap-1.5 glass p-1.5 rounded-2xl font-semibold" style="font-size:var(--font-size-nav);">
+            <nav class="hidden 2xl:flex items-center gap-1 glass p-1 rounded-xl font-semibold" style="font-size:var(--font-size-nav);">
                 <a href="{{ route('citizen.dashboard') }}" class="px-4 py-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     <i data-lucide="layout-dashboard" style="width:var(--icon-sm);height:var(--icon-sm);" class="text-cyan-300"></i>
                     <span>Tableau de bord</span>
@@ -51,6 +51,18 @@
 
             {{-- Right Controls: Notifications & User menu --}}
             <div class="flex items-center gap-3">
+                <details class="relative 2xl:hidden">
+                    <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10" aria-label="Ouvrir la navigation citoyen">
+                        <i data-lucide="menu" class="h-5 w-5" aria-hidden="true"></i>
+                    </summary>
+                    <nav class="absolute right-0 top-12 z-[70] w-64 rounded-2xl border border-white/15 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Navigation citoyen">
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.dashboard') }}">Tableau de bord</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.reports.create') }}">Signaler un problème</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.invoices.index') }}">Factures & consommation</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.notifications') }}">Alertes & coupures</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('profile.show') }}">Profil</a>
+                    </nav>
+                </details>
                 <x-notification-center />
                 <x-user-menu />
             </div>
@@ -103,5 +115,4 @@
 </script>
 @endpush
 @endsection
-
 
