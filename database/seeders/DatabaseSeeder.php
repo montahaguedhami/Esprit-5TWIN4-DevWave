@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             IncidentSeeder::class,
             ActionCorrectiveSeeder::class,
             TechnicienSeeder::class,
+            WaterQualitySeeder::class,
         ]);
 
         // === MODULE PROJETS/FINANCEMENTS (Ghada) ===
