@@ -48,8 +48,9 @@
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.infrastructures.index') }}">Infrastructures</a>
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.quality') }}">Qualité de l’eau</a>
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.incidents') }}">Incidents</a>
-                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.projects') }}">Projets</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.projets.index') }}">Projets</a>
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.budget') }}">Budget</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.techniciens.index') }}">Maintenance</a>
                     </nav>
                 </details>
                 <x-notification-center />

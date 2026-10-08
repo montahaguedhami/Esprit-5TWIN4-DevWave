@@ -383,8 +383,7 @@ Route::get('/weather', function () {
 })->name('weather');
 
 // Module Maintenance (Back Office) : Techniciens & Interventions
-// TODO : ajouter ->middleware('manager') une fois la branche de Sarra mergée
-Route::prefix('manager')->name('manager.')->group(function () {
+Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
     Route::resource('techniciens', TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
 });

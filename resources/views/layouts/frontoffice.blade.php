@@ -57,8 +57,10 @@
                     </summary>
                     <nav class="absolute right-0 top-12 z-[70] w-64 rounded-2xl border border-white/15 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Navigation citoyen">
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.dashboard') }}">Tableau de bord</a>
-                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.reports.create') }}">Signaler un problème</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('incidents.index') }}">Mes incidents</a>
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.invoices.index') }}">Factures & consommation</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.travaux.index') }}">Travaux</a>
+                        <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.projets.index') }}">Projets d'infrastructure</a>
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('citizen.notifications') }}">Alertes & coupures</a>
                         <a class="block rounded-lg px-3 py-2 text-sm text-white/85 hover:bg-white/10" href="{{ route('profile.show') }}">Profil</a>
                     </nav>

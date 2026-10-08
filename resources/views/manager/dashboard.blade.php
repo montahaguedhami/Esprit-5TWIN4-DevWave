@@ -103,6 +103,7 @@
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.quality') }}">Qualité de l’eau</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.incidents') }}">Incidents</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.teams') }}">Équipes</a>
+                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.techniciens.index') }}">Techniciens et interventions</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.projets.index') }}">Projets</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.budget') }}">Budget</a>
                         <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.analytics') }}">Analyses et rapports</a>
