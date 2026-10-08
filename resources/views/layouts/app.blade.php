@@ -21,7 +21,7 @@
     <!-- Additional Styles -->
     @stack('styles')
 </head>
-<body class="@unless(request()->routeIs('landing'))app-interface @endunless antialiased bg-[#04121b] text-white min-h-screen">
+<body class="antialiased bg-[#04121b] text-white min-h-screen">
     <div id="app" class="min-h-screen flex flex-col">
         @yield('content')
     </div>
