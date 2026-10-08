@@ -1,7 +1,7 @@
 @extends('layouts.manager')
 @section('title', 'Modifier une mesure de qualité')
-@section('content')
-<div class="min-h-screen bg-[#061525] p-4 text-slate-100 sm:p-8">
+@section('manager-content')
+<div class="text-slate-100">
     <div class="mx-auto max-w-3xl space-y-5">
         <h1 class="text-2xl font-bold text-white">Modifier {{ $mesure->reference }}</h1>
         <form method="POST" action="{{ route('manager.quality.mesures.update', $mesure) }}" class="space-y-5 rounded-2xl border border-slate-800 bg-slate-900 p-6">

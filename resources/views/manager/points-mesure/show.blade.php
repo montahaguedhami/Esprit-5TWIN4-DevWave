@@ -1,7 +1,7 @@
 @extends('layouts.manager')
 @section('title', $point->nom)
-@section('content')
-<div class="min-h-screen bg-[#061525] p-4 text-slate-100 sm:p-8">
+@section('manager-content')
+<div class="text-slate-100">
     <div class="mx-auto max-w-5xl space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div><h1 class="text-2xl font-bold text-white">{{ $point->nom }}</h1><p class="text-sm text-slate-400">{{ $point->code }} · {{ $point->zone }}</p></div>

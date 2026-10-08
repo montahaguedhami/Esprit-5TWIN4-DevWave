@@ -2,8 +2,8 @@
 
 @section('title', 'Points de prélèvement — AquaSecure')
 
-@section('content')
-<div class="min-h-screen bg-[#061525] text-slate-100 p-4 sm:p-8">
+@section('manager-content')
+<div class="text-slate-100">
     <div class="max-w-6xl mx-auto space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
