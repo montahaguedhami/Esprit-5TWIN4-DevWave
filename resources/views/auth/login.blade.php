@@ -101,7 +101,7 @@
             <div>
                 <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
                 <div class="relative">
-                    <input type="password" name="password" id="password" required minlength="6" placeholder="password" autocomplete="current-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <input type="password" name="password" id="password" required placeholder="password" autocomplete="current-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
@@ -132,7 +132,7 @@
         <div class="mt-6 rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-4 text-xs text-cyan-100/65">
             <p class="font-semibold text-cyan-200/85">Compte de démonstration</p>
             <p class="mt-1">Email : <span class="text-cyan-100">admin@aquasecure.tn</span></p>
-            <p>Mot de passe : <span class="text-cyan-100">password</span></p>
+            <p>Mot de passe : <span class="text-cyan-100">n'importe quelle valeur</span></p>
         </div>
     </section>
 </div>

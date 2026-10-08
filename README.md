@@ -107,7 +107,38 @@ npm run build        # Compiler les fichiers frontend
 php artisan serve    # Lancer le serveur Laravel
 php artisan migrate  # Appliquer les migrations
 php artisan test     # Lancer la suite PHPUnit
+php artisan water:sync # Importer une mesure de démonstration via l’API interne
 ```
+
+## API interne de qualité de l’eau
+
+L’application expose une API JSON interne pour consulter les points de mesure et les mesures de qualité :
+
+```text
+GET  /api/points-mesure
+GET  /api/mesures
+GET  /api/mesures/{id}
+POST /api/mesures
+```
+
+Exemple de création d’une mesure :
+
+```json
+{
+  "reference": "WQR-2026-109",
+  "point_mesure_id": 1,
+  "date_mesure": "2026-10-08 10:30:00",
+  "ph": 7.4,
+  "turbidite": 0.4,
+  "chlore_residuel": 0.8,
+  "plomb": 2.0,
+  "nitrates": 15.2,
+  "is_verified": false,
+  "verifier": "API interne"
+}
+```
+
+L’API valide les données, calcule automatiquement le statut de conformité et enregistre la mesure. La commande `water:sync` utilise actuellement une mesure de démonstration ; elle pourra être reliée à des capteurs ou à une source externe ultérieurement.
 
 ## Structure du dépôt
 

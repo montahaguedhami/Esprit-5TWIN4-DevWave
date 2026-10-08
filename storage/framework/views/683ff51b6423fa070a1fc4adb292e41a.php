@@ -77,7 +77,7 @@ unset($__defined_vars, $__key, $__value); ?>
     </div>
 </div>
 
-<?php if (! $__env->hasRenderedOnce('4ed5202a-60f5-411c-8d3f-b330c401b3b7')): $__env->markAsRenderedOnce('4ed5202a-60f5-411c-8d3f-b330c401b3b7'); ?>
+<?php if (! $__env->hasRenderedOnce('742b14a3-086a-4cf4-a35c-98f3fb852341')): $__env->markAsRenderedOnce('742b14a3-086a-4cf4-a35c-98f3fb852341'); ?>
 <?php $__env->startPush('scripts'); ?>
 <script>
 // Simple Alpine.js-like behavior without Alpine
@@ -111,4 +111,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php $__env->stopPush(); ?>
 <?php endif; ?>
-<?php /**PATH C:\Users\monta\Downloads\DEVWAVE\Esprit-5TWIN4-DevWave-main (1)\Esprit-5TWIN4-DevWave-main\resources\views\components\ui\dropdown.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\monta\Downloads\DEVWAVE\Esprit-5TWIN4-DevWave-main (1)\Esprit-5TWIN4-DevWave-main\resources\views/components/ui/dropdown.blade.php ENDPATH**/ ?>

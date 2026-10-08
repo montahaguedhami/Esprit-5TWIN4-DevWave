@@ -3,7 +3,7 @@
     <!-- Toasts will be dynamically inserted here -->
 </div>
 
-<?php if (! $__env->hasRenderedOnce('126ec8f3-e874-4b45-98f6-09088aefca14')): $__env->markAsRenderedOnce('126ec8f3-e874-4b45-98f6-09088aefca14'); ?>
+<?php if (! $__env->hasRenderedOnce('968c5c9d-0db4-438f-8b1e-5ed078a47cc6')): $__env->markAsRenderedOnce('968c5c9d-0db4-438f-8b1e-5ed078a47cc6'); ?>
 <?php $__env->startPush('scripts'); ?>
 <script>
 function showToast(message, type = 'info', duration = 5000) {
@@ -134,4 +134,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 <?php $__env->stopPush(); ?>
 <?php endif; ?>
-<?php /**PATH C:\Users\monta\Downloads\DEVWAVE\Esprit-5TWIN4-DevWave-main (1)\Esprit-5TWIN4-DevWave-main\resources\views\components\ui\toast.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\monta\Downloads\DEVWAVE\Esprit-5TWIN4-DevWave-main (1)\Esprit-5TWIN4-DevWave-main\resources\views/components/ui/toast.blade.php ENDPATH**/ ?>

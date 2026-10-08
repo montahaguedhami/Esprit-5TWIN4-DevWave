@@ -33,7 +33,7 @@ Route::get('/forgot-password', function () {
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => ['required', 'email'],
-        'password' => ['required', 'string', 'min:6'],
+        'password' => ['required', 'string'],
     ]);
     $email = strtolower(trim($credentials['email']));
     
