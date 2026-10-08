@@ -1,0 +1,159 @@
+@extends('layouts.auth')
+
+@php
+    use App\Data\PlaceholderData;
+    $zones = PlaceholderData::zones();
+@endphp
+
+@section('auth-content')
+<div class="w-full max-w-6xl xl:max-w-7xl grid lg:grid-cols-[1.1fr_1fr] gap-10 items-stretch my-auto">
+    <!-- Left Section - Info (Desktop only) -->
+    <section class="hidden lg:flex flex-col justify-between glass p-10 xl:p-14 animate-fade-in-up">
+        <div>
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-400/10 border border-cyan-400/25 text-cyan-200 text-xs font-semibold mb-8">
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-400 pulse-glow"></span>
+                Plateforme Nationale de Surveillance
+            </div>
+            <h1 class="text-4xl xl:text-6xl font-display font-extrabold text-white leading-tight mb-6">
+                Chaque goutte compte.
+                <span class="block text-gradient">Chaque intervention aussi.</span>
+            </h1>
+            <p class="text-cyan-100/75 text-base xl:text-lg leading-relaxed max-w-xl font-medium">
+                AquaSecure relie les citoyens, techniciens et gestionnaires autour d'un réseau d'eau potable plus sûr, plus transparent et plus résilient.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mt-12">
+            @foreach([
+                ['value' => '14', 'label' => 'zones suivies', 'icon' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+                ['value' => '24/7', 'label' => 'surveillance', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
+                ['value' => '100%', 'label' => 'transparent', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+            ] as $stat)
+            <div class="glass-strong p-5 rounded-2xl">
+                <div class="text-cyan-300 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $stat['icon'] }}"></path>
+                    </svg>
+                </div>
+                <div class="text-2xl font-display font-bold text-white">{{ $stat['value'] }}</div>
+                <div class="text-xs text-cyan-100/60 mt-1 font-medium">{{ $stat['label'] }}</div>
+            </div>
+            @endforeach
+        </div>
+    </section>
+
+    <!-- Right Section - Login Form -->
+    <section class="glass-strong p-8 sm:p-10 xl:p-12 animate-fade-in-up flex flex-col justify-between" style="animation-delay: 0.12s">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-cyan-400 uppercase">Accès Sécurisé</p>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white mt-1">Heureux de vous revoir</h2>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/30 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-950/30 border border-white/5 mb-7">
+            <a href="{{ route('auth.login') }}" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                <span class="hidden sm:inline">Connexion</span>
+            </a>
+            <a href="{{ route('auth.register') }}" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all text-cyan-100/45 hover:text-cyan-100/80">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+                <span class="hidden sm:inline">Inscription</span>
+            </a>
+            <a href="{{ route('auth.forgot-password') }}" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all text-cyan-100/45 hover:text-cyan-100/80">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <span class="hidden sm:inline">Mot de passe</span>
+            </a>
+        </div>
+
+        <!-- Login Form -->
+        <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
+            @csrf
+
+            @if ($errors->any())
+                <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
+                    {{ $errors->first() }}
+                </div>
+            @endif
+            
+            <div>
+                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
+                <div class="relative">
+                    <input type="email" name="email" value="{{ old('email') }}" required placeholder="admin@aquasecure.tn" autocomplete="email" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
+                <div class="relative">
+                    <input type="password" name="password" id="password" required minlength="6" placeholder="password" autocomplete="current-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <button type="button" onclick="togglePasswordVisibility()" class="text-cyan-100/35 hover:text-cyan-300 absolute right-4 top-1/2 -translate-y-1/2" aria-label="Afficher le mot de passe">
+                        <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <svg class="w-4 h-4 eye-off-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" onclick="window.location.href='{{ route('auth.forgot-password') }}'" class="text-right text-xs text-cyan-300/80 hover:text-cyan-200 transition-colors block w-full">
+                Mot de passe oublié ?
+            </button>
+
+            <x-ripple-button type="submit" size="lg" class="w-full flex items-center justify-center gap-2">
+                Se connecter
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </x-ripple-button>
+        </form>
+
+        <div class="mt-6 rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-4 text-xs text-cyan-100/65">
+            <p class="font-semibold text-cyan-200/85">Compte de démonstration</p>
+            <p class="mt-1">Email : <span class="text-cyan-100">admin@aquasecure.tn</span></p>
+            <p>Mot de passe : <span class="text-cyan-100">password</span></p>
+        </div>
+    </section>
+</div>
+
+@push('scripts')
+<script>
+    function togglePasswordVisibility() {
+        const input = document.getElementById('password');
+        const eyeIcon = document.querySelector('.eye-icon');
+        const eyeOffIcon = document.querySelector('.eye-off-icon');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeIcon.classList.add('hidden');
+            eyeOffIcon.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeIcon.classList.remove('hidden');
+            eyeOffIcon.classList.add('hidden');
+        }
+    }
+</script>
+@endpush
+@endsection
