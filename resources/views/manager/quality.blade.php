@@ -3,10 +3,7 @@
 @section('title', 'AquaSecure — Qualité de l’eau et mesures')
 
 @php
-    use App\Data\PlaceholderData;
     $user         = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
-    $records      = PlaceholderData::waterQualityRecords();
-    $municipalities = PlaceholderData::municipalities();
 @endphp
 
 @push('styles')
@@ -55,6 +52,12 @@
                 <p class="text-slate-400 text-xs mt-1">Analyses de laboratoire, seuils de contrôle et alertes de contamination.</p>
             </div>
             <div class="flex items-center gap-2">
+                <a href="{{ route('manager.points-mesure.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold">Points de prélèvement</a>
+                @if($activePointsCount > 0)
+                    <a href="{{ route('manager.quality.mesures.create') }}" class="px-3.5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold">Nouvelle mesure</a>
+                @else
+                    <a href="{{ route('manager.points-mesure.create') }}" class="px-3.5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold">Créer un point</a>
+                @endif
                 <button onclick="showToast('Exporting Water Quality Compliance Log (CSV)...', 'success')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-2">
                     <i data-lucide="file-spreadsheet" class="w-4 h-4 text-teal-400"></i> Exporter le rapport CSV
                 </button>
@@ -62,7 +65,7 @@
         </div>
 
         {{-- 4 PARAMETER CARDS (pH, Turbidity, Chlorine, Lead) --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             
             {{-- 1. pH Parameter --}}
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative">
@@ -70,13 +73,13 @@
                     <span class="text-xs text-slate-400 font-bold uppercase">pH Level</span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Target 6.5 - 8.5</span>
                 </div>
-                <div class="text-2xl font-display font-bold text-white">7.45 <span class="text-xs text-slate-400 font-normal">pH</span></div>
+                <div class="text-2xl font-display font-bold text-white">{{ $latestMeasurement?->ph ?? '—' }} <span class="text-xs text-slate-400 font-normal">pH</span></div>
                 <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-                    <div class="bg-emerald-400 h-full rounded-full" style="width: 74.5%"></div>
+                    <div class="bg-emerald-400 h-full rounded-full" style="width: {{ $latestMeasurement ? min(((float) $latestMeasurement->ph / 14) * 100, 100) : 0 }}%"></div>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
-                    <span>99.2% Compliant</span>
-                    <span class="text-emerald-400 font-semibold">Optimal</span>
+                    <span>Dernière mesure</span>
+                    <span class="text-emerald-400 font-semibold">{{ $latestAssessment['parameter_statuses']['ph'] ?? 'Aucune donnée' }}</span>
                 </p>
             </div>
 
@@ -86,13 +89,13 @@
                     <span class="text-xs text-slate-400 font-bold uppercase">Turbidity</span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Limit &lt; 1.0 NTU</span>
                 </div>
-                <div class="text-2xl font-display font-bold text-white">0.42 <span class="text-xs text-slate-400 font-normal">NTU</span></div>
+                <div class="text-2xl font-display font-bold text-white">{{ $latestMeasurement?->turbidite ?? '—' }} <span class="text-xs text-slate-400 font-normal">NTU</span></div>
                 <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-                    <div class="bg-cyan-400 h-full rounded-full" style="width: 42%"></div>
+                    <div class="bg-cyan-400 h-full rounded-full" style="width: {{ $latestMeasurement ? min(((float) $latestMeasurement->turbidite / 2) * 100, 100) : 0 }}%"></div>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
-                    <span>Clear Clarity</span>
-                    <span class="text-cyan-400 font-semibold">Normal</span>
+                    <span>Dernière mesure</span>
+                    <span class="text-cyan-400 font-semibold">{{ $latestAssessment['parameter_statuses']['turbidite'] ?? 'Aucune donnée' }}</span>
                 </p>
             </div>
 
@@ -102,13 +105,13 @@
                     <span class="text-xs text-slate-400 font-bold uppercase">Chlore résiduel</span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">0.2 - 2.0 mg/L</span>
                 </div>
-                <div class="text-2xl font-display font-bold text-white">0.85 <span class="text-xs text-slate-400 font-normal">mg/L</span></div>
+                <div class="text-2xl font-display font-bold text-white">{{ $latestMeasurement?->chlore_residuel ?? '—' }} <span class="text-xs text-slate-400 font-normal">mg/L</span></div>
                 <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-                    <div class="bg-blue-400 h-full rounded-full" style="width: 55%"></div>
+                    <div class="bg-blue-400 h-full rounded-full" style="width: {{ $latestMeasurement ? min(((float) $latestMeasurement->chlore_residuel / 2) * 100, 100) : 0 }}%"></div>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
-                    <span>Désinfection active</span>
-                    <span class="text-blue-400 font-semibold">Safe</span>
+                    <span>Dernière mesure</span>
+                    <span class="text-blue-400 font-semibold">{{ $latestAssessment['parameter_statuses']['chlore_residuel'] ?? 'Aucune donnée' }}</span>
                 </p>
             </div>
 
@@ -118,13 +121,28 @@
                     <span class="text-xs text-slate-400 font-bold uppercase">Lead (Pb) Concentration</span>
                     <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">Limit &lt; 15 ppb</span>
                 </div>
-                <div class="text-2xl font-display font-bold text-white">2.1 <span class="text-xs text-slate-400 font-normal">ppb</span></div>
+                <div class="text-2xl font-display font-bold text-white">{{ $latestMeasurement?->plomb ?? '—' }} <span class="text-xs text-slate-400 font-normal">ppb</span></div>
                 <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
-                    <div class="bg-emerald-400 h-full rounded-full" style="width: 14%"></div>
+                    <div class="bg-emerald-400 h-full rounded-full" style="width: {{ $latestMeasurement ? min(((float) $latestMeasurement->plomb / 15) * 100, 100) : 0 }}%"></div>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
-                    <span>Norme plomb 2026</span>
-                    <span class="text-emerald-400 font-semibold">Passed</span>
+                    <span>Dernière mesure</span>
+                    <span class="text-emerald-400 font-semibold">{{ $latestAssessment['parameter_statuses']['plomb'] ?? 'Aucune donnée' }}</span>
+                </p>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-400 font-bold uppercase">Nitrates</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-700/60 text-slate-300 border border-slate-600">Seuil configurable</span>
+                </div>
+                <div class="text-2xl font-display font-bold text-white">{{ $latestMeasurement?->nitrates ?? '—' }} <span class="text-xs text-slate-400 font-normal">mg/L</span></div>
+                <div class="w-full bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+                    <div class="bg-violet-400 h-full rounded-full" style="width: {{ $latestMeasurement ? min(((float) $latestMeasurement->nitrates / 100) * 100, 100) : 0 }}%"></div>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
+                    <span>{{ config('water_quality.nitrates_max') !== null ? 'Maximum '.config('water_quality.nitrates_max').' mg/L' : 'Aucune limite configurée' }}</span>
+                    <span class="text-violet-300 font-semibold">{{ $latestAssessment['parameter_statuses']['nitrates'] ?? ($latestMeasurement ? 'Non évalué' : 'Aucune donnée') }}</span>
                 </p>
             </div>
         </div>
@@ -138,7 +156,7 @@
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i data-lucide="map-pin" class="w-4 h-4 text-teal-400"></i> Carte des stations de prélèvement
                     </h3>
-                    <span class="text-xs text-slate-400">4 points de prélèvement actifs</span>
+                    <span class="text-xs text-slate-400">{{ $activePointsCount }} points de prélèvement actifs</span>
                 </div>
                 <div id="quality-map"></div>
             </div>
@@ -149,7 +167,7 @@
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i data-lucide="line-chart" class="w-4 h-4 text-teal-400"></i> Conformité de la qualité de l’eau sur 30 jours
                     </h3>
-                    <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded">98.5% Average</span>
+                    <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded">{{ $averageCompliance !== null ? $averageCompliance.'% moyenne' : 'Aucune mesure' }}</span>
                 </div>
                 <div style="height: 240px;">
                     <canvas id="qualityTrendChart"></canvas>
@@ -178,16 +196,17 @@
                             <th class="px-4 py-3">Turbidity</th>
                             <th class="px-4 py-3">Chlorine</th>
                             <th class="px-4 py-3">Lead (Pb)</th>
+                            <th class="px-4 py-3">Nitrates</th>
                             <th class="px-4 py-3">Verification</th>
                             <th class="px-4 py-3 text-right">Compliance</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60">
-                        @foreach($records as $rec)
+                        @forelse($records as $rec)
                             <tr class="hover:bg-slate-800/40 transition-colors">
                                 <td class="px-4 py-3 font-semibold text-white">
-                                    <div class="font-mono text-cyan-400 text-[11px]">{{ $rec['id'] }}</div>
-                                    <div>{{ $rec['sampling_point'] }}</div>
+                                    <a href="{{ route('manager.quality.mesures.show', $rec['measurement_id']) }}" class="font-mono text-cyan-400 text-[11px] hover:underline">{{ $rec['id'] }}</a>
+                                    <div><a href="{{ route('manager.points-mesure.index') }}">{{ $rec['sampling_point'] }}</a></div>
                                 </td>
                                 <td class="px-4 py-3 text-slate-200">{{ $rec['zone'] }}</td>
                                 <td class="px-4 py-3 text-slate-400">{{ $rec['date'] }}</td>
@@ -195,6 +214,7 @@
                                 <td class="px-4 py-3 font-mono {{ $rec['turbidity'] > 1.0 ? 'text-amber-400 font-bold' : 'text-slate-200' }}">{{ $rec['turbidity'] }} NTU</td>
                                 <td class="px-4 py-3 font-mono {{ $rec['residual_chlorine'] < 0.2 ? 'text-red-400 font-bold' : 'text-slate-200' }}">{{ $rec['residual_chlorine'] }} mg/L</td>
                                 <td class="px-4 py-3 font-mono {{ $rec['lead_pb'] > 15 ? 'text-red-400 font-bold' : 'text-slate-200' }}">{{ $rec['lead_pb'] }} ppb</td>
+                                <td class="px-4 py-3 font-mono text-slate-200">{{ $rec['nitrates'] }} mg/L</td>
                                 <td class="px-4 py-3">
                                     @if($rec['is_verified'])
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30 inline-flex items-center gap-1">
@@ -210,7 +230,9 @@
                                     {{ $rec['status'] }} ({{ $rec['overall_compliance'] }}%)
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.</td></tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -262,7 +284,7 @@
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const RECORDS = @json($records);
+const POINTS = @json($points);
 
 function openThresholdModal() { document.getElementById('threshold-modal').classList.remove('hidden'); }
 function closeThresholdModal() { document.getElementById('threshold-modal').classList.add('hidden'); }
@@ -272,26 +294,37 @@ function closeThresholdModal() { document.getElementById('threshold-modal').clas
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
 
-    RECORDS.forEach(r => {
-        const c = r.status === 'Compliant' ? '#2dd4bf' : (r.status === 'Alert' ? '#fbbf24' : '#ef4444');
+    POINTS.forEach(point => {
+        const r = point.measurement;
+        const c = point.status === 'normal' ? '#2dd4bf' : (point.status === 'alert' ? '#fbbf24' : '#ef4444');
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30">
             <circle cx="15" cy="15" r="12" fill="${c}" fill-opacity="0.8" stroke="#ffffff" stroke-width="2"/>
         </svg>`;
-        L.marker([r.lat, r.lng], {
+        const details = r
+            ? `Réf. ${escapeHtml(r.reference)}<br>Conformité: ${point.overall_compliance}%<br>pH: ${r.ph} | Turbidité: ${r.turbidite} NTU<br>Chlore: ${r.chlore_residuel} mg/L | Plomb: ${r.plomb} ppb | Nitrates: ${r.nitrates} mg/L`
+            : 'Aucune mesure';
+        L.marker([point.lat, point.lng], {
             icon: L.divIcon({ html: svg, iconSize:[30,30], iconAnchor:[15,15], className:'' })
-        }).addTo(map).bindPopup(`<b>${r.sampling_point}</b><br>Compliance: ${r.overall_compliance}%<br>pH: ${r.pH} | Turbidity: ${r.turbidity} NTU`);
+        }).addTo(map).bindPopup(`<b>${escapeHtml(point.name)}</b><br>${details}`);
     });
 })();
 
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[char]);
+}
+
 (function() {
     const ctx = document.getElementById('qualityTrendChart').getContext('2d');
+    const chartRecords = @json($chartRecords);
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            labels: chartRecords.map(record => record.date),
             datasets: [
-                { label: 'Taux de conformité (%)', data: [97.2, 98.4, 96.8, 98.5], borderColor: '#2dd4bf', backgroundColor: 'rgba(45, 212, 191, 0.1)', fill: true, tension: 0.3 },
-                { label: 'pH Average', data: [7.38, 7.42, 7.50, 7.35], borderColor: '#3b82f6', tension: 0.3 }
+                { label: 'Taux de conformité (%)', data: chartRecords.map(record => record.overall_compliance), borderColor: '#2dd4bf', backgroundColor: 'rgba(45, 212, 191, 0.1)', fill: true, tension: 0.3 },
+                { label: 'pH', data: chartRecords.map(record => record.pH), borderColor: '#3b82f6', tension: 0.3 }
             ]
         },
         options: {

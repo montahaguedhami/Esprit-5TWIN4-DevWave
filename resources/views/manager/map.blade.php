@@ -3,12 +3,6 @@
 @section('title', 'Carte Réseau — AquaSecure')
 
 @php
-    use App\Data\PlaceholderData;
-    $zones     = PlaceholderData::mapZones();
-    $pipelines = PlaceholderData::mapPipelines();
-    $stats     = PlaceholderData::stats();
-    $user      = session('user', ['name' => 'Gestionnaire', 'role' => 'manager']);
-
     $normalCount   = count(array_filter($zones, fn($z) => $z['status'] === 'normal'));
     $alertCount    = count(array_filter($zones, fn($z) => $z['status'] === 'alert'));
     $criticalCount = count(array_filter($zones, fn($z) => $z['status'] === 'critical'));
@@ -125,6 +119,9 @@
                 <i data-lucide="layers" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Zones</span>
             </button>
+            <span class="glass px-3 py-2 rounded-xl text-teal-300 text-sm font-medium">
+                {{ $measurementPoints->count() }} points de mesure
+            </span>
             <button onclick="flyToTunisia()"
                     class="glass px-3 py-2 rounded-xl text-cyan-300 hover:text-white text-sm font-medium flex items-center gap-2 transition-all hover:border-cyan-400/40">
                 <i data-lucide="locate" class="w-4 h-4"></i>
@@ -292,6 +289,7 @@
 // ── Zone data from PHP ──────────────────────────────────────────────────────
 const ZONES = @json($zones);
 const PIPELINES = @json($pipelines);
+const MEASUREMENT_POINTS = @json($measurementPoints);
 
 // Build a lookup id → zone
 const zoneById = {};
@@ -353,6 +351,39 @@ ZONES.forEach(zone => {
     marker.on('click', () => marker.openPopup());
     markerMap[zone.id] = marker;
 });
+
+const measurementMarkers = L.featureGroup().addTo(map);
+MEASUREMENT_POINTS.forEach(point => {
+    const marker = L.marker([point.lat, point.lng], {
+        icon: makeIcon(point.status, 0),
+        title: point.name,
+    }).addTo(measurementMarkers);
+    marker.bindPopup(buildMeasurementPopup(point), { maxWidth: 300, minWidth: 240 });
+});
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[char]);
+}
+
+function buildMeasurementPopup(point) {
+    const colors = { normal: '#2dd4bf', alert: '#fbbf24', critical: '#ef4444' };
+    const labels = { normal: 'Normal', alert: 'Alerte', critical: 'Critique' };
+    const color = colors[point.status] ?? colors.normal;
+    const measure = point.measurement;
+    const values = measure
+        ? `<p style="margin:8px 0 0;color:#cbd5e1;font-size:11px">pH ${measure.ph} · Turbidité ${measure.turbidite} NTU<br>Chlore ${measure.chlore_residuel} mg/L · Plomb ${measure.plomb} ppb · Nitrates ${measure.nitrates} mg/L</p>
+           <p style="margin:5px 0 0;color:#94a3b8;font-size:10px">${escapeHtml(measure.reference)} · ${escapeHtml(measure.date)}</p>`
+        : '<p style="margin:8px 0 0;color:#94a3b8;font-size:11px">Aucune mesure enregistrée</p>';
+
+    return `<div style="padding:12px;color:#f0fdff;font-family:'Plus Jakarta Sans',sans-serif">
+        <strong>${escapeHtml(point.name)}</strong>
+        <div style="font-size:11px;color:#94a3b8">${escapeHtml(point.type)} · ${escapeHtml(point.zone || point.address || '')}</div>
+        <span style="display:inline-block;margin-top:7px;padding:3px 8px;border-radius:12px;background:${color}20;color:${color};font-size:10px;font-weight:700">${labels[point.status]} · ${escapeHtml(point.measurement_status)}</span>
+        ${values}
+    </div>`;
+}
 
 // ── Pipeline polylines ────────────────────────────────────────────────────────
 const pipeColors = { normal: '#2dd4bf', alert: '#fbbf24', critical: '#ef4444' };

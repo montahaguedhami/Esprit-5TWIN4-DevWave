@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -7,7 +8,9 @@ use App\Http\Controllers\ActionCorrectiveController;
 use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\TechnicienController;
 use App\Http\Controllers\TravauxController;
-
+use App\Http\Controllers\Manager\MapController;
+use App\Http\Controllers\Manager\PointMesureController;
+use App\Http\Controllers\Manager\WaterQualityController;
 // Landing Page (Public)
 Route::get('/', function () {
     return view('landing');
@@ -200,19 +203,7 @@ Route::get('/manager/dashboard', function () {
     return view('manager.dashboard');
 })->name('manager.dashboard');
 
-Route::get('/manager/map', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.map');
-})->name('manager.map');
 
-Route::get('/manager/quality', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Dr. Selim Dridi', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'role_key' => 'quality']]);
-    }
-    return view('manager.quality');
-})->name('manager.quality');
 
 Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(function () {
     Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
@@ -263,7 +254,20 @@ Route::get('/manager/analytics', function () {
     if (!session('user')) {
         session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
     }
-    return view('manager.analytics');
+
+Route::get('/manager/map', MapController::class)->name('manager.map');
+
+Route::get('/manager/quality', [WaterQualityController::class, 'index'])
+    ->name('manager.quality');
+
+Route::resource('/manager/points-mesure', PointMesureController::class)
+    ->parameters(['points-mesure' => 'point_mesure'])
+    ->names('manager.points-mesure');
+
+Route::resource('/manager/quality/mesures', WaterQualityController::class)
+    ->parameters(['mesures' => 'mesure'])
+    ->names('manager.quality.mesures')
+    ->except('index');    return view('manager.analytics');
 })->name('manager.analytics');
 
 Route::get('/manager/teams', function () {
