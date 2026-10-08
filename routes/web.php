@@ -254,6 +254,8 @@ Route::get('/manager/analytics', function () {
     if (!session('user')) {
         session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
     }
+    return view('manager.analytics');
+})->name('manager.analytics');
 
 Route::get('/manager/map', MapController::class)->name('manager.map');
 
@@ -267,8 +269,7 @@ Route::resource('/manager/points-mesure', PointMesureController::class)
 Route::resource('/manager/quality/mesures', WaterQualityController::class)
     ->parameters(['mesures' => 'mesure'])
     ->names('manager.quality.mesures')
-    ->except('index');    return view('manager.analytics');
-})->name('manager.analytics');
+    ->except('index');
 
 Route::get('/manager/teams', function () {
     if (!session('user')) {
