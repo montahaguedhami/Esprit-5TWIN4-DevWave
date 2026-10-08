@@ -18,12 +18,12 @@
 <div class="relative user-menu">
     <button 
         onclick="toggleUserMenu()" 
-        class="flex items-center gap-3 p-2 rounded-lg glass hover:glass-strong transition-all group"
+        class="flex max-w-[min(18rem,45vw)] items-center gap-2.5 rounded-xl p-2 glass transition-all group hover:glass-strong"
         aria-label="Menu utilisateur"
     >
         <x-ui.avatar :name="$user['name']" size="sm" />
-        <div class="hidden md:block text-left">
-            <div class="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">
+        <div class="hidden min-w-0 max-w-48 flex-1 text-left md:block">
+            <div class="truncate text-sm font-semibold text-white transition-colors group-hover:text-cyan-400">
                 {{ $user['name'] }}
             </div>
             <div class="text-xs text-cyan-100/60">{{ $roleLabels[$user['role']] ?? 'Utilisateur' }}</div>

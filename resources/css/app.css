@@ -387,6 +387,142 @@ textarea:focus-visible {
   -webkit-backdrop-filter: blur(26px) saturate(118%);
 }
 
+/* App interfaces follow the light AquaSecure landing-page visual system. */
+body.app-interface {
+  color: #142b45;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(5, 191, 219, 0.1), transparent 28rem),
+    radial-gradient(circle at 88% 18%, rgba(45, 212, 191, 0.08), transparent 24rem),
+    linear-gradient(150deg, #f5fbff 0%, #edf7fc 62%, #f8fbfd 100%);
+}
+
+body.app-interface [class*="bg-[#04121b]"],
+body.app-interface [class*="bg-[#061525]"],
+body.app-interface [class*="bg-[#070e17]"],
+body.app-interface [class*="bg-[#071926]"],
+body.app-interface [class*="bg-[#09121f]"],
+body.app-interface [class*="bg-[#0c1624]"],
+body.app-interface [class*="bg-slate-950"],
+body.app-interface [class*="bg-slate-900"] {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+}
+
+body.app-interface [class*="bg-slate-800"],
+body.app-interface [class*="bg-slate-700"] {
+  background-color: #edf4f8 !important;
+}
+
+body.app-interface [class*="from-[#04121b]"],
+body.app-interface [class*="from-[#061525]"],
+body.app-interface [class*="from-[#070e17]"],
+body.app-interface [class*="from-slate-950"],
+body.app-interface [class*="from-slate-900"] {
+  --tw-gradient-from: #f2f9fd var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(242 249 253 / 0) var(--tw-gradient-to-position) !important;
+}
+
+body.app-interface [class*="to-[#04121b]"],
+body.app-interface [class*="to-[#061525]"],
+body.app-interface [class*="to-[#070e17]"],
+body.app-interface [class*="to-slate-950"],
+body.app-interface [class*="to-slate-900"] {
+  --tw-gradient-to: #eaf5fb var(--tw-gradient-to-position) !important;
+}
+
+body.app-interface [class~="text-white"],
+body.app-interface [class*="text-white/"],
+body.app-interface [class~="text-slate-100"],
+body.app-interface [class~="text-slate-200"],
+body.app-interface [class~="text-slate-300"] {
+  color: #18334d !important;
+}
+
+body.app-interface [class~="text-slate-400"],
+body.app-interface [class~="text-slate-500"] {
+  color: #5c7185 !important;
+}
+
+body.app-interface [class*="text-cyan-"],
+body.app-interface [class*="text-sky-"] {
+  color: #087f9b !important;
+}
+
+body.app-interface [class*="text-teal-"],
+body.app-interface [class*="text-emerald-"] {
+  color: #087f70 !important;
+}
+
+body.app-interface [class*="text-amber-"],
+body.app-interface [class*="text-yellow-"] {
+  color: #98620b !important;
+}
+
+body.app-interface [class*="text-rose-"],
+body.app-interface [class*="text-red-"] {
+  color: #b43f52 !important;
+}
+
+body.app-interface [class*="bg-gradient-to"][class~="text-white"],
+body.app-interface [class*="bg-cyan-"][class~="text-white"],
+body.app-interface [class*="bg-blue-"][class~="text-white"],
+body.app-interface [class*="bg-emerald-"][class~="text-white"],
+body.app-interface [class*="bg-teal-"][class~="text-white"] {
+  color: #fff !important;
+}
+
+body.app-interface [class*="bg-gradient-to"] [class~="text-white"],
+body.app-interface [class*="bg-cyan-"] [class~="text-white"],
+body.app-interface [class*="bg-blue-"] [class~="text-white"] {
+  color: #fff !important;
+}
+
+body.app-interface [class*="border-white/"],
+body.app-interface [class*="border-slate-800"],
+body.app-interface [class*="border-slate-700"] {
+  border-color: #dbe7ef !important;
+}
+
+body.app-interface .glass,
+body.app-interface .glass-strong {
+  color: #142b45;
+  border-color: rgba(12, 42, 74, 0.1);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 32px rgba(12, 42, 74, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+}
+
+body.app-interface .liquid-chip,
+body.app-interface .liquid-tool {
+  color: #17405f;
+  border-color: rgba(8, 145, 178, 0.18);
+  background: rgba(232, 249, 253, 0.9);
+}
+
+body.app-interface .liquid-tool:hover {
+  background: #d9f4fa;
+}
+
+body.app-interface [class*="hover:text-white"]:hover {
+  color: #087f9b !important;
+}
+
+body.app-interface .rain-container,
+body.app-interface .route-sweep {
+  display: none;
+}
+
+body.app-interface input,
+body.app-interface select,
+body.app-interface textarea {
+  color: #142b45;
+}
+
+body.app-interface input::placeholder,
+body.app-interface textarea::placeholder {
+  color: #8294a5;
+}
+
 /* Liquid Glass Cards (Right rail / Dashboard style) */
 .liquid-card {
   background: linear-gradient(180deg,

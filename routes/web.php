@@ -11,6 +11,9 @@ use App\Http\Controllers\TravauxController;
 use App\Http\Controllers\Manager\MapController;
 use App\Http\Controllers\Manager\PointMesureController;
 use App\Http\Controllers\Manager\WaterQualityController;
+use App\Http\Controllers\InfrastructureController;
+use App\Http\Controllers\ZoneController;
+
 // Landing Page (Public)
 Route::get('/', function () {
     return view('landing');
@@ -284,6 +287,11 @@ Route::get('/manager/reports', function () {
     }
     return view('manager.reports');
 })->name('manager.reports');
+
+Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
+    Route::resource('zones', ZoneController::class);
+    Route::resource('infrastructures', InfrastructureController::class);
+});
 
 // Admin Space (BackOffice) - DEMO
 Route::get('/admin/dashboard', function () {
