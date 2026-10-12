@@ -11,6 +11,9 @@ use App\Http\Controllers\TravauxController;
 use App\Http\Controllers\Manager\MapController;
 use App\Http\Controllers\Manager\PointMesureController;
 use App\Http\Controllers\Manager\WaterQualityController;
+use App\Http\Controllers\InfrastructureController;
+use App\Http\Controllers\ZoneController;
+
 // Landing Page (Public)
 Route::get('/', function () {
     return view('landing');
@@ -254,6 +257,8 @@ Route::get('/manager/analytics', function () {
     if (!session('user')) {
         session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
     }
+    return view('manager.analytics');
+})->name('manager.analytics');
 
 Route::get('/manager/map', MapController::class)->name('manager.map');
 
@@ -267,8 +272,7 @@ Route::resource('/manager/points-mesure', PointMesureController::class)
 Route::resource('/manager/quality/mesures', WaterQualityController::class)
     ->parameters(['mesures' => 'mesure'])
     ->names('manager.quality.mesures')
-    ->except('index');    return view('manager.analytics');
-})->name('manager.analytics');
+    ->except('index');
 
 Route::get('/manager/teams', function () {
     if (!session('user')) {
@@ -283,6 +287,11 @@ Route::get('/manager/reports', function () {
     }
     return view('manager.reports');
 })->name('manager.reports');
+
+Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
+    Route::resource('zones', ZoneController::class);
+    Route::resource('infrastructures', InfrastructureController::class);
+});
 
 // Admin Space (BackOffice) - DEMO
 Route::get('/admin/dashboard', function () {
@@ -374,8 +383,7 @@ Route::get('/weather', function () {
 })->name('weather');
 
 // Module Maintenance (Back Office) : Techniciens & Interventions
-// TODO : ajouter ->middleware('manager') une fois la branche de Sarra mergée
-Route::prefix('manager')->name('manager.')->group(function () {
+Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
     Route::resource('techniciens', TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
 });

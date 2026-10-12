@@ -284,11 +284,11 @@ function togglePublicMode() {
             $cumulative += $montant;
             return $cumulative;
         });
+        // Préparé ici : @json() ne sait pas analyser une closure sur plusieurs lignes
+        $chartLabels = $financementsByMonth->keys()->map(fn ($date) => \Carbon\Carbon::parse($date)->format('M Y'));
     @endphp
-    
-    const labels = @json($financementsByMonth->keys()->map(function($date) {
-        return \Carbon\Carbon::parse($date)->format('M Y');
-    }));
+
+    const labels = @json($chartLabels);
     const cumulativeFinancing = @json($cumulativeData->values());
     const totalBudget = {{ $totalBudget }};
     
