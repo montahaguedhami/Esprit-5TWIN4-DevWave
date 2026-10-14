@@ -25,7 +25,7 @@ class StoreMesureQualiteRequest extends FormRequest
             'plomb' => ['required', 'numeric', 'min:0'],
             'nitrates' => ['required', 'numeric', 'min:0'],
             'source_donnee' => ['required', Rule::in(MesureQualite::SOURCES)],
-            'is_verified' => ['required', 'boolean'],
+            'is_verified' => ['sometimes', 'boolean'],
             'verifier' => ['nullable', 'string', 'max:255'],
         ];
     }
