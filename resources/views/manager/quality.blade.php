@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'AquaSecure — Qualité de l’eau et mesures')
 
@@ -245,49 +245,68 @@
                     </tbody>
                 </table>
             </div>
+            @if($paginator->hasPages())
+                <div class="px-4 py-3 border-t border-slate-800">
+                    {{ $paginator->links('pagination::tailwind') }}
+                </div>
+            @endif
         </div>
 
     </div>
 </div>
 
-{{-- Threshold Configuration Modal --}}
+{{-- Threshold Information Modal --}}
 <div id="threshold-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between">
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Seuils d’alerte pour la qualité de l’eau
+                <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Seuils appliques
             </h3>
             <button onclick="closeThresholdModal()" class="text-slate-400 hover:text-white">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
-        <p class="text-xs text-slate-400">Configure safety trigger limits for automatic SMS & email dispatch to technicians.</p>
-        
-        <div class="space-y-3 text-xs text-slate-200">
-            <div>
-                <label class="block mb-1 font-semibold">pH maximal autorisé</label>
-                <input type="number" step="0.1" value="8.5" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+        <p class="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2">
+            Ces seuils sont configures dans <code>config/water_quality.php</code>.
+            Pour les modifier, mettez a jour les variables <code>WATER_QUALITY_*</code> dans .env et redemarrez l'application.
+        </p>
+        <div class="space-y-2 text-xs text-slate-200">
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+                <span class="text-slate-400">pH admissible</span>
+                <span class="font-mono font-bold">{{ config('water_quality.ph_min') }} &ndash; {{ config('water_quality.ph_max') }}</span>
             </div>
-            <div>
-                <label class="block mb-1 font-semibold">Seuil maximal de turbidité (NTU)</label>
-                <input type="number" step="0.1" value="1.0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+                <span class="text-slate-400">Turbidite alerte (NTU)</span>
+                <span class="font-mono font-bold">&gt; {{ config('water_quality.turbidite_alert') }}</span>
             </div>
-            <div>
-                <label class="block mb-1 font-semibold">Minimum Chlore résiduel (mg/L)</label>
-                <input type="number" step="0.05" value="0.20" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+                <span class="text-slate-400">Turbidite non conforme (NTU)</span>
+                <span class="font-mono font-bold">&gt; {{ config('water_quality.turbidite_max') }}</span>
             </div>
-            <div>
-                <label class="block mb-1 font-semibold">Seuil d’action pour le plomb (ppb)</label>
-                <input type="number" value="15" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+                <span class="text-slate-400">Chlore residuel (mg/L)</span>
+                <span class="font-mono font-bold">{{ config('water_quality.chlore_min') }} &ndash; {{ config('water_quality.chlore_max') }}</span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+                <span class="text-slate-400">Plomb seuil d'action (ppb)</span>
+                <span class="font-mono font-bold">&le; {{ config('water_quality.plomb_max') }}</span>
+            </div>
+            <div class="flex justify-between pb-2">
+                <span class="text-slate-400">Nitrates (mg/L)</span>
+                <span class="font-mono font-bold">
+                    @if(config('water_quality.nitrates_max') !== null)
+                        &le; {{ config('water_quality.nitrates_max') }}
+                    @else
+                        <span class="text-slate-500 italic">Non configure</span>
+                    @endif
+                </span>
             </div>
         </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2">
-            <button onclick="closeThresholdModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Cancel</button>
-            <button onclick="closeThresholdModal(); showToast('Threshold parameters updated successfully!', 'success');" class="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs">Enregistrer les seuils</button>
+        <div class="flex items-center justify-end pt-2">
+            <button onclick="closeThresholdModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Fermer</button>
         </div>
     </div>
-</div>
+</div></div>
 @endsection
 
 @push('scripts')

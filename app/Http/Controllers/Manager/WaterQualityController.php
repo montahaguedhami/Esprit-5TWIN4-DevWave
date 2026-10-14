@@ -17,32 +17,46 @@ class WaterQualityController extends Controller
 
     public function index(): View
     {
-        $records = MesureQualite::with('pointMesure')
+        // Paginated records for the table — avoids loading all rows into memory
+        $paginator = MesureQualite::with('pointMesure')
             ->latest('date_mesure')
-            ->get()
+            ->paginate(25)
+            ->withQueryString();
+
+        $records = $paginator->getCollection()
             ->map(fn (MesureQualite $mesure) => $this->recordForView($mesure));
+
         $latestMeasurement = MesureQualite::with('pointMesure')->latest('date_mesure')->first();
         $latestAssessment  = $latestMeasurement
             ? $this->waterQualityService->assess($latestMeasurement->only([
                 'ph', 'turbidite', 'chlore_residuel', 'plomb', 'nitrates',
             ]))
             : null;
-        $averageCompliance = $records->isNotEmpty()
-            ? round($records->avg('overall_compliance'), 2)
+
+        // Average and chart span all records, not just the current page
+        $averageCompliance = MesureQualite::avg('overall_compliance') !== null
+            ? round((float) MesureQualite::avg('overall_compliance'), 2)
             : null;
         $activePointsCount = PointMesure::where('statut', 'actif')->count();
-        $chartCutoff       = now()->subDays(30)->format('Y-m-d H:i');
-        $chartRecords      = $records->reverse()
-            ->filter(fn (array $record) => $record['date'] >= $chartCutoff)
+
+        $chartCutoff  = now()->subDays(30)->format('Y-m-d H:i');
+        $chartRecords = MesureQualite::with('pointMesure')
+            ->where('date_mesure', '>=', $chartCutoff)
+            ->oldest('date_mesure')
+            ->get()
+            ->map(fn (MesureQualite $mesure) => $this->recordForView($mesure))
             ->values();
+
         $points = PointMesure::with('derniereMesure')
             ->where('statut', 'actif')
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get()
             ->map(fn (PointMesure $point) => $this->pointForMap($point));
+
         return view('manager.quality', compact(
             'records',
+            'paginator',
             'latestMeasurement',
             'latestAssessment',
             'averageCompliance',
@@ -136,14 +150,16 @@ class WaterQualityController extends Controller
     }
 
     /**
+     * Map a MesureQualite to a view array.
+     *
+     * Uses persisted status/overall_compliance from the database rather than
+     * re-running assess() on every page load. The values were stored by store()
+     * and update() via WaterQualityService, so they are reliable and current.
+     *
      * @return array<string, mixed>
      */
     private function recordForView(MesureQualite $mesure): array
     {
-        $assessment = $this->waterQualityService->assess($mesure->only([
-            'ph', 'turbidite', 'chlore_residuel', 'plomb', 'nitrates',
-        ]));
-
         return [
             'id'                 => $mesure->reference,
             'measurement_id'     => $mesure->id,
@@ -158,8 +174,8 @@ class WaterQualityController extends Controller
             'source_donnee'      => $mesure->source_donnee ?? 'manuel',
             'is_verified'        => $mesure->is_verified,
             'verifier'           => $mesure->verifier,
-            'overall_compliance' => $assessment['overall_compliance'],
-            'status'             => $assessment['status'],
+            'overall_compliance' => (float) $mesure->overall_compliance,
+            'status'             => $mesure->status,
         ];
     }
 
