@@ -1,0 +1,36 @@
+# Dépendances — réinstallées dans le build
+node_modules/
+vendor/
+
+# Fichiers d'environnement — NE JAMAIS inclure dans l'image
+.env
+.env.*
+!.env.example
+
+# Assets Vite locaux — reconstruits dans le stage node
+public/hot
+public/build/
+
+# Git et CI
+.git/
+.github/
+.gitignore
+
+# Logs et cache locaux
+storage/logs/*.log
+bootstrap/cache/*.php
+
+# Tests
+tests/
+phpunit.xml
+
+# Outils de dev
+.editorconfig
+.prettierrc
+*.md
+!README.md
+
+# Fichier Docker lui-même
+Dockerfile
+.dockerignore
+docker-compose*.yml
