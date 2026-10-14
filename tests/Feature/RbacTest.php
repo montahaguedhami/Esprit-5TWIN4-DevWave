@@ -456,8 +456,10 @@ class RbacTest extends TestCase
             'statut' => 'actif',
         ]);
 
-        $response = $this->actingAs($citizen)
-            ->withSession($this->loginSession($citizen))
+        // Issue a JWT access token for the citizen
+        $token = auth('api')->login($citizen);
+
+        $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
             ->postJson('/api/mesures', [
                 'reference' => 'MES-TEST-001',
                 'point_mesure_id' => $point->id,
