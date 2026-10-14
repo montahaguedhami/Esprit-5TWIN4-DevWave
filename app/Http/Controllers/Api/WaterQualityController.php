@@ -228,48 +228,13 @@ class WaterQualityController extends Controller
         return response()->json(['message' => "La mesure {$ref} a été supprimée."]);
     }
 
-    private function resolveApiUser(Request $request): ?User
+    protected function resolveApiUser(Request $request): ?User
     {
-        if (Auth::check()) {
-            return Auth::user();
+        // Primary: JWT-authenticated user (JWT middleware already validated)
+        if ($jwtUser = auth('api')->user()) {
+            return $jwtUser;
         }
-
-        // Bearer token email or custom header
-        $email = $request->header('X-User-Email') ?? $request->bearerToken();
-        if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $user = User::where('email', $email)->first();
-            if ($user) {
-                // Ensure fresh permissions
-                $user->flushPermissionCache();
-
-                return $user;
-            }
-        }
-
-        // Session fallback
-        $sessionUser = $request->session()->get('user');
-        if ($sessionUser && ! empty($sessionUser['email'])) {
-            $user = User::where('email', $sessionUser['email'])->first();
-            if ($user) {
-                return $user;
-            }
-
-            // Fallback for tests
-            $roleSlug = Role::normalizeSlug($sessionUser['role'] ?? 'citoyen');
-            $testUser = new User([
-                'name' => $sessionUser['name'] ?? 'Demo User',
-                'email' => $sessionUser['email'],
-                'is_active' => true,
-            ]);
-            $testUser->id = 8888;
-            $roleModel = Role::where('slug', $roleSlug)->first();
-            if ($roleModel) {
-                $testUser->setRelation('roles', collect([$roleModel]));
-            }
-
-            return $testUser;
-        }
-
-        return null;
+        // Fallback: web session (backward compat for non-API access)
+        return auth()->user();
     }
 }
