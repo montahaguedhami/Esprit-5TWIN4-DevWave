@@ -3,21 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-<<<<<<< HEAD
-=======
 use App\Traits\HasRoles;
->>>>>>> user
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-<<<<<<< HEAD
-
-class User extends Authenticatable
-{
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
-=======
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
@@ -25,7 +15,6 @@ class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasRoles;
->>>>>>> user
 
     /**
      * The attributes that are mass assignable.
@@ -36,10 +25,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-<<<<<<< HEAD
-=======
         'is_active',
->>>>>>> user
     ];
 
     /**
@@ -61,10 +47,8 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-<<<<<<< HEAD
-=======
-            'is_active' => 'boolean',
+            'password'          => 'hashed',
+            'is_active'         => 'boolean',
         ];
     }
 
@@ -92,14 +76,15 @@ class User extends Authenticatable implements JWTSubject
 
     /**
      * Return a key-value array of custom claims added to the JWT payload.
-     * NOTE: `rol` is informational only — never used for authorization decisions server-side.
+     *
+     * NOTE: `rol` is informational only — it is NEVER used for authorization decisions
+     * server-side. Every request re-validates roles from the database.
      */
     public function getJWTCustomClaims(): array
     {
         return [
             'rol' => $this->roles->first()?->slug ?? null,
             'aud' => 'aquasecure-api',
->>>>>>> user
         ];
     }
 }

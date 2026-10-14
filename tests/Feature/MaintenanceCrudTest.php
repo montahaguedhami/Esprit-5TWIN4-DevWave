@@ -143,8 +143,6 @@ class MaintenanceCrudTest extends TestCase
         $enCours = Intervention::factory()->for($technicien)->create(['statut' => 'En cours', 'description' => 'Réparation rue de Marseille']);
         Intervention::factory()->for($technicien)->create(['statut' => 'Annulée', 'description' => 'Travaux annulés']);
 
-<<<<<<< HEAD
-=======
         $this->withSession([
             'user' => [
                 'name' => 'Yassine Hamdi',
@@ -153,7 +151,6 @@ class MaintenanceCrudTest extends TestCase
             ],
         ]);
 
->>>>>>> user
         $this->get(route('citizen.travaux.index'))
             ->assertOk()
             ->assertSee('Réparation rue de Marseille')
@@ -170,8 +167,6 @@ class MaintenanceCrudTest extends TestCase
     {
         $annulee = Intervention::factory()->create(['statut' => 'Annulée']);
 
-<<<<<<< HEAD
-=======
         $this->withSession([
             'user' => [
                 'name' => 'Yassine Hamdi',
@@ -180,7 +175,6 @@ class MaintenanceCrudTest extends TestCase
             ],
         ]);
 
->>>>>>> user
         $this->get(route('citizen.travaux.show', $annulee))->assertNotFound();
     }
 
@@ -192,13 +186,7 @@ class MaintenanceCrudTest extends TestCase
 
         $this->flushSession();
         $this->get(route('manager.interventions.index'))->assertRedirect(route('auth.login'));
-<<<<<<< HEAD
-
-        // Le Front Office reste public
-        $this->get(route('citizen.travaux.index'))->assertOk();
-=======
         $this->get(route('citizen.travaux.index'))->assertRedirect(route('auth.login'));
->>>>>>> user
     }
 
     public function test_interventions_can_be_filtered_by_technicien(): void

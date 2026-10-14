@@ -17,33 +17,22 @@ class WaterQualityController extends Controller
 
     public function index(): View
     {
-<<<<<<< HEAD
-        if (! session('user')) {
-            session(['user' => ['name' => 'Dr. Selim Dridi', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'role_key' => 'quality']]);
-        }
-
-=======
->>>>>>> user
         $records = MesureQualite::with('pointMesure')
             ->latest('date_mesure')
             ->get()
             ->map(fn (MesureQualite $mesure) => $this->recordForView($mesure));
         $latestMeasurement = MesureQualite::with('pointMesure')->latest('date_mesure')->first();
-        $latestAssessment = $latestMeasurement
+        $latestAssessment  = $latestMeasurement
             ? $this->waterQualityService->assess($latestMeasurement->only([
-                'ph',
-                'turbidite',
-                'chlore_residuel',
-                'plomb',
-                'nitrates',
+                'ph', 'turbidite', 'chlore_residuel', 'plomb', 'nitrates',
             ]))
             : null;
         $averageCompliance = $records->isNotEmpty()
             ? round($records->avg('overall_compliance'), 2)
             : null;
         $activePointsCount = PointMesure::where('statut', 'actif')->count();
-        $chartCutoff = now()->subDays(30)->format('Y-m-d H:i');
-        $chartRecords = $records->reverse()
+        $chartCutoff       = now()->subDays(30)->format('Y-m-d H:i');
+        $chartRecords      = $records->reverse()
             ->filter(fn (array $record) => $record['date'] >= $chartCutoff)
             ->values();
         $points = PointMesure::with('derniereMesure')
@@ -68,7 +57,7 @@ class WaterQualityController extends Controller
 
     public function create(): View
     {
-        abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, 'Créez d’abord un point de mesure actif.');
+        abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, 'Créez d'abord un point de mesure actif.');
 
         return view('manager.quality-measures.create', [
             'points' => PointMesure::where('statut', 'actif')->orderBy('nom')->get(),
@@ -77,10 +66,10 @@ class WaterQualityController extends Controller
 
     public function store(StoreMesureQualiteRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
+        $validated  = $request->validated();
         $assessment = $this->waterQualityService->assess($validated);
         MesureQualite::create($validated + [
-            'status' => $assessment['status'],
+            'status'             => $assessment['status'],
             'overall_compliance' => $assessment['overall_compliance'],
         ]);
 
@@ -104,10 +93,10 @@ class WaterQualityController extends Controller
 
     public function update(UpdateMesureQualiteRequest $request, MesureQualite $mesure): RedirectResponse
     {
-        $validated = $request->validated();
+        $validated  = $request->validated();
         $assessment = $this->waterQualityService->assess($validated);
         $mesure->update($validated + [
-            'status' => $assessment['status'],
+            'status'             => $assessment['status'],
             'overall_compliance' => $assessment['overall_compliance'],
         ]);
 
@@ -121,60 +110,56 @@ class WaterQualityController extends Controller
         return redirect()->route('manager.quality')->with('success', 'La mesure a été supprimée.');
     }
 
-<<<<<<< HEAD
-=======
     public function validateMeasurement(MesureQualite $mesure): RedirectResponse
     {
         $sessionEmail = session('user.email');
-        $user = auth()->user() ?? ($sessionEmail ? \App\Models\User::where('email', $sessionEmail)->first() : null);
+        $user         = auth()->user() ?? ($sessionEmail ? \App\Models\User::where('email', $sessionEmail)->first() : null);
 
         if ($user && ! $user->hasPermission('measurements.validate')) {
             abort(403, 'Validation refusée : seuls les gestionnaires et administrateurs peuvent valider les mesures.');
         }
 
-        $verifierName = $user ? $user->name . ' (' . $user->primary_role . ')' : 'Gestionnaire AquaSecure';
+        $verifierName = $user
+            ? $user->name . ' (' . $user->primary_role . ')'
+            : 'Gestionnaire AquaSecure';
+
         $mesure->update([
             'is_verified' => true,
-            'verifier' => $verifierName,
+            'verifier'    => $verifierName,
         ]);
 
         \App\Models\AuditLog::record('measurement_validated', 'MesureQualite', $mesure->id, [
-            'reference' => $mesure->reference,
+            'reference'    => $mesure->reference,
             'validated_by' => $user?->email ?? $sessionEmail,
         ], $user);
 
         return redirect()->back()->with('success', "La mesure {$mesure->reference} a été validée avec succès.");
     }
 
->>>>>>> user
     /**
      * @return array<string, mixed>
      */
     private function recordForView(MesureQualite $mesure): array
     {
         $assessment = $this->waterQualityService->assess($mesure->only([
-            'ph',
-            'turbidite',
-            'chlore_residuel',
-            'plomb',
-            'nitrates',
+            'ph', 'turbidite', 'chlore_residuel', 'plomb', 'nitrates',
         ]));
 
         return [
-            'id' => $mesure->reference,
-            'measurement_id' => $mesure->id,
-            'sampling_point' => $mesure->pointMesure?->nom ?? 'Point supprimé',
-            'zone' => $mesure->pointMesure?->zone ?? '—',
-            'date' => $mesure->date_mesure->format('Y-m-d H:i'),
-            'pH' => (float) $mesure->ph,
-            'turbidity' => (float) $mesure->turbidite,
-            'residual_chlorine' => (float) $mesure->chlore_residuel,
-            'lead_pb' => (float) $mesure->plomb,
-            'nitrates' => (float) $mesure->nitrates,
-            'is_verified' => $mesure->is_verified,
-            'verifier' => $mesure->verifier,
+            'id'                 => $mesure->reference,
+            'measurement_id'     => $mesure->id,
+            'sampling_point'     => $mesure->pointMesure?->nom ?? 'Point supprimé',
+            'zone'               => $mesure->pointMesure?->zone ?? '—',
+            'date'               => $mesure->date_mesure->format('Y-m-d H:i'),
+            'pH'                 => (float) $mesure->ph,
+            'turbidity'          => (float) $mesure->turbidite,
+            'residual_chlorine'  => (float) $mesure->chlore_residuel,
+            'lead_pb'            => (float) $mesure->plomb,
+            'nitrates'           => (float) $mesure->nitrates,
+            'is_verified'        => $mesure->is_verified,
+            'verifier'           => $mesure->verifier,
             'overall_compliance' => $assessment['overall_compliance'],
-            'status' => $assessment['status'],
+            'status'             => $assessment['status'],
         ];
     }
 
@@ -184,42 +169,38 @@ class WaterQualityController extends Controller
     private function pointForMap(PointMesure $point): array
     {
         $measurement = $point->derniereMesure;
-        $assessment = $measurement
+        $assessment  = $measurement
             ? $this->waterQualityService->assess($measurement->only([
-                'ph',
-                'turbidite',
-                'chlore_residuel',
-                'plomb',
-                'nitrates',
+                'ph', 'turbidite', 'chlore_residuel', 'plomb', 'nitrates',
             ]))
             : null;
 
         return [
-            'id' => $point->id,
-            'name' => $point->nom,
-            'code' => $point->code,
-            'zone' => $point->zone,
-            'address' => $point->adresse,
-            'lat' => (float) $point->latitude,
-            'lng' => (float) $point->longitude,
-            'type' => $point->type,
-            'status' => match ($assessment['status'] ?? null) {
+            'id'                 => $point->id,
+            'name'               => $point->nom,
+            'code'               => $point->code,
+            'zone'               => $point->zone,
+            'address'            => $point->adresse,
+            'lat'                => (float) $point->latitude,
+            'lng'                => (float) $point->longitude,
+            'type'               => $point->type,
+            'status'             => match ($assessment['status'] ?? null) {
                 'Non-Compliant' => 'critical',
-                'Alert' => 'alert',
-                default => 'normal',
+                'Alert'         => 'alert',
+                default         => 'normal',
             },
             'measurement_status' => $assessment['status'] ?? 'No measurement',
             'overall_compliance' => $assessment['overall_compliance'] ?? null,
-            'measurement' => $measurement ? [
-                'reference' => $measurement->reference,
-                'date' => $measurement->date_mesure->format('Y-m-d H:i'),
-                'ph' => (float) $measurement->ph,
-                'turbidite' => (float) $measurement->turbidite,
+            'measurement'        => $measurement ? [
+                'reference'       => $measurement->reference,
+                'date'            => $measurement->date_mesure->format('Y-m-d H:i'),
+                'ph'              => (float) $measurement->ph,
+                'turbidite'       => (float) $measurement->turbidite,
                 'chlore_residuel' => (float) $measurement->chlore_residuel,
-                'plomb' => (float) $measurement->plomb,
-                'nitrates' => (float) $measurement->nitrates,
-                'is_verified' => $measurement->is_verified,
-                'verifier' => $measurement->verifier,
+                'plomb'           => (float) $measurement->plomb,
+                'nitrates'        => (float) $measurement->nitrates,
+                'is_verified'     => $measurement->is_verified,
+                'verifier'        => $measurement->verifier,
             ] : null,
         ];
     }

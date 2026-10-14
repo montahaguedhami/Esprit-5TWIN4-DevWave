@@ -3,13 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-<<<<<<< HEAD
-use App\Models\MesureQualite;
-use App\Models\PointMesure;
-use App\Services\WaterQualityService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-=======
 use App\Models\AuditLog;
 use App\Models\MesureQualite;
 use App\Models\PointMesure;
@@ -20,16 +13,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
->>>>>>> user
 
 class WaterQualityController extends Controller
 {
     public function __construct(private readonly WaterQualityService $waterQualityService) {}
 
-<<<<<<< HEAD
-    public function points(): JsonResponse
-    {
-=======
     public function points(Request $request): JsonResponse
     {
         $user = $this->resolveApiUser($request);
@@ -37,7 +25,6 @@ class WaterQualityController extends Controller
             return response()->json(['message' => 'Accès refusé : permission measurements.view requise.'], 403);
         }
 
->>>>>>> user
         return response()->json([
             'data' => PointMesure::query()
                 ->where('statut', 'actif')
@@ -48,10 +35,6 @@ class WaterQualityController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-<<<<<<< HEAD
-        $query = MesureQualite::with('pointMesure')->latest('date_mesure');
-
-=======
         $user = $this->resolveApiUser($request);
         if ($user && ! $user->hasPermission('measurements.view')) {
             return response()->json(['message' => 'Accès refusé : permission measurements.view requise.'], 403);
@@ -64,7 +47,6 @@ class WaterQualityController extends Controller
             $query->where('is_verified', true);
         }
 
->>>>>>> user
         if ($request->filled('point_mesure_id')) {
             $query->where('point_mesure_id', $request->integer('point_mesure_id'));
         }
@@ -74,10 +56,6 @@ class WaterQualityController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
-    public function show(MesureQualite $mesure): JsonResponse
-    {
-=======
     public function show(Request $request, MesureQualite $mesure): JsonResponse
     {
         $user = $this->resolveApiUser($request);
@@ -91,14 +69,11 @@ class WaterQualityController extends Controller
             }
         }
 
->>>>>>> user
         return response()->json(['data' => $mesure->load('pointMesure')]);
     }
 
     public function store(Request $request): JsonResponse
     {
-<<<<<<< HEAD
-=======
         $user = $this->resolveApiUser($request);
 
         if (! $user) {
@@ -117,54 +92,43 @@ class WaterQualityController extends Controller
             ], 403);
         }
 
->>>>>>> user
         $validated = $request->validate([
-            'reference' => ['required', 'string', 'max:50', 'unique:mesures_qualites,reference'],
-            'point_mesure_id' => ['required', 'integer', 'exists:point_mesures,id'],
-            'date_mesure' => ['required', 'date'],
-            'ph' => ['required', 'numeric', 'between:0,14'],
-            'turbidite' => ['required', 'numeric', 'min:0'],
-            'chlore_residuel' => ['required', 'numeric', 'min:0'],
-            'plomb' => ['required', 'numeric', 'min:0'],
-            'nitrates' => ['required', 'numeric', 'min:0'],
-            'is_verified' => ['sometimes', 'boolean'],
-            'verifier' => ['nullable', 'string', 'max:255'],
+            'reference'        => ['required', 'string', 'max:50', 'unique:mesures_qualites,reference'],
+            'point_mesure_id'  => ['required', 'integer', 'exists:point_mesures,id'],
+            'date_mesure'      => ['required', 'date'],
+            'ph'               => ['required', 'numeric', 'between:0,14'],
+            'turbidite'        => ['required', 'numeric', 'min:0'],
+            'chlore_residuel'  => ['required', 'numeric', 'min:0'],
+            'plomb'            => ['required', 'numeric', 'min:0'],
+            'nitrates'         => ['required', 'numeric', 'min:0'],
+            'is_verified'      => ['sometimes', 'boolean'],
+            'verifier'         => ['nullable', 'string', 'max:255'],
         ]);
 
-<<<<<<< HEAD
-=======
-        // Technicians cannot self-validate when creating! Only manager/admin can set verified=true.
+        // Technicians cannot self-validate when creating — only manager/admin can set verified=true.
         if (! empty($validated['is_verified']) && ! $user->hasPermission('measurements.validate')) {
             $validated['is_verified'] = false;
-            $validated['verifier'] = null;
+            $validated['verifier']    = null;
         }
 
->>>>>>> user
         $assessment = $this->waterQualityService->assess($validated);
         $mesure = MesureQualite::create($validated + [
-            'is_verified' => $validated['is_verified'] ?? false,
-            'status' => $assessment['status'],
+            'is_verified'        => $validated['is_verified'] ?? false,
+            'status'             => $assessment['status'],
             'overall_compliance' => $assessment['overall_compliance'],
         ]);
 
-<<<<<<< HEAD
-        return response()->json([
-            'message' => 'La mesure a été enregistrée.',
-=======
         AuditLog::record('measurement_created', 'MesureQualite', $mesure->id, [
-            'reference' => $mesure->reference,
-            'technicien' => $user->email,
+            'reference'   => $mesure->reference,
+            'technicien'  => $user->email,
         ], $user);
 
         return response()->json([
-            'message' => 'La mesure a été enregistrée avec succès.',
->>>>>>> user
-            'data' => $mesure->load('pointMesure'),
+            'message'    => 'La mesure a été enregistrée avec succès.',
+            'data'       => $mesure->load('pointMesure'),
             'assessment' => $assessment,
         ], 201);
     }
-<<<<<<< HEAD
-=======
 
     public function update(Request $request, MesureQualite $mesure): JsonResponse
     {
@@ -186,23 +150,23 @@ class WaterQualityController extends Controller
         }
 
         $validated = $request->validate([
-            'date_mesure' => ['sometimes', 'date'],
-            'ph' => ['sometimes', 'numeric', 'between:0,14'],
-            'turbidite' => ['sometimes', 'numeric', 'min:0'],
+            'date_mesure'     => ['sometimes', 'date'],
+            'ph'              => ['sometimes', 'numeric', 'between:0,14'],
+            'turbidite'       => ['sometimes', 'numeric', 'min:0'],
             'chlore_residuel' => ['sometimes', 'numeric', 'min:0'],
-            'plomb' => ['sometimes', 'numeric', 'min:0'],
-            'nitrates' => ['sometimes', 'numeric', 'min:0'],
+            'plomb'           => ['sometimes', 'numeric', 'min:0'],
+            'nitrates'        => ['sometimes', 'numeric', 'min:0'],
         ]);
 
         $assessment = $this->waterQualityService->assess(array_merge($mesure->toArray(), $validated));
         $mesure->update($validated + [
-            'status' => $assessment['status'],
+            'status'             => $assessment['status'],
             'overall_compliance' => $assessment['overall_compliance'],
         ]);
 
         return response()->json([
-            'message' => 'La mesure a été mise à jour.',
-            'data' => $mesure->load('pointMesure'),
+            'message'    => 'La mesure a été mise à jour.',
+            'data'       => $mesure->load('pointMesure'),
             'assessment' => $assessment,
         ]);
     }
@@ -220,24 +184,24 @@ class WaterQualityController extends Controller
 
         if (! $user->hasPermission('measurements.validate')) {
             return response()->json([
-                'message' => 'Validation refusée : seuls les gestionnaires et administrateurs peuvent valider les mesures.',
+                'message'             => 'Validation refusée : seuls les gestionnaires et administrateurs peuvent valider les mesures.',
                 'required_permission' => 'measurements.validate',
             ], 403);
         }
 
         $mesure->update([
             'is_verified' => true,
-            'verifier' => $user->name . ' (' . $user->primary_role . ')',
+            'verifier'    => $user->name . ' (' . $user->primary_role . ')',
         ]);
 
         AuditLog::record('measurement_validated', 'MesureQualite', $mesure->id, [
-            'reference' => $mesure->reference,
+            'reference'    => $mesure->reference,
             'validated_by' => $user->email,
         ], $user);
 
         return response()->json([
             'message' => "La mesure {$mesure->reference} a été validée avec succès.",
-            'data' => $mesure->load('pointMesure'),
+            'data'    => $mesure->load('pointMesure'),
         ]);
     }
 
@@ -257,21 +221,33 @@ class WaterQualityController extends Controller
         $mesure->delete();
 
         AuditLog::record('measurement_deleted', 'MesureQualite', null, [
-            'reference' => $ref,
+            'reference'  => $ref,
             'deleted_by' => $user->email,
         ], $user);
 
         return response()->json(['message' => "La mesure {$ref} a été supprimée."]);
     }
 
+    /**
+     * Resolve the authenticated API user.
+     *
+     * Primary path: JWT guard (set by JwtAuthenticate middleware).
+     * Fallback: web session guard (backward compatibility for Blade-originated XHR).
+     */
     protected function resolveApiUser(Request $request): ?User
     {
-        // Primary: JWT-authenticated user (JWT middleware already validated)
+        // Primary: JWT-authenticated user (JwtAuthenticate middleware already validated token + is_active)
         if ($jwtUser = auth('api')->user()) {
+            /** @var User $jwtUser */
             return $jwtUser;
         }
-        // Fallback: web session (backward compat for non-API access)
-        return auth()->user();
+
+        // Fallback: standard web session (backward compat for non-JWT callers)
+        if ($webUser = auth()->user()) {
+            /** @var User $webUser */
+            return $webUser;
+        }
+
+        return null;
     }
->>>>>>> user
 }

@@ -2,15 +2,12 @@
 
 namespace App\Providers;
 
-<<<<<<< HEAD
-=======
 use App\Models\MesureQualite;
 use App\Models\User;
 use App\Policies\MesureQualitePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
->>>>>>> user
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,8 +27,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
-<<<<<<< HEAD
-=======
 
         // Register Policies
         Gate::policy(User::class, UserPolicy::class);
@@ -40,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
         // Super-admin bypass for all gates, unless specific policy returns strict deny
         Gate::before(function ($user, $ability) {
             if ($user instanceof User && $user->isAdministrator()) {
-                // If it's a delete or role assignment on User model, let the policy execute its protections
+                // Let the policy execute its own protections for sensitive operations
                 if (in_array($ability, ['delete', 'assignRoles', 'toggleStatus'], true)) {
                     return null;
                 }
@@ -51,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        // Dynamic gate resolution for any granular permission string (e.g. 'users.view', 'measurements.validate')
+        // Dynamic gate resolution for granular permission strings (e.g. 'users.view', 'measurements.validate')
         Gate::after(function ($user, $ability, $result) {
             if ($result !== null) {
                 return $result;
@@ -83,6 +78,5 @@ class AppServiceProvider extends ServiceProvider
 
             return false;
         });
->>>>>>> user
     }
 }

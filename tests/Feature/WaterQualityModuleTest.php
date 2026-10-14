@@ -18,8 +18,6 @@ class WaterQualityModuleTest extends TestCase
         parent::setUp();
 
         $this->withoutVite();
-<<<<<<< HEAD
-=======
         $this->withSession([
             'user' => [
                 'name' => 'Ines Mansouri',
@@ -27,7 +25,6 @@ class WaterQualityModuleTest extends TestCase
                 'role' => 'manager',
             ],
         ]);
->>>>>>> user
     }
 
     public function test_quality_and_map_pages_render_from_the_database(): void

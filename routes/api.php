@@ -1,14 +1,5 @@
 <?php
 
-<<<<<<< HEAD
-use App\Http\Controllers\Api\WaterQualityController;
-use Illuminate\Support\Facades\Route;
-
-Route::get('/points-mesure', [WaterQualityController::class, 'points']);
-Route::get('/mesures', [WaterQualityController::class, 'index']);
-Route::get('/mesures/{mesure}', [WaterQualityController::class, 'show']);
-Route::post('/mesures', [WaterQualityController::class, 'store']);
-=======
 use App\Http\Controllers\Api\JwtAuthController;
 use App\Http\Controllers\Api\WaterQualityController;
 use App\Models\Permission;
@@ -38,14 +29,14 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('auth/me',      [JwtAuthController::class, 'me']);
 
     // Water quality — read (any authenticated active user)
-    Route::get('points-mesure',        [WaterQualityController::class, 'points']);
-    Route::get('mesures',              [WaterQualityController::class, 'index']);
-    Route::get('mesures/{mesure}',     [WaterQualityController::class, 'show']);
+    Route::get('points-mesure',    [WaterQualityController::class, 'points']);
+    Route::get('mesures',          [WaterQualityController::class, 'index']);
+    Route::get('mesures/{mesure}', [WaterQualityController::class, 'show']);
 
     // Water quality — write (technicien, manager, administrateur)
     Route::middleware('jwt.role:technicien,manager,administrateur')->group(function () {
-        Route::post('mesures',          [WaterQualityController::class, 'store']);
-        Route::put('mesures/{mesure}',  [WaterQualityController::class, 'update']);
+        Route::post('mesures',         [WaterQualityController::class, 'store']);
+        Route::put('mesures/{mesure}', [WaterQualityController::class, 'update']);
     });
 
     // Water quality — validate/delete (manager, administrateur)
@@ -54,7 +45,7 @@ Route::middleware('jwt.auth')->group(function () {
         Route::delete('mesures/{mesure}',        [WaterQualityController::class, 'destroy']);
     });
 
-    // Current user RBAC profile (re-fetched from DB, never from token claims)
+    // Current user RBAC profile (re-fetched from DB — never from token claims)
     Route::get('user/permissions', function (Request $request) {
         /** @var \App\Models\User $user */
         $user = auth('api')->user();
@@ -74,4 +65,3 @@ Route::middleware('jwt.auth')->group(function () {
         ]);
     });
 });
->>>>>>> user

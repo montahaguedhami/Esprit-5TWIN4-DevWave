@@ -3,10 +3,6 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-<<<<<<< HEAD
-use App\Http\Middleware\EnsureManager;
-=======
->>>>>>> user
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,14 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-<<<<<<< HEAD
-            'manager' => EnsureManager::class,
-=======
             'role'       => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'jwt.auth'   => \App\Http\Middleware\JwtAuthenticate::class,
             'jwt.role'   => \App\Http\Middleware\JwtCheckRole::class,
->>>>>>> user
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
