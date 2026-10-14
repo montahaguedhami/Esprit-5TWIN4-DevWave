@@ -57,7 +57,7 @@ class WaterQualityController extends Controller
 
     public function create(): View
     {
-        abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, 'Créez d'abord un point de mesure actif.');
+        abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, "Créez d'abord un point de mesure actif.");
 
         return view('manager.quality-measures.create', [
             'points' => PointMesure::where('statut', 'actif')->orderBy('nom')->get(),
@@ -66,6 +66,8 @@ class WaterQualityController extends Controller
 
     public function store(StoreMesureQualiteRequest $request): RedirectResponse
     {
+        $this->authorize('create', MesureQualite::class);
+
         $validated  = $request->validated();
         $assessment = $this->waterQualityService->assess($validated);
         MesureQualite::create($validated + [
@@ -93,6 +95,8 @@ class WaterQualityController extends Controller
 
     public function update(UpdateMesureQualiteRequest $request, MesureQualite $mesure): RedirectResponse
     {
+        $this->authorize('update', $mesure);
+
         $validated  = $request->validated();
         $assessment = $this->waterQualityService->assess($validated);
         $mesure->update($validated + [
@@ -105,6 +109,8 @@ class WaterQualityController extends Controller
 
     public function destroy(MesureQualite $mesure): RedirectResponse
     {
+        $this->authorize('delete', $mesure);
+
         $mesure->delete();
 
         return redirect()->route('manager.quality')->with('success', 'La mesure a été supprimée.');
@@ -112,16 +118,12 @@ class WaterQualityController extends Controller
 
     public function validateMeasurement(MesureQualite $mesure): RedirectResponse
     {
-        $sessionEmail = session('user.email');
-        $user         = auth()->user() ?? ($sessionEmail ? \App\Models\User::where('email', $sessionEmail)->first() : null);
+        $this->authorize('validate', $mesure);
 
-        if ($user && ! $user->hasPermission('measurements.validate')) {
-            abort(403, 'Validation refusée : seuls les gestionnaires et administrateurs peuvent valider les mesures.');
-        }
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
 
-        $verifierName = $user
-            ? $user->name . ' (' . $user->primary_role . ')'
-            : 'Gestionnaire AquaSecure';
+        $verifierName = $user->name . ' (' . $user->primary_role . ')';
 
         $mesure->update([
             'is_verified' => true,
@@ -130,7 +132,7 @@ class WaterQualityController extends Controller
 
         \App\Models\AuditLog::record('measurement_validated', 'MesureQualite', $mesure->id, [
             'reference'    => $mesure->reference,
-            'validated_by' => $user?->email ?? $sessionEmail,
+            'validated_by' => $user->email,
         ], $user);
 
         return redirect()->back()->with('success', "La mesure {$mesure->reference} a été validée avec succès.");

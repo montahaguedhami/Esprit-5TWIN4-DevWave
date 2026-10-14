@@ -55,7 +55,8 @@ class MesureQualitePolicyTest extends TestCase
         $manager = $this->createUserWithRole(Role::MANAGER);
         $verified = $this->makeMesure(true);
 
-        $this->assertTrue($this->policy->create($manager)->allowed());
+        // Managers do NOT have measurements.create — creation is reserved for technicians/admins
+        $this->assertTrue($this->policy->create($manager)->denied());
         $this->assertTrue($this->policy->update($manager, $verified)->allowed());
         $this->assertTrue($this->policy->validate($manager, $verified)->allowed());
         $this->assertTrue($this->policy->delete($manager, $verified)->allowed());

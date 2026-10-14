@@ -53,11 +53,13 @@
             </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('manager.points-mesure.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold">Points de prélèvement</a>
-                @if($activePointsCount > 0)
-                    <a href="{{ route('manager.quality.mesures.create') }}" class="px-3.5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold">Nouvelle mesure</a>
-                @else
-                    <a href="{{ route('manager.points-mesure.create') }}" class="px-3.5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold">Créer un point</a>
-                @endif
+                @can('create', App\Models\MesureQualite::class)
+                    @if($activePointsCount > 0)
+                        <a href="{{ route('manager.quality.mesures.create') }}" class="px-3.5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold">Nouvelle mesure</a>
+                    @else
+                        <a href="{{ route('manager.points-mesure.create') }}" class="px-3.5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold">Créer un point</a>
+                    @endif
+                @endcan
                 <button onclick="showToast('Exporting Water Quality Compliance Log (CSV)...', 'success')" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-2">
                     <i data-lucide="file-spreadsheet" class="w-4 h-4 text-teal-400"></i> Exporter le rapport CSV
                 </button>
