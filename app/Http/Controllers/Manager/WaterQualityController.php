@@ -155,6 +155,7 @@ class WaterQualityController extends Controller
             'residual_chlorine'  => (float) $mesure->chlore_residuel,
             'lead_pb'            => (float) $mesure->plomb,
             'nitrates'           => (float) $mesure->nitrates,
+            'source_donnee'      => $mesure->source_donnee ?? 'manuel',
             'is_verified'        => $mesure->is_verified,
             'verifier'           => $mesure->verifier,
             'overall_compliance' => $assessment['overall_compliance'],

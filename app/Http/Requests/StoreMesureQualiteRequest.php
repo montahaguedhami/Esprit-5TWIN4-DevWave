@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\MesureQualite;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreMesureQualiteRequest extends FormRequest
 {
@@ -22,6 +24,7 @@ class StoreMesureQualiteRequest extends FormRequest
             'chlore_residuel' => ['required', 'numeric', 'min:0'],
             'plomb' => ['required', 'numeric', 'min:0'],
             'nitrates' => ['required', 'numeric', 'min:0'],
+            'source_donnee' => ['required', Rule::in(MesureQualite::SOURCES)],
             'is_verified' => ['required', 'boolean'],
             'verifier' => ['nullable', 'string', 'max:255'],
         ];

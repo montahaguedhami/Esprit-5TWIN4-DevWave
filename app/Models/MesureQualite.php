@@ -12,6 +12,9 @@ class MesureQualite extends Model
 
     protected $table = 'mesures_qualites';
 
+    /** Provenance values — kept in sync with the migration and FormRequests. */
+    public const SOURCES = ['simule', 'manuel', 'laboratoire'];
+
     protected $fillable = [
         'reference',
         'point_mesure_id',
@@ -21,6 +24,7 @@ class MesureQualite extends Model
         'chlore_residuel',
         'plomb',
         'nitrates',
+        'source_donnee',
         'is_verified',
         'verifier',
         'overall_compliance',

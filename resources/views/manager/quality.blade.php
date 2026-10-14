@@ -196,6 +196,7 @@
                             <th class="px-4 py-3">Lead (Pb)</th>
                             <th class="px-4 py-3">Nitrates</th>
                             <th class="px-4 py-3">Verification</th>
+                            <th class="px-4 py-3">Provenance</th>
                             <th class="px-4 py-3 text-right">Compliance</th>
                         </tr>
                     </thead>
@@ -224,12 +225,22 @@
                                         </span>
                                     @endif
                                 </td>
+                                <td class="px-4 py-3">
+                                    @php $src = $rec['source_donnee'] ?? 'manuel'; @endphp
+                                    @if($src === 'laboratoire')
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">Laboratoire</span>
+                                    @elseif($src === 'simule')
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/15 text-slate-400 border border-slate-600">Simulé</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/15 text-violet-300 border border-violet-500/30">Manuel</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-right font-bold {{ $rec['status'] === 'Compliant' ? 'text-emerald-400' : ($rec['status'] === 'Alert' ? 'text-amber-400' : 'text-red-400') }}">
                                     {{ $rec['status'] }} ({{ $rec['overall_compliance'] }}%)
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.</td></tr>
+                            <tr><td colspan="11" class="px-4 py-10 text-center text-slate-400">Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

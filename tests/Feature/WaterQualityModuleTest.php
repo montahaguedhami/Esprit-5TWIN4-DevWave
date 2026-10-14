@@ -92,6 +92,7 @@ class WaterQualityModuleTest extends TestCase
                 'chlore_residuel' => 0.8,
                 'plomb'           => 2,
                 'nitrates'        => 20,
+                'source_donnee'   => 'manuel',
                 'is_verified'     => 1,
             ])->assertRedirect(route('manager.quality'));
 
@@ -111,6 +112,7 @@ class WaterQualityModuleTest extends TestCase
                 'chlore_residuel' => 0.8,
                 'plomb'           => 2,
                 'nitrates'        => 20,
+                'source_donnee'   => 'manuel',
                 'is_verified'     => 1,
             ])->assertRedirect(route('manager.quality'));
 
@@ -154,6 +156,7 @@ class WaterQualityModuleTest extends TestCase
                 'chlore_residuel' => 0.5,
                 'plomb'           => 1,
                 'nitrates'        => 10,
+                'source_donnee'   => 'manuel',
                 'is_verified'     => 0,
             ])
             ->assertRedirect(route('manager.quality.mesures.create'))
@@ -183,6 +186,7 @@ class WaterQualityModuleTest extends TestCase
                 'chlore_residuel' => 0.8,
                 'plomb'           => 2,
                 'nitrates'        => 10,
+                'source_donnee'   => 'manuel',
                 'is_verified'     => 0,
             ])
             ->assertForbidden();
@@ -259,6 +263,87 @@ class WaterQualityModuleTest extends TestCase
         $this->assertDatabaseHas('point_mesures', ['id' => $point->id, 'statut' => 'inactif']);
         // Measurement must still exist (not deleted)
         $this->assertDatabaseHas('mesures_qualites', ['reference' => 'MES-FK-TEST']);
+    }
+
+    public function test_source_donnee_is_stored_and_seeder_marks_simule(): void
+    {
+        // A user with create permission
+        $creator = $this->createUserWithRole(Role::MANAGER);
+        $creator->assignRole(Role::TECHNICIEN);
+        $creator = $creator->fresh()->load('roles');
+
+        $point = PointMesure::create([
+            'code'   => 'TST-SRC',
+            'nom'    => 'Point source test',
+            'type'   => 'Station',
+            'statut' => 'actif',
+        ]);
+
+        // Store with source_donnee = 'laboratoire'
+        $this->actingAs($creator)
+            ->post(route('manager.quality.mesures.store'), [
+                'reference'       => 'SRC-LAB-001',
+                'point_mesure_id' => $point->id,
+                'date_mesure'     => '2026-10-10 09:00:00',
+                'ph'              => 7.1,
+                'turbidite'       => 0.3,
+                'chlore_residuel' => 0.9,
+                'plomb'           => 1.5,
+                'nitrates'        => 8,
+                'source_donnee'   => 'laboratoire',
+                'is_verified'     => 0,
+            ])->assertRedirect(route('manager.quality'));
+
+        $this->assertDatabaseHas('mesures_qualites', [
+            'reference'    => 'SRC-LAB-001',
+            'source_donnee' => 'laboratoire',
+        ]);
+
+        // Store with source_donnee = 'manuel'
+        $this->actingAs($creator)
+            ->post(route('manager.quality.mesures.store'), [
+                'reference'       => 'SRC-MAN-001',
+                'point_mesure_id' => $point->id,
+                'date_mesure'     => '2026-10-10 10:00:00',
+                'ph'              => 7.2,
+                'turbidite'       => 0.4,
+                'chlore_residuel' => 0.8,
+                'plomb'           => 2.0,
+                'nitrates'        => 9,
+                'source_donnee'   => 'manuel',
+                'is_verified'     => 0,
+            ])->assertRedirect(route('manager.quality'));
+
+        $this->assertDatabaseHas('mesures_qualites', [
+            'reference'    => 'SRC-MAN-001',
+            'source_donnee' => 'manuel',
+        ]);
+
+        // Invalid source_donnee value is rejected
+        $this->actingAs($creator)
+            ->from(route('manager.quality.mesures.create'))
+            ->post(route('manager.quality.mesures.store'), [
+                'reference'       => 'SRC-BAD-001',
+                'point_mesure_id' => $point->id,
+                'date_mesure'     => '2026-10-10 11:00:00',
+                'ph'              => 7.2,
+                'turbidite'       => 0.4,
+                'chlore_residuel' => 0.8,
+                'plomb'           => 2.0,
+                'nitrates'        => 9,
+                'source_donnee'   => 'inconnu',
+                'is_verified'     => 0,
+            ])->assertRedirect(route('manager.quality.mesures.create'))
+              ->assertSessionHasErrors(['source_donnee']);
+
+        $this->assertDatabaseMissing('mesures_qualites', ['reference' => 'SRC-BAD-001']);
+
+        // Seeder marks its data as 'simule'
+        $this->seed(\Database\Seeders\WaterQualitySeeder::class);
+        $this->assertDatabaseHas('mesures_qualites', [
+            'reference'    => 'WQR-2026-108',
+            'source_donnee' => 'simule',
+        ]);
     }
 
     public function test_nitrates_threshold_is_optional_and_configurable(): void

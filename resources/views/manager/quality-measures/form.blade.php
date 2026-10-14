@@ -38,6 +38,14 @@
     <label class="text-sm text-slate-300">Vérificateur / laboratoire
         <input name="verifier" maxlength="255" value="{{ old('verifier', $mesure->verifier ?? '') }}" class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white">
     </label>
+    <label class="text-sm text-slate-300">Provenance des données
+        <select name="source_donnee" required class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white">
+            <option value="manuel"      @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'manuel')>Manuel (saisie terrain)</option>
+            <option value="laboratoire" @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'laboratoire')>Laboratoire</option>
+            <option value="simule"      @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'simule')>Simulé (démonstration)</option>
+        </select>
+        @error('source_donnee')<span class="text-xs text-red-300">{{ $message }}</span>@enderror
+    </label>
     <div class="sm:col-span-2">
         <input type="hidden" name="is_verified" value="0">
         <label class="inline-flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" name="is_verified" value="1" @checked(old('is_verified', $mesure->is_verified ?? false))> Mesure vérifiée</label>

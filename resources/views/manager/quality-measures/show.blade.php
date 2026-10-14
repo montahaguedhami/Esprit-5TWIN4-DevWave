@@ -25,6 +25,7 @@
                 <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5"><div class="text-xs text-slate-400">{{ $label }}</div><div class="mt-2 text-xl font-bold text-white">{{ $value }} <span class="text-xs font-normal text-slate-400">{{ $unit }}</span></div></div>
             @endforeach
             <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5"><div class="text-xs text-slate-400">Vérification</div><div class="mt-2 font-semibold">{{ $mesure->is_verified ? 'Vérifiée' : 'À vérifier' }}</div><div class="text-sm text-slate-400">{{ $mesure->verifier ?: '—' }}</div></div>
+            <div class="rounded-2xl border border-slate-800 bg-slate-900 p-5"><div class="text-xs text-slate-400">Provenance</div><div class="mt-2 font-semibold capitalize">{{ match($mesure->source_donnee ?? 'manuel') { 'laboratoire' => 'Laboratoire', 'simule' => 'Simulé', default => 'Manuel' } }}</div></div>
         </div>
         @can('delete', $mesure)
         <form method="POST" action="{{ route('manager.quality.mesures.destroy', $mesure) }}" onsubmit="return confirm('Supprimer définitivement cette mesure ?')">
