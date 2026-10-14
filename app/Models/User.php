@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Validation\ValidationException;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasRoles;
@@ -63,5 +64,25 @@ class User extends Authenticatable
                 ]);
             }
         });
+    }
+
+    /**
+     * Get the identifier that will be stored in the JWT subject claim.
+     */
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key-value array of custom claims added to the JWT payload.
+     * NOTE: `rol` is informational only — never used for authorization decisions server-side.
+     */
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'rol' => $this->roles->first()?->slug ?? null,
+            'aud' => 'aquasecure-api',
+        ];
     }
 }
