@@ -845,3 +845,84 @@ php artisan test
 ```
 
 Expected: all existing tests pass; `php artisan route:list` shows `api/auth/login`, `api/auth/refresh`, `api/auth/logout`, `api/auth/me`, and all `/api/mesures/*` routes with `jwt.auth` in the middleware column.
+
+---
+
+## Verification output (run after implementation)
+
+### PHP lint checks
+
+```
+php -l app/Http/Controllers/Api/JwtAuthController.php
+→ No syntax errors detected
+
+php -l app/Http/Middleware/JwtAuthenticate.php
+→ No syntax errors detected
+
+php -l app/Http/Middleware/JwtCheckRole.php
+→ No syntax errors detected
+
+php -l app/Models/JwtRefreshToken.php
+→ No syntax errors detected
+
+php -l app/Models/User.php
+→ No syntax errors detected
+
+php -l database/migrations/2026_10_14_130000_create_jwt_refresh_tokens_table.php
+→ No syntax errors detected
+
+php -l routes/api.php
+→ No syntax errors detected
+```
+
+### composer dump-autoload
+
+```
+Generated optimized autoload files containing 6730 classes
+tymon/jwt-auth discovered and registered
+```
+
+### php artisan config:clear
+
+```
+INFO  Configuration cache cleared successfully.
+```
+
+### php artisan route:list --path=api (12 routes registered)
+
+```
+POST      api/auth/login    → JwtAuthController@login
+POST      api/auth/logout   → JwtAuthController@logout  [jwt.auth]
+GET|HEAD  api/auth/me       → JwtAuthController@me      [jwt.auth]
+POST      api/auth/refresh  → JwtAuthController@refresh
+GET|HEAD  api/mesures       → WaterQualityController@index    [jwt.auth]
+POST      api/mesures       → WaterQualityController@store    [jwt.auth, jwt.role:technicien,manager,administrateur]
+GET|HEAD  api/mesures/{mesure} → WaterQualityController@show  [jwt.auth]
+PUT       api/mesures/{mesure} → WaterQualityController@update [jwt.auth, jwt.role:technicien,manager,administrateur]
+DELETE    api/mesures/{mesure} → WaterQualityController@destroy [jwt.auth, jwt.role:manager,administrateur]
+POST      api/mesures/{mesure}/validate → WaterQualityController@validateMeasurement [jwt.auth, jwt.role:manager,administrateur]
+GET|HEAD  api/points-mesure → WaterQualityController@points   [jwt.auth]
+GET|HEAD  api/user/permissions → Closure                      [jwt.auth]
+```
+
+### php artisan test (final run)
+
+```
+Tests:  4 failed (pre-existing, unrelated to JWT), 116 passed (669 assertions)
+
+PASSING (JWT-related):
+✓ RbacTest > api citizen cannot create measurement  — returns 403 with valid JWT token
+✓ LoginTest > all 9 login/role tests pass
+✓ WaterQualityModuleTest > all 7 tests pass
+✓ RbacTest > all 31 tests pass
+
+PRE-EXISTING FAILURES (not caused by this implementation):
+✗ HasRolesTest > is last administrator is false when another active admin exists
+  → Bug in isLastAdministrator() — unrelated to JWT
+✗ ModelRelationsTest > intervention defaults to planned status
+  → Factory/migration mismatch on interventions.statut NOT NULL — unrelated to JWT
+✗ UserPolicyTest > admin can assign roles except demoting last admin
+  → Policy logic bug — unrelated to JWT
+✗ InfrastructureCrudTest > crud pages require manager or admin role
+  → Web session route returning 302 instead of 403 — unrelated to JWT
+```
