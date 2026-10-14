@@ -370,5 +370,168 @@ class WaterQualityModuleTest extends TestCase
         $this->assertSame('Non-Compliant', $assessment['status']);
         $this->assertSame(80.0, $assessment['overall_compliance']);
     }
+
+    /** POST without source_donnee must be rejected (required rule). */
+    public function test_source_donnee_is_required_on_store(): void
+    {
+        $creator = $this->createUserWithRole(Role::MANAGER);
+        $creator->assignRole(Role::TECHNICIEN);
+        $creator = $creator->fresh()->load('roles');
+
+        $point = PointMesure::create([
+            'code'   => 'TST-SRC-REQ',
+            'nom'    => 'Point src requis',
+            'type'   => 'Station',
+            'statut' => 'actif',
+        ]);
+
+        $this->actingAs($creator)
+            ->from(route('manager.quality.mesures.create'))
+            ->post(route('manager.quality.mesures.store'), [
+                'reference'       => 'SRC-MISSING',
+                'point_mesure_id' => $point->id,
+                'date_mesure'     => '2026-10-12 09:00:00',
+                'ph'              => 7.0,
+                'turbidite'       => 0.5,
+                'chlore_residuel' => 0.8,
+                'plomb'           => 2,
+                'nitrates'        => 10,
+                // source_donnee intentionally omitted
+                'is_verified'     => 0,
+            ])
+            ->assertRedirect(route('manager.quality.mesures.create'))
+            ->assertSessionHasErrors(['source_donnee']);
+
+        $this->assertDatabaseMissing('mesures_qualites', ['reference' => 'SRC-MISSING']);
+    }
+
+    /** POST with an unrecognised source_donnee value must be rejected. */
+    public function test_source_donnee_rejects_invalid_value(): void
+    {
+        $creator = $this->createUserWithRole(Role::MANAGER);
+        $creator->assignRole(Role::TECHNICIEN);
+        $creator = $creator->fresh()->load('roles');
+
+        $point = PointMesure::create([
+            'code'   => 'TST-SRC-BAD',
+            'nom'    => 'Point src invalide',
+            'type'   => 'Station',
+            'statut' => 'actif',
+        ]);
+
+        $this->actingAs($creator)
+            ->from(route('manager.quality.mesures.create'))
+            ->post(route('manager.quality.mesures.store'), [
+                'reference'       => 'SRC-INVALIDE',
+                'point_mesure_id' => $point->id,
+                'date_mesure'     => '2026-10-12 10:00:00',
+                'ph'              => 7.0,
+                'turbidite'       => 0.5,
+                'chlore_residuel' => 0.8,
+                'plomb'           => 2,
+                'nitrates'        => 10,
+                'source_donnee'   => 'invalide',
+                'is_verified'     => 0,
+            ])
+            ->assertRedirect(route('manager.quality.mesures.create'))
+            ->assertSessionHasErrors(['source_donnee']);
+
+        $this->assertDatabaseMissing('mesures_qualites', ['reference' => 'SRC-INVALIDE']);
+    }
+
+    /** Pagination: 30 measurements → index renders pagination links. */
+    public function test_index_paginates_measurements(): void
+    {
+        $manager = $this->createUserWithRole(Role::MANAGER);
+
+        $point = PointMesure::create([
+            'code'   => 'TST-PAG',
+            'nom'    => 'Point pagination',
+            'type'   => 'Station',
+            'statut' => 'actif',
+        ]);
+
+        // Insert 30 measurements directly (page size is 25 → forces 2 pages)
+        for ($i = 1; $i <= 30; $i++) {
+            MesureQualite::create([
+                'reference'          => sprintf('PAG-%03d', $i),
+                'point_mesure_id'    => $point->id,
+                'date_mesure'        => now()->subMinutes($i),
+                'ph'                 => 7.0,
+                'turbidite'          => 0.5,
+                'chlore_residuel'    => 0.8,
+                'plomb'              => 2,
+                'nitrates'           => 10,
+                'source_donnee'      => 'simule',
+                'is_verified'        => false,
+                'overall_compliance' => 100,
+                'status'             => 'Compliant',
+            ]);
+        }
+
+        $response = $this->actingAs($manager)
+            ->get(route('manager.quality'))
+            ->assertOk();
+
+        // The Blade view renders pagination links when there are multiple pages.
+        // assertSee checks raw HTML, so we look for a rel="next" or page=2 link.
+        $response->assertSee('page=2', false);
+    }
+
+    /** Validate button appears for an unverified measurement and disappears once verified. */
+    public function test_validate_button_visibility_on_show(): void
+    {
+        $manager = $this->createUserWithRole(Role::MANAGER);
+
+        $point = PointMesure::create([
+            'code'   => 'TST-BTN',
+            'nom'    => 'Point bouton valider',
+            'type'   => 'Station',
+            'statut' => 'actif',
+        ]);
+
+        $unverified = MesureQualite::create([
+            'reference'          => 'BTN-UNVERIFIED',
+            'point_mesure_id'    => $point->id,
+            'date_mesure'        => now(),
+            'ph'                 => 7.2,
+            'turbidite'          => 0.5,
+            'chlore_residuel'    => 0.8,
+            'plomb'              => 2,
+            'nitrates'           => 10,
+            'source_donnee'      => 'manuel',
+            'is_verified'        => false,
+            'overall_compliance' => 100,
+            'status'             => 'Compliant',
+        ]);
+
+        // Unverified → "Valider" button must be present
+        $this->actingAs($manager)
+            ->get(route('manager.quality.mesures.show', $unverified))
+            ->assertOk()
+            ->assertSee('Valider');
+
+        $verified = MesureQualite::create([
+            'reference'          => 'BTN-VERIFIED',
+            'point_mesure_id'    => $point->id,
+            'date_mesure'        => now(),
+            'ph'                 => 7.2,
+            'turbidite'          => 0.5,
+            'chlore_residuel'    => 0.8,
+            'plomb'              => 2,
+            'nitrates'           => 10,
+            'source_donnee'      => 'manuel',
+            'is_verified'        => true,
+            'verifier'           => 'Manager (manager)',
+            'overall_compliance' => 100,
+            'status'             => 'Compliant',
+        ]);
+
+        // Already verified → "Valider" button must NOT be present
+        $this->actingAs($manager)
+            ->get(route('manager.quality.mesures.show', $verified))
+            ->assertOk()
+            ->assertDontSee('Valider');
+    }
 }
 
