@@ -11,6 +11,13 @@ use Illuminate\View\View;
 
 class PointMesureController extends Controller
 {
+    // NOTE — Authorization on point operations:
+    // PointMesureController is protected by the `role:manager` middleware at the route level.
+    // No PointMesurePolicy exists and no `points.*` permissions are defined in the RBAC schema
+    // (RbacSeeder). Adding granular permission checks here would require new permissions to be
+    // defined and seeded — a product decision deferred to a later phase.
+    // Any role that passes the `role:manager` middleware can create, update, or deactivate points.
+
     public function index(): View
     {
         $points = PointMesure::with('derniereMesure')->orderBy('nom')->paginate(15);

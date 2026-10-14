@@ -2,10 +2,6 @@
 
 @section('title', 'AquaSecure — Qualité de l’eau et mesures')
 
-@php
-    $user         = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
-@endphp
-
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

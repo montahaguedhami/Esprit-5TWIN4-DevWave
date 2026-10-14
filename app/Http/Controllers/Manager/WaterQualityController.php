@@ -41,8 +41,6 @@ class WaterQualityController extends Controller
             ->whereNotNull('longitude')
             ->get()
             ->map(fn (PointMesure $point) => $this->pointForMap($point));
-        $user = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
-
         return view('manager.quality', compact(
             'records',
             'latestMeasurement',
@@ -50,14 +48,13 @@ class WaterQualityController extends Controller
             'averageCompliance',
             'activePointsCount',
             'chartRecords',
-            'points',
-            'user'
+            'points'
         ));
     }
 
     public function create(): View
     {
-        abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, "Créez d'abord un point de mesure actif.");
+        abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, 'Créez d\'abord un point de mesure actif.');
 
         return view('manager.quality-measures.create', [
             'points' => PointMesure::where('statut', 'actif')->orderBy('nom')->get(),
@@ -121,7 +118,7 @@ class WaterQualityController extends Controller
         $this->authorize('validate', $mesure);
 
         /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = auth()->user()->load('roles');
 
         $verifierName = $user->name . ' (' . $user->primary_role . ')';
 

@@ -6,6 +6,14 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div><h1 class="text-2xl font-bold text-white">Mesure {{ $mesure->reference }}</h1><p class="text-sm text-slate-400">{{ $mesure->pointMesure?->nom }} · {{ $mesure->date_mesure->format('d/m/Y H:i') }}</p></div>
             <div class="flex gap-2">
+                @can('validate', $mesure)
+                    @unless($mesure->is_verified)
+                        <form method="POST" action="{{ route('manager.quality.mesures.validate', $mesure) }}">
+                            @csrf
+                            <button type="submit" class="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950">Valider</button>
+                        </form>
+                    @endunless
+                @endcan
                 @can('update', $mesure)
                     <a href="{{ route('manager.quality.mesures.edit', $mesure) }}" class="rounded-xl bg-slate-800 px-4 py-2 text-sm">Modifier</a>
                 @endcan
