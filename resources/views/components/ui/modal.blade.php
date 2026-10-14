@@ -31,16 +31,16 @@
     >
         <!-- Header -->
         @if($title || $closeButton)
-        <div class="flex items-center justify-between p-6 border-b border-white/5">
-            <h3 id="{{ $id }}-title" class="text-xl font-display font-bold text-white">{{ $title }}</h3>
+        <div class="flex items-center justify-between p-6 border-b border-slate-100">
+            <h3 id="{{ $id }}-title" class="text-xl font-display font-bold text-slate-900">{{ $title }}</h3>
             @if($closeButton)
             <button 
                 onclick="closeModal('{{ $id }}')"
-                class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors"
+                class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors"
                 aria-label="Fermer le modal"
                 type="button"
             >
-                <i data-lucide="x" class="w-5 h-5 text-cyan-100/60"></i>
+                <i data-lucide="x" class="w-5 h-5 text-slate-500"></i>
             </button>
             @endif
         </div>
@@ -53,7 +53,7 @@
 
         <!-- Footer (optional) -->
         @isset($footer)
-        <div class="p-6 border-t border-white/5 flex items-center justify-end gap-3">
+        <div class="p-6 border-t border-slate-100 flex items-center justify-end gap-3">
             {{ $footer }}
         </div>
         @endisset

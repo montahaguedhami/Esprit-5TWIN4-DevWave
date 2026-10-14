@@ -1,8 +1,18 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\ActionCorrectiveController;
+use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\TechnicienController;
+use App\Http\Controllers\TravauxController;
+use App\Http\Controllers\Manager\MapController;
+use App\Http\Controllers\Manager\PointMesureController;
+use App\Http\Controllers\Manager\WaterQualityController;
 use App\Http\Controllers\InfrastructureController;
+use App\Http\Controllers\Manager\InventaireExportController;
 use App\Http\Controllers\ZoneController;
 
 // Landing Page (Public)
@@ -125,45 +135,51 @@ Route::get('/citizen/invoices/{id}', function ($id) {
     return view('citizen.invoices.show', ['id' => $id]);
 })->name('citizen.invoices.show');
 
-// Technician Space (BackOffice) - DEMO
-Route::get('/technician/dashboard', function () {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.dashboard');
-})->name('technician.dashboard');
+// Citizen network directory (read-only, public service information only)
+Route::middleware('role:citizen')->prefix('citizen')->name('citizen.')->group(function () {
+    Route::get('/zones', [\App\Http\Controllers\Citizen\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Citizen\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/infrastructures', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'index'])->name('infrastructures.index');
+    Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'show'])->name('infrastructures.show');
+});
 
-Route::get('/technician/interventions', function () {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.interventions.index');
-})->name('technician.interventions.index');
+// Technician Space (Terrain & Maintenance)
+Route::middleware('role:technician')->prefix('technician')->name('technician.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('technician.dashboard');
+    })->name('dashboard');
 
-Route::get('/technician/interventions/{id}', function ($id) {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.interventions.show', ['id' => $id]);
-})->name('technician.interventions.show');
+    // Zones d'intervention du technicien
+    Route::get('/zones', [\App\Http\Controllers\Technician\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Technician\ZoneController::class, 'show'])->name('zones.show');
 
-Route::get('/technician/interventions/{id}/report', function ($id) {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.interventions.report', ['id' => $id]);
-})->name('technician.interventions.report');
+    // Infrastructures assignées au technicien (accès restreint à ses interventions)
+    Route::get('/infrastructures', [\App\Http\Controllers\Technician\InfrastructureController::class, 'index'])->name('infrastructures.index');
+    Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Technician\InfrastructureController::class, 'show'])->name('infrastructures.show');
+    Route::patch('/infrastructures/{infrastructure}/etat', [\App\Http\Controllers\Technician\InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
 
-Route::post('/technician/interventions/{id}/report', function ($id) {
-    return redirect()->route('technician.interventions.index')->with('success', 'Rapport d\'intervention créé avec succès');
-})->name('technician.interventions.report.store');
+    // QR Code et Scanner terrain
+    Route::get('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'scan'])->name('scan');
+    Route::post('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'processScan'])->name('scan.process');
 
-Route::get('/technician/equipment', function () {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.equipment');
-})->name('technician.equipment');
+    // Tournée du jour et guidage géographique
+    Route::get('/tournee', [\App\Http\Controllers\Technician\TourneeController::class, 'index'])->name('tournee');
+
+    // Signalement d'incident terrain relié à un ouvrage
+    Route::get('/incidents/create', [\App\Http\Controllers\Technician\IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [\App\Http\Controllers\Technician\IncidentController::class, 'store'])->name('incidents.store');
+
+    // Interventions réelles du technicien
+    Route::get('/interventions', [\App\Http\Controllers\Technician\InterventionController::class, 'index'])->name('interventions.index');
+    Route::get('/interventions/{id}', [\App\Http\Controllers\Technician\InterventionController::class, 'show'])->name('interventions.show');
+    Route::post('/interventions/{id}/start', [\App\Http\Controllers\Technician\InterventionController::class, 'start'])->name('interventions.start');
+    Route::get('/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'report'])->name('interventions.report');
+    Route::post('/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'storeReport'])->name('interventions.report.store');
+
+    Route::get('/equipment', function () {
+        return view('technician.equipment');
+    })->name('equipment');
+});
 
 // Role Switcher Route (Instant DEMO role switching)
 Route::get('/switch-role/{role}', function ($role) {
@@ -197,39 +213,51 @@ Route::get('/manager/dashboard', function () {
     return view('manager.dashboard');
 })->name('manager.dashboard');
 
-Route::get('/manager/map', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.map');
-})->name('manager.map');
 
-Route::get('/manager/quality', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Dr. Selim Dridi', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'role_key' => 'quality']]);
-    }
-    return view('manager.quality');
-})->name('manager.quality');
 
-Route::get('/manager/incidents', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.incidents');
-})->name('manager.incidents');
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(function () {
+    Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
+    Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
+    Route::get('/incidents/{incident}/edit', [IncidentController::class, 'edit'])->name('incidents.edit');
+    Route::put('/incidents/{incident}', [IncidentController::class, 'update'])->name('incidents.update');
+    Route::delete('/incidents/{incident}', [IncidentController::class, 'destroy'])->name('incidents.destroy');
+    Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->name('incidents.show');
+});
 
-Route::get('/manager/projects', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.projects');
-})->name('manager.projects');
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
+    Route::get('/manager/incidents', [IncidentController::class, 'managerIndex'])->name('manager.incidents');
+    Route::get('/manager/incidents/{incident}', [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
+    Route::get('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'index'])->name('manager.actions.index');
+    Route::get('/manager/incidents/{incident}/actions/create', [ActionCorrectiveController::class, 'create'])->name('manager.actions.create');
+    Route::post('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'store'])->name('incidents.actions.store');
+    Route::get('/manager/actions/{action}/edit', [ActionCorrectiveController::class, 'edit'])->name('manager.actions.edit');
+    Route::get('/manager/actions/{action}', [ActionCorrectiveController::class, 'show'])->name('manager.actions.show');
+    Route::put('/manager/actions/{action}', [ActionCorrectiveController::class, 'update'])->name('manager.actions.update');
+    Route::delete('/manager/actions/{action}', [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
+});
+
+// Route démo supprimée - utiliser /manager/projets (module Ghada) à la place
 
 Route::get('/manager/budget', function () {
     if (!session('user')) {
         session(['user' => ['name' => 'Moncef Triki', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'role_key' => 'finance']]);
     }
-    return view('manager.budget');
+    
+    // Récupérer les projets et financements depuis la base de données
+    $projets = \App\Models\Projet::with('financements')->get();
+    $financements = \App\Models\Financement::with('projet')->latest()->get();
+    
+    // Calculer les totaux
+    $totalBudget = $projets->sum('budget');
+    $totalFinance = $financements->sum('montant');
+    $budgetRestant = $totalBudget - $totalFinance;
+    $pourcentageUtilise = $totalBudget > 0 ? ($totalFinance / $totalBudget * 100) : 0;
+    
+    // Compter les sources de financement uniques
+    $sourcesUniques = $financements->pluck('source')->unique()->count();
+    
+    return view('manager.budget', compact('projets', 'financements', 'totalBudget', 'totalFinance', 'budgetRestant', 'pourcentageUtilise', 'sourcesUniques'));
 })->name('manager.budget');
 
 Route::get('/manager/analytics', function () {
@@ -238,6 +266,20 @@ Route::get('/manager/analytics', function () {
     }
     return view('manager.analytics');
 })->name('manager.analytics');
+
+Route::get('/manager/map', MapController::class)->name('manager.map');
+
+Route::get('/manager/quality', [WaterQualityController::class, 'index'])
+    ->name('manager.quality');
+
+Route::resource('/manager/points-mesure', PointMesureController::class)
+    ->parameters(['points-mesure' => 'point_mesure'])
+    ->names('manager.points-mesure');
+
+Route::resource('/manager/quality/mesures', WaterQualityController::class)
+    ->parameters(['mesures' => 'mesure'])
+    ->names('manager.quality.mesures')
+    ->except('index');
 
 Route::get('/manager/teams', function () {
     if (!session('user')) {
@@ -254,7 +296,27 @@ Route::get('/manager/reports', function () {
 })->name('manager.reports');
 
 Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
+    // Exports d'inventaire
+    Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
+    Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
+    Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
+    Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
+
     Route::resource('zones', ZoneController::class);
+    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
+    Route::resource('infrastructures', InfrastructureController::class);
+});
+
+Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
+    Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
+    Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
+    Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
+
+    Route::resource('zones', ZoneController::class);
+    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
     Route::resource('infrastructures', InfrastructureController::class);
 });
 
@@ -346,3 +408,44 @@ Route::get('/ai-demo', function () {
 Route::get('/weather', function () {
     return response()->file(public_path('weather.html'));
 })->name('weather');
+
+// Module Maintenance (Back Office) : Techniciens & Interventions
+Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
+    Route::resource('techniciens', TechnicienController::class);
+    Route::resource('interventions', InterventionController::class);
+});
+
+// Module Maintenance (Front Office) : travaux visibles par les citoyens
+Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
+Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
+
+// === MODULE PROJETS/FINANCEMENTS (Ghada) ===
+
+// Citizen - Projets (Lecture seule)
+Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
+    Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
+});
+
+// Manager - Projets CRUD
+Route::prefix('manager/projets')->name('manager.projets.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\ProjetController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\ProjetController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\ProjetController::class, 'store'])->name('store');
+    Route::get('/map', [App\Http\Controllers\Manager\ProjetController::class, 'map'])->name('map');
+    Route::get('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'show'])->name('show');
+    Route::get('/{projet}/edit', [App\Http\Controllers\Manager\ProjetController::class, 'edit'])->name('edit');
+    Route::put('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'update'])->name('update');
+    Route::delete('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'destroy'])->name('destroy');
+});
+
+// Manager - Financements CRUD
+Route::prefix('manager/financements')->name('manager.financements.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Manager\FinancementController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Manager\FinancementController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
+    Route::get('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
+    Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
+    Route::put('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
+    Route::delete('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});

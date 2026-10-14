@@ -1,7 +1,59 @@
 @extends('layouts.frontoffice')
 
 @section('content')
-<div class="space-y-6">
+<header class="profile-toolbar">
+    <div class="profile-toolbar__inner">
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+            <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <x-notification-center />
+        <x-user-menu />
+    </div>
+</header>
+<style>
+    .profile-toolbar { position: sticky; top: 0; z-index: 30; border-bottom: 1px solid var(--border); background: var(--bg-topbar); box-shadow: var(--shadow-sm); }
+    .profile-toolbar__inner { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; max-width: 1440px; min-height: 56px; margin: 0 auto; padding: 0 1.25rem; }
+    .aqua-light-page { min-height: 100vh; background: #f3f7fb; color: #102a43; padding: 1.25rem; }
+    .aqua-light-page .glass, .aqua-light-page .glass-strong { background: #fff; border: 1px solid #dce7ef; box-shadow: 0 8px 24px rgba(15,42,67,.06); backdrop-filter: none; }
+    .aqua-light-page [class~="text-white"] { color: #102a43 !important; }
+    .aqua-light-page [class~="text-slate-300"], .aqua-light-page [class~="text-slate-400"], .aqua-light-page [class~="text-slate-500"] { color: #64748b !important; }
+    .aqua-light-page [class*="bg-slate-800"], .aqua-light-page [class*="bg-slate-900"], .aqua-light-page [class*="bg-slate-950"] { background-color: #f1f6fa !important; }
+    .aqua-light-page [class*="border-slate-7"], .aqua-light-page [class*="border-slate-8"] { border-color: #e1eaf1 !important; }
+    .aqua-light-page input:not([type="checkbox"]), .aqua-light-page select { color: #102a43; background-color: #fff; border-color: #cbd9e5; }
+    .aqua-light-page .btn-primary { color: #fff !important; }
+    [data-theme="dark"] .aqua-light-page { background: var(--bg-app); color: var(--text-primary); }
+    [data-theme="dark"] .aqua-light-page .glass,
+    [data-theme="dark"] .aqua-light-page .glass-strong {
+        color: var(--text-primary);
+        background: var(--bg-card);
+        border-color: var(--border);
+        box-shadow: var(--shadow-sm);
+    }
+    [data-theme="dark"] .aqua-light-page [class*="bg-slate-800"],
+    [data-theme="dark"] .aqua-light-page [class*="bg-slate-900"],
+    [data-theme="dark"] .aqua-light-page [class*="bg-slate-950"] { background-color: var(--bg-muted) !important; }
+    [data-theme="dark"] .aqua-light-page [class*="border-slate-7"],
+    [data-theme="dark"] .aqua-light-page [class*="border-slate-8"] { border-color: var(--border) !important; }
+    [data-theme="dark"] .aqua-light-page [class~="text-white"] { color: var(--text-primary) !important; }
+    [data-theme="dark"] .aqua-light-page [class*="text-slate-"] { color: var(--text-secondary) !important; }
+    [data-theme="dark"] .aqua-light-page input:not([type="checkbox"]),
+    [data-theme="dark"] .aqua-light-page select {
+        color: var(--text-primary);
+        background-color: var(--bg-input);
+        border-color: var(--border);
+    }
+    [data-theme="dark"] .aqua-light-page input::placeholder { color: var(--text-muted); }
+    [data-theme="dark"] .aqua-light-page .btn-secondary {
+        color: var(--text-primary);
+        background-color: var(--bg-muted);
+        border-color: var(--border);
+    }
+    [data-theme="dark"] .aqua-light-page .btn-secondary:hover { background-color: var(--bg-hover); }
+    [data-theme="dark"] .aqua-light-page .btn-primary { color: #fff !important; }
+    @media (max-width: 640px) { .aqua-light-page { padding: 1rem; } }
+</style>
+<div class="aqua-light-page space-y-6">
         @php
             $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => 'citizen']);
             $roleLabels = [

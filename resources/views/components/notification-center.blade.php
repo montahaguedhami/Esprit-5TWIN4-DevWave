@@ -10,7 +10,7 @@
         class="relative p-2 rounded-lg glass hover:glass-strong transition-all group"
         aria-label="Notifications"
     >
-        <i data-lucide="bell" class="w-5 h-5 text-cyan-100/70 group-hover:text-cyan-400 transition-colors"></i>
+        <i data-lucide="bell" class="w-5 h-5 text-cyan-700 group-hover:text-cyan-900 transition-colors"></i>
         @if($unreadCount > 0)
         <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white animate-pulse">
             {{ $unreadCount > 9 ? '9+' : $unreadCount }}
@@ -21,18 +21,18 @@
     <!-- Notification Dropdown -->
     <div 
         id="notification-dropdown" 
-        class="hidden absolute right-0 mt-2 w-96 bg-[#0d1726] rounded-2xl shadow-2xl border border-slate-700 overflow-hidden z-[9999]"
+        class="hidden absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-[9999]"
         style="max-height: 600px;"
     >
         <!-- Header -->
-        <div class="p-4 border-b border-white/10 flex items-center justify-between">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <h3 class="text-lg font-bold text-white">Notifications</h3>
-                <p class="text-xs text-cyan-100/60">{{ $unreadCount }} non lues</p>
+                <h3 class="text-lg font-bold text-slate-900">Notifications</h3>
+                <p class="text-xs text-slate-500">{{ $unreadCount }} non lues</p>
             </div>
             <button 
                 onclick="markAllAsRead()" 
-                class="text-xs text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
+                class="text-xs text-cyan-700 hover:text-cyan-900 transition-colors font-medium"
             >
                 Tout marquer comme lu
             </button>
@@ -41,7 +41,7 @@
         <!-- Notifications List -->
         <div class="overflow-y-auto" style="max-height: 450px;">
             @forelse($notifications as $notification)
-            <div class="notification-item p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer {{ !$notification['read'] ? 'bg-cyan-500/5' : '' }}"
+            <div class="notification-item p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer {{ !$notification['read'] ? 'bg-cyan-500/5' : '' }}"
                  onclick="markAsRead('{{ $notification['id'] }}')">
                 <div class="flex items-start gap-3">
                     <!-- Icon -->
@@ -52,16 +52,16 @@
                     <!-- Content -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-2 mb-1">
-                            <h4 class="text-sm font-semibold text-white line-clamp-1">{{ $notification['title'] }}</h4>
+                            <h4 class="text-sm font-semibold text-slate-800 line-clamp-1">{{ $notification['title'] }}</h4>
                             @if(!$notification['read'])
                             <span class="flex-shrink-0 w-2 h-2 rounded-full bg-cyan-400"></span>
                             @endif
                         </div>
-                        <p class="text-xs text-cyan-100/70 line-clamp-2 mb-2">{{ $notification['message'] }}</p>
+                        <p class="text-xs text-slate-600 line-clamp-2 mb-2">{{ $notification['message'] }}</p>
                         <div class="flex items-center gap-3">
-                            <span class="text-xs text-cyan-100/50">{{ $notification['time'] }}</span>
+                            <span class="text-xs text-slate-400">{{ $notification['time'] }}</span>
                             @if(isset($notification['action']))
-                            <a href="{{ $notification['action']['url'] }}" class="text-xs text-cyan-400 hover:text-cyan-300 font-medium">
+                            <a href="{{ $notification['action']['url'] }}" class="text-xs text-cyan-700 hover:text-cyan-900 font-medium">
                                 {{ $notification['action']['label'] }} →
                             </a>
                             @endif
@@ -71,17 +71,17 @@
             </div>
             @empty
             <div class="p-8 text-center">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-800/50 flex items-center justify-center">
-                    <i data-lucide="bell-off" class="w-8 h-8 text-slate-600"></i>
+                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                    <i data-lucide="bell-off" class="w-8 h-8 text-slate-400"></i>
                 </div>
-                <p class="text-sm text-slate-400">Aucune notification</p>
+                <p class="text-sm text-slate-500">Aucune notification</p>
             </div>
             @endforelse
         </div>
 
         <!-- Footer -->
-        <div class="p-3 border-t border-white/10 bg-slate-900/50">
-            <a href="{{ route('notifications.index') }}" class="block text-center text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+        <div class="p-3 border-t border-slate-100 bg-slate-50">
+            <a href="{{ route('notifications.index') }}" class="block text-center text-sm text-cyan-700 hover:text-cyan-900 transition-colors font-medium">
                 Voir toutes les notifications
             </a>
         </div>

@@ -51,7 +51,7 @@
                         <i data-lucide="layout-dashboard"></i>
                         <span>Tableau de bord</span>
                     </a></li>
-                    <li><a href="/citizen/reports" class="mobile-nav-link {{ $currentRoute === 'citizen.reports' ? 'active' : '' }}">
+                    <li><a href="{{ route('incidents.index') }}" class="mobile-nav-link {{ request()->routeIs('incidents.*') ? 'active' : '' }}">
                         <i data-lucide="alert-circle"></i>
                         <span>Mes signalements</span>
                     </a></li>
@@ -93,7 +93,7 @@
                         <i data-lucide="map"></i>
                         <span>Carte réseau</span>
                     </a></li>
-                    <li><a href="/manager/projects" class="mobile-nav-link {{ $currentRoute === 'manager.projects' ? 'active' : '' }}">
+                    <li><a href="{{ route('manager.projets.index') }}" class="mobile-nav-link {{ $currentRoute === 'manager.projets.index' ? 'active' : '' }}">
                         <i data-lucide="list"></i>
                         <span>Projets</span>
                     </a></li>

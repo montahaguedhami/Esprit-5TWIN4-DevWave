@@ -10,8 +10,8 @@
     $variantClasses = match($variant) {
         'glass' => 'glass',
         'glass-strong' => 'glass-strong',
-        'solid' => 'bg-slate-900/90 backdrop-blur-xl',
-        'bordered' => 'bg-slate-950/40 border border-cyan-400/15',
+        'solid' => 'bg-white border border-slate-200 shadow-sm',
+        'bordered' => 'bg-white border border-cyan-100',
         default => 'glass',
     };
     

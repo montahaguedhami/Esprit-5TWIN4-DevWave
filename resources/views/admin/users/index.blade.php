@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('admin-content')
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-900">
+<div class="aqua-admin-page min-h-screen">
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
@@ -26,33 +26,33 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <x-dashboard.kpi-card 
                 icon="users" 
-                label="Total Utilisateurs" 
+                title="Total Utilisateurs" 
                 :value="$userStats['total']"
-                iconColor="text-cyan-400"
+                color="cyan"
             />
             <x-dashboard.kpi-card 
                 icon="user-check" 
-                label="Actifs" 
+                title="Actifs" 
                 :value="$userStats['active']"
-                iconColor="text-emerald-400"
+                color="emerald"
             />
             <x-dashboard.kpi-card 
                 icon="shield" 
-                label="Administrateurs" 
+                title="Administrateurs" 
                 :value="$userStats['admins']"
-                iconColor="text-purple-400"
+                color="purple"
             />
             <x-dashboard.kpi-card 
                 icon="briefcase" 
-                label="Gestionnaires" 
+                title="Gestionnaires" 
                 :value="$userStats['managers']"
-                iconColor="text-blue-400"
+                color="blue"
             />
             <x-dashboard.kpi-card 
                 icon="wrench" 
-                label="Techniciens" 
+                title="Techniciens" 
                 :value="$userStats['technicians']"
-                iconColor="text-cyan-400"
+                color="cyan"
             />
         </div>
 

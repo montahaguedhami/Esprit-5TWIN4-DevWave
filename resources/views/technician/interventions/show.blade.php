@@ -1,271 +1,151 @@
 @extends('layouts.manager')
 
-@section('title', 'Détail intervention')
+@section('title', 'Intervention #' . $intervention->id . ' — Technicien')
 
-@php
-    use App\Data\PlaceholderData;
-    $interventions = PlaceholderData::technicianInterventions();
-    $intervention = $interventions[0]; // For demo
-@endphp
+@section('manager-content')
+<div class="max-w-4xl mx-auto space-y-6">
 
-@section('content')
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('technician.interventions.index') }}" class="w-10 h-10 rounded-xl glass flex items-center justify-center hover:border-cyan-400/40 transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5 text-cyan-300"></i>
-            </a>
-            <div>
-                <div class="flex items-center gap-3 mb-1">
-                    <h1 class="text-2xl sm:text-3xl font-display font-bold text-white">{{ $intervention['id'] }}</h1>
-                    <x-ui.status-badge 
-                        :status="$intervention['status'] === 'in_progress' ? 'info' : 'warning'" 
-                        dot
-                    >
-                        {{ $intervention['status'] === 'in_progress' ? 'En cours' : 'Programmée' }}
-                    </x-ui.status-badge>
+    {{-- En-tête avec bouton retour et statut --}}
+    <div class="glass rounded-2xl p-5 border border-white/10">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+                <a href="{{ route('technician.interventions.index') }}"
+                   class="w-10 h-10 rounded-xl glass border border-white/15 flex items-center justify-center text-cyan-300 hover:text-white transition-colors shrink-0">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <div>
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="text-xs font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-400/20">
+                            Intervention #{{ $intervention->id }}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold {{ $intervention->statut === 'Terminée' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30' : ($intervention->statut === 'En cours' ? 'bg-amber-500/15 text-amber-300 border border-amber-400/30' : 'bg-cyan-500/15 text-cyan-300 border border-cyan-400/30') }}">
+                            {{ $intervention->statut }}
+                        </span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-bold font-display text-white">
+                        {{ $intervention->infrastructure?->nom ?? 'Mission de maintenance' }}
+                    </h1>
+                    <p class="text-cyan-100/60 text-xs mt-0.5">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5 inline text-cyan-400"></i>
+                        Date prévue : {{ $intervention->date?->format('d/m/Y') }} · Technicien : {{ $technicien->nom }}
+                    </p>
                 </div>
-                <p class="text-cyan-100/60 text-sm">{{ $intervention['type'] }}</p>
+            </div>
+
+            {{-- Actions directes selon l'état --}}
+            <div class="flex items-center gap-2 flex-wrap">
+                @if($intervention->statut === 'Planifiée')
+                <form method="POST" action="{{ route('technician.interventions.start', $intervention) }}">
+                    @csrf
+                    <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-all flex items-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                        <span>Démarrer l'intervention</span>
+                    </button>
+                </form>
+                @endif
+
+                @if($intervention->statut !== 'Terminée')
+                <a href="{{ route('technician.interventions.report', $intervention) }}"
+                   class="px-4 py-2 rounded-xl text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span>Remplir le rapport</span>
+                </a>
+                @endif
+
+                @if($intervention->infrastructure)
+                <a href="{{ route('technician.incidents.create', ['infrastructure_id' => $intervention->infrastructure->id]) }}"
+                   class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-600/80 hover:bg-rose-500 text-white transition-all flex items-center gap-1.5">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                    <span>Signaler problème</span>
+                </a>
+                @endif
             </div>
         </div>
-        
-        @if($intervention['status'] !== 'completed')
-        <div class="flex items-center gap-2">
-            @if($intervention['status'] === 'scheduled')
-            <x-ui.button icon="play">
-                Démarrer l'intervention
-            </x-ui.button>
-            @else
-            <x-ui.button variant="outline" icon="pause">
-                Pause
-            </x-ui.button>
-            <a href="{{ route('technician.interventions.report', ['id' => $intervention['id']]) }}">
-                <x-ui.button icon="check">
-                    Terminer
-                </x-ui.button>
-            </a>
-            @endif
-        </div>
-        @endif
     </div>
 
-    <div class="grid lg:grid-cols-3 gap-6">
-        <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-6">
-            <!-- Priority Alert -->
-            @if($intervention['priority'] === 'high')
-            <x-ui.alert type="error" title="Intervention urgente">
-                Cette intervention nécessite une action immédiate. Priorité maximale.
-            </x-ui.alert>
+    {{-- Détails de l'intervention & Fiche ouvrage liée --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        {{-- Descriptif et Rapport --}}
+        <div class="md:col-span-2 space-y-6">
+            <div class="glass rounded-2xl p-5 border border-white/10 space-y-3">
+                <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="align-left" class="w-4 h-4 text-cyan-400"></i>
+                    Ordre de Mission & Descriptif
+                </h2>
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-white/5 text-xs text-cyan-100/90 whitespace-pre-line leading-relaxed">
+                    {{ $intervention->description ?: 'Aucune consigne spécifique renseignée pour cette intervention.' }}
+                </div>
+            </div>
+
+            @if($intervention->statut === 'Terminée')
+            <div class="glass rounded-2xl p-5 border border-emerald-500/20 bg-emerald-500/5 space-y-2">
+                <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    Mission Clôturée
+                </div>
+                <p class="text-xs text-cyan-100/70">
+                    Cette intervention a été validée avec succès sur le terrain. L'état opérationnel et la date de dernière maintenance de l'ouvrage ont été mis à jour.
+                </p>
+            </div>
             @endif
-
-            <!-- Timer (if in progress) -->
-            @if($intervention['status'] === 'in_progress')
-            <x-ui.card>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-display font-bold text-white mb-1">Durée de l'intervention</h3>
-                        <p class="text-sm text-cyan-100/60">Démarrée à {{ \Carbon\Carbon::parse($intervention['started_at'])->format('H:i') }}</p>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-4xl font-display font-bold text-cyan-300" id="timer">00:00:00</div>
-                        <p class="text-xs text-cyan-100/50 mt-1">Estimation: {{ $intervention['estimated_duration'] }}</p>
-                    </div>
-                </div>
-            </x-ui.card>
-            @endif
-
-            <!-- Description -->
-            <x-ui.card>
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                        <i data-lucide="file-text" class="w-5 h-5 text-cyan-400"></i>
-                    </div>
-                    <h3 class="text-lg font-display font-bold text-white">Description du problème</h3>
-                </div>
-                <p class="text-cyan-100/70 leading-relaxed">{{ $intervention['description'] }}</p>
-            </x-ui.card>
-
-            <!-- Location -->
-            <x-ui.card>
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                        <i data-lucide="map-pin" class="w-5 h-5 text-cyan-400"></i>
-                    </div>
-                    <h3 class="text-lg font-display font-bold text-white">Localisation</h3>
-                </div>
-                
-                <div class="space-y-3 mb-4">
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="map" class="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5"></i>
-                        <div>
-                            <div class="text-sm text-cyan-100/50 mb-1">Zone</div>
-                            <div class="text-white font-medium">{{ $intervention['zone'] }}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="navigation" class="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5"></i>
-                        <div>
-                            <div class="text-sm text-cyan-100/50 mb-1">Adresse</div>
-                            <div class="text-white font-medium">{{ $intervention['address'] }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <x-ui.button variant="outline" size="sm" icon="navigation" class="w-full">
-                    Ouvrir dans Google Maps
-                </x-ui.button>
-            </x-ui.card>
-
-            <!-- Equipment Needed -->
-            <x-ui.card>
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                        <i data-lucide="wrench" class="w-5 h-5 text-cyan-400"></i>
-                    </div>
-                    <h3 class="text-lg font-display font-bold text-white">Équipement nécessaire</h3>
-                </div>
-                
-                <div class="space-y-2">
-                    @foreach($intervention['equipment_needed'] as $equipment)
-                    <div class="flex items-center gap-3 p-3 glass rounded-lg">
-                        <div class="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
-                            <i data-lucide="package" class="w-4 h-4 text-teal-400"></i>
-                        </div>
-                        <span class="text-white text-sm">{{ $equipment }}</span>
-                    </div>
-                    @endforeach
-                </div>
-            </x-ui.card>
-
-            <!-- Photos (if any) -->
-            <x-ui.card>
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                            <i data-lucide="camera" class="w-5 h-5 text-cyan-400"></i>
-                        </div>
-                        <h3 class="text-lg font-display font-bold text-white">Photos</h3>
-                    </div>
-                    <x-ui.button variant="outline" size="sm" icon="plus">
-                        Ajouter
-                    </x-ui.button>
-                </div>
-                
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div class="aspect-square glass rounded-xl flex items-center justify-center">
-                        <i data-lucide="image" class="w-8 h-8 text-cyan-400/40"></i>
-                    </div>
-                </div>
-            </x-ui.card>
         </div>
 
-        <!-- Sidebar -->
+        {{-- Carte latérale Ouvrage lié (SANS COÛT) --}}
         <div class="space-y-6">
-            <!-- Quick Info -->
-            <x-ui.card>
-                <h3 class="text-lg font-display font-bold text-white mb-4">Informations</h3>
-                
-                <div class="space-y-4">
+            @if($intervention->infrastructure)
+            @php($infra = $intervention->infrastructure)
+            <div class="glass rounded-2xl p-5 border border-white/10 space-y-4">
+                <h2 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="wrench" class="w-4 h-4 text-cyan-400"></i>
+                    Ouvrage Rattaché
+                </h2>
+
+                <div class="space-y-2.5 text-xs">
                     <div>
-                        <span class="text-xs text-cyan-100/50 block mb-1">Programmée</span>
-                        <span class="text-sm text-white">{{ \Carbon\Carbon::parse($intervention['scheduled_time'])->format('d/m/Y à H:i') }}</span>
+                        <span class="text-cyan-100/50 block text-[11px]">Nom :</span>
+                        <span class="font-bold text-white text-sm">{{ $infra->nom }}</span>
                     </div>
 
-                    @if(isset($intervention['started_at']))
                     <div>
-                        <span class="text-xs text-cyan-100/50 block mb-1">Démarrée</span>
-                        <span class="text-sm text-white">{{ \Carbon\Carbon::parse($intervention['started_at'])->format('d/m/Y à H:i') }}</span>
+                        <span class="text-cyan-100/50 block text-[11px]">Type & État :</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="font-medium text-white">{{ $infra->type?->label() }}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border {{ $infra->etat?->badgeClass() }}">
+                                {{ $infra->etat?->label() }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-cyan-100/50 block text-[11px]">Localisation :</span>
+                        <span class="text-white">{{ $infra->zone?->nom }} · {{ $infra->localisation }}</span>
+                    </div>
+
+                    @if($infra->latitude && $infra->longitude)
+                    <div class="pt-2 border-t border-white/5">
+                        <a href="https://maps.google.com/?q={{ $infra->latitude }},{{ $infra->longitude }}"
+                           target="_blank"
+                           class="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold glass text-cyan-300 hover:text-white transition-all">
+                            <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
+                            <span>Ouvrir GPS / Itinéraire</span>
+                        </a>
                     </div>
                     @endif
-
-                    <div>
-                        <span class="text-xs text-cyan-100/50 block mb-1">Durée estimée</span>
-                        <span class="text-sm text-white">{{ $intervention['estimated_duration'] }}</span>
-                    </div>
-
-                    <div>
-                        <span class="text-xs text-cyan-100/50 block mb-1">Équipe</span>
-                        <span class="text-sm text-white">{{ $intervention['team'] }}</span>
-                    </div>
-
-                    <div>
-                        <span class="text-xs text-cyan-100/50 block mb-1">Incident lié</span>
-                        <a href="#" class="text-sm text-cyan-400 hover:text-cyan-300">{{ $intervention['incident_id'] }}</a>
-                    </div>
                 </div>
-            </x-ui.card>
 
-            <!-- Contact -->
-            <x-ui.card>
-                <h3 class="text-lg font-display font-bold text-white mb-4">Contact d'urgence</h3>
-                
-                <div class="space-y-3">
-                    <a href="tel:{{ $intervention['contact'] }}">
-                        <x-ui.button variant="outline" size="sm" icon="phone" class="w-full">
-                            Appeler le centre
-                        </x-ui.button>
+                <div class="pt-2 border-t border-white/10">
+                    <a href="{{ route('technician.infrastructures.show', $infra) }}"
+                       class="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white transition-all">
+                        <span>Consulter la Fiche Technique</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </a>
-                    <x-ui.button variant="outline" size="sm" icon="message-square" class="w-full">
-                        Envoyer un message
-                    </x-ui.button>
                 </div>
-
-                <div class="mt-4 p-3 rounded-lg bg-cyan-500/5 border border-cyan-400/10">
-                    <div class="flex items-center gap-2 text-sm text-cyan-100/70">
-                        <i data-lucide="phone" class="w-4 h-4"></i>
-                        <span>{{ $intervention['contact'] }}</span>
-                    </div>
-                </div>
-            </x-ui.card>
-
-            <!-- Actions -->
-            <x-ui.card>
-                <h3 class="text-lg font-display font-bold text-white mb-4">Actions rapides</h3>
-                
-                <div class="space-y-2">
-                    <x-ui.button variant="outline" size="sm" icon="share-2" class="w-full">
-                        Partager
-                    </x-ui.button>
-                    <x-ui.button variant="outline" size="sm" icon="download" class="w-full">
-                        Télécharger
-                    </x-ui.button>
-                    <x-ui.button variant="outline" size="sm" icon="printer" class="w-full">
-                        Imprimer
-                    </x-ui.button>
-                </div>
-            </x-ui.card>
-
-            <!-- Safety Note -->
-            <x-ui.alert type="warning" title="Sécurité">
-                <p class="text-xs">Respectez toujours les consignes de sécurité. En cas de danger, contactez immédiatement le centre de contrôle.</p>
-            </x-ui.alert>
+            </div>
+            @endif
         </div>
+
     </div>
+
 </div>
-
-@if($intervention['status'] === 'in_progress')
-@push('scripts')
-<script>
-// Simple timer
-let seconds = 0;
-const timerEl = document.getElementById('timer');
-
-if (timerEl) {
-    setInterval(() => {
-        seconds++;
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-        
-        timerEl.textContent = 
-            String(hours).padStart(2, '0') + ':' +
-            String(minutes).padStart(2, '0') + ':' +
-            String(secs).padStart(2, '0');
-    }, 1000);
-}
-</script>
-@endpush
-@endif
 @endsection
