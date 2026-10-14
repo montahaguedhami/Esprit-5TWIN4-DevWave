@@ -1,4 +1,12 @@
-﻿@extends('layouts.app')
+﻿{{--
+  This view intentionally extends layouts.app instead of layouts.manager.
+  layouts.manager wraps content inside a sidebar+navbar shell that would produce
+  a double navigation bar here, because quality.blade.php already renders its own
+  sticky top header with back-navigation, action buttons, and user menu components.
+  Using layouts.app keeps the full-width dark layout required by the map, chart and
+  data table without the extra nesting that layouts.manager would introduce.
+--}}
+@extends('layouts.app')
 
 @section('title', 'AquaSecure — Qualité de l’eau et mesures')
 
