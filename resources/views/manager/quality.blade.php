@@ -260,15 +260,18 @@
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between">
             <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Seuils appliques
+                <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Seuils appliqués
             </h3>
             <button onclick="closeThresholdModal()" class="text-slate-400 hover:text-white">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
+        <p class="text-xs text-slate-300 bg-slate-800/60 border border-slate-600 rounded-xl px-3 py-2 italic">
+            Seuils configurés pour ce projet — non certifiés comme normes officielles.
+        </p>
         <p class="text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-2">
-            Ces seuils sont configures dans <code>config/water_quality.php</code>.
-            Pour les modifier, mettez a jour les variables <code>WATER_QUALITY_*</code> dans .env et redemarrez l'application.
+            Ces seuils sont configurés dans <code>config/water_quality.php</code>.
+            Pour les modifier, mettez à jour les variables <code>WATER_QUALITY_*</code> dans .env et redémarrez l'application.
         </p>
         <div class="space-y-2 text-xs text-slate-200">
             <div class="flex justify-between border-b border-slate-800 pb-2">
