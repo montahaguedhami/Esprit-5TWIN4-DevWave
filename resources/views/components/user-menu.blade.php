@@ -1,4 +1,5 @@
 @php
+<<<<<<< HEAD
     $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => 'citizen']);
     $roleLabels = [
         'admin' => 'Administrateur',
@@ -11,6 +12,18 @@
         'manager' => 'blue',
         'technician' => 'cyan',
         'citizen' => 'emerald',
+=======
+    use App\Models\Role;
+
+    $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => Role::CITOYEN]);
+    $roleSlug = Role::normalizeSlug($user['role'] ?? null);
+    $roleLabel = Role::label($roleSlug);
+    $roleColors = [
+        Role::ADMINISTRATEUR => 'purple',
+        Role::MANAGER => 'blue',
+        Role::TECHNICIEN => 'cyan',
+        Role::CITOYEN => 'emerald',
+>>>>>>> user
     ];
 @endphp
 
@@ -26,7 +39,11 @@
             <div class="truncate text-sm font-semibold text-white transition-colors group-hover:text-cyan-400">
                 {{ $user['name'] }}
             </div>
+<<<<<<< HEAD
             <div class="text-xs text-cyan-100/60">{{ $roleLabels[$user['role']] ?? 'Utilisateur' }}</div>
+=======
+            <div class="text-xs text-cyan-100/60">{{ $roleLabel }}</div>
+>>>>>>> user
         </div>
         <i data-lucide="chevron-down" class="w-4 h-4 text-cyan-100/60 group-hover:text-cyan-400 transition-all group-hover:rotate-180"></i>
     </button>
@@ -45,9 +62,15 @@
                     <p class="text-xs text-cyan-100/70 truncate">{{ $user['email'] }}</p>
                 </div>
             </div>
+<<<<<<< HEAD
             <x-ui.status-badge 
                 :status="$roleColors[$user['role']] ?? 'cyan'" 
                 :label="$roleLabels[$user['role']] ?? 'Utilisateur'" 
+=======
+            <x-ui.status-badge
+                :status="$roleColors[$roleSlug] ?? 'cyan'"
+                :label="$roleLabel"
+>>>>>>> user
             />
         </div>
 
@@ -88,6 +111,7 @@
 
             <!-- Divider -->
             <div class="my-2 border-t border-white/10"></div>
+<<<<<<< HEAD
             <div class="px-4 py-1 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">Changer de rôle (Demo 120Water)</div>
             <a href="{{ route('switch.role', 'admin') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-white/5 transition-colors">
                 <i data-lucide="shield" class="w-4 h-4 text-purple-400"></i>
@@ -116,6 +140,8 @@
 
             <!-- Divider -->
             <div class="my-2 border-t border-white/10"></div>
+=======
+>>>>>>> user
 
             <!-- Help -->
             <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group">

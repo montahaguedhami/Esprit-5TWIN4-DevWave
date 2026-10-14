@@ -14,7 +14,11 @@ class ProjetController extends Controller
     public function index(Request $request)
     {
         // Vérification session citizen
+<<<<<<< HEAD
         if (!session('user') || session('user.role') !== 'citizen') {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::CITOYEN)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -42,7 +46,11 @@ class ProjetController extends Controller
     public function show(Projet $projet)
     {
         // Vérification session citizen
+<<<<<<< HEAD
         if (!session('user') || session('user.role') !== 'citizen') {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::CITOYEN)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 

@@ -38,7 +38,10 @@
             <p class="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-white/40">Gestion System</p>
             <x-admin-nav-item route="admin.users.index" icon="users"     label="Utilisateurs" />
             <x-admin-nav-item route="admin.roles"       icon="shield"    label="Rôles & permissions" />
+<<<<<<< HEAD
             <x-admin-nav-item route="manager.map"       icon="map-pin"   label="Carte réseau" />
+=======
+>>>>>>> user
             <x-admin-nav-item route="admin.logs"        icon="file-text" label="Historique Logs" />
 
             <p class="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-white/40">Compte & Config</p>

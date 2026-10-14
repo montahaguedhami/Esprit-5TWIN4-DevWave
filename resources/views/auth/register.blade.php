@@ -71,6 +71,15 @@
         <!-- Register Form -->
         <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4">
             @csrf
+<<<<<<< HEAD
+=======
+
+            @if (session('error') || $errors->any())
+                <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
+                    {{ session('error') ?? $errors->first() }}
+                </div>
+            @endif
+>>>>>>> user
             
             <div>
                 <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
@@ -180,6 +189,7 @@
                 </p>
             </div>
 
+<<<<<<< HEAD
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Profil</label>
@@ -205,6 +215,11 @@
                         <i data-lucide="chevron-down" class="w-4 h-4 text-cyan-100/30 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                     </div>
                 </div>
+=======
+            <div class="rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-3 text-xs text-cyan-100/70">
+                L'inscription publique crée un compte <span class="font-semibold text-cyan-200">citoyen</span>.
+                Les comptes technicien, gestionnaire et administrateur sont créés par un administrateur.
+>>>>>>> user
             </div>
 
             <!-- Terms Checkbox -->

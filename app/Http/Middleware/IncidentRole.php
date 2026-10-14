@@ -2,6 +2,10 @@
 
 namespace App\Http\Middleware;
 
+<<<<<<< HEAD
+=======
+use App\Models\Role;
+>>>>>>> user
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
@@ -15,11 +19,23 @@ class IncidentRole
             return redirect()->route('auth.login');
         }
 
+<<<<<<< HEAD
         abort_unless($request->session()->get('user.role') === $role, 403);
 
         if ($role === 'citizen') {
             $user = User::where('email', $request->session()->get('user.email'))->first();
             abort_unless($user, 403, 'Le compte citoyen doit exister en base de donnees.');
+=======
+        $sessionRole = Role::normalizeSlug($request->session()->get('user.role'));
+        $expectedRole = Role::normalizeSlug($role);
+
+        abort_unless($sessionRole === $expectedRole, 403);
+
+        if ($expectedRole === Role::CITOYEN) {
+            $user = User::where('email', $request->session()->get('user.email'))->first();
+            abort_unless($user, 403, 'Le compte citoyen doit exister en base de donnees.');
+            abort_unless($user->is_active, 403, 'Ce compte citoyen est désactivé.');
+>>>>>>> user
             $request->attributes->set('incident_user_id', $user->id);
         }
 

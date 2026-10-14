@@ -16,7 +16,11 @@ class ProjetController extends Controller
     public function index(Request $request)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -52,7 +56,11 @@ class ProjetController extends Controller
     public function create()
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -77,7 +85,11 @@ class ProjetController extends Controller
     public function show(Projet $projet)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -93,7 +105,11 @@ class ProjetController extends Controller
     public function edit(Projet $projet)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -118,7 +134,11 @@ class ProjetController extends Controller
     public function destroy(Projet $projet)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -136,7 +156,11 @@ class ProjetController extends Controller
     public function map()
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 

@@ -82,9 +82,21 @@
         <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
             @csrf
 
+<<<<<<< HEAD
             @if ($errors->any())
                 <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
                     {{ $errors->first() }}
+=======
+            @if (session('success'))
+                <div role="status" class="rounded-xl border border-teal-400/25 bg-teal-500/10 p-3 text-sm text-teal-200">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error') || $errors->any())
+                <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
+                    {{ session('error') ?? $errors->first() }}
+>>>>>>> user
                 </div>
             @endif
             
@@ -129,11 +141,18 @@
             </x-ripple-button>
         </form>
 
+<<<<<<< HEAD
         <div class="mt-6 rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-4 text-xs text-cyan-100/65">
             <p class="font-semibold text-cyan-200/85">Compte de démonstration</p>
             <p class="mt-1">Email : <span class="text-cyan-100">admin@aquasecure.tn</span></p>
             <p>Mot de passe : <span class="text-cyan-100">n'importe quelle valeur</span></p>
         </div>
+=======
+        <p class="mt-6 text-center text-xs text-cyan-100/55">
+            Pas encore de compte ?
+            <a href="{{ route('auth.register') }}" class="text-cyan-300 hover:text-cyan-200 font-semibold">Créer un compte</a>
+        </p>
+>>>>>>> user
     </section>
 </div>
 

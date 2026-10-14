@@ -12,10 +12,13 @@ class MapController extends Controller
 {
     public function __invoke(WaterQualityService $waterQualityService): View
     {
+<<<<<<< HEAD
         if (! session('user')) {
             session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
         }
 
+=======
+>>>>>>> user
         $zones = PlaceholderData::mapZones();
         $pipelines = PlaceholderData::mapPipelines();
         $stats = PlaceholderData::stats();

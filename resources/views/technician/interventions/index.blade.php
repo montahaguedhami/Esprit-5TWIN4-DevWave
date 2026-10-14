@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 @extends('layouts.manager')
+=======
+@extends('layouts.technician')
+>>>>>>> user
 
 @section('title', 'Mes interventions')
 
@@ -10,7 +14,11 @@
     $completed = array_filter($interventions, fn($i) => $i['status'] === 'completed');
 @endphp
 
+<<<<<<< HEAD
 @section('content')
+=======
+@section('technician-content')
+>>>>>>> user
 <div class="container mx-auto px-4 py-8">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

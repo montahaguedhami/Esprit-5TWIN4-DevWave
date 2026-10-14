@@ -18,6 +18,16 @@ class WaterQualityModuleTest extends TestCase
         parent::setUp();
 
         $this->withoutVite();
+<<<<<<< HEAD
+=======
+        $this->withSession([
+            'user' => [
+                'name' => 'Ines Mansouri',
+                'email' => 'gestionnaire@aquasecure.tn',
+                'role' => 'manager',
+            ],
+        ]);
+>>>>>>> user
     }
 
     public function test_quality_and_map_pages_render_from_the_database(): void

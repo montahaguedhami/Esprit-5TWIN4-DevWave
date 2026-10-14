@@ -17,7 +17,11 @@ class FinancementController extends Controller
     public function index(Request $request)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -43,7 +47,11 @@ class FinancementController extends Controller
     public function create(Request $request)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -74,7 +82,11 @@ class FinancementController extends Controller
     public function show(Financement $financement)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -90,7 +102,11 @@ class FinancementController extends Controller
     public function edit(Financement $financement)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 
@@ -118,7 +134,11 @@ class FinancementController extends Controller
     public function destroy(Financement $financement)
     {
         // Vérification session manager
+<<<<<<< HEAD
         if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+=======
+        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+>>>>>>> user
             return redirect()->route('auth.login');
         }
 

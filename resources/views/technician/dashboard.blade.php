@@ -4,7 +4,11 @@
 
 @php
     use App\Data\PlaceholderData;
+<<<<<<< HEAD
     $user          = session('user', ['name' => 'Amira Ben Ali', 'role' => 'technician']);
+=======
+    $user          = session('user', ['name' => 'Amira Ben Ali', 'role' => 'technicien']);
+>>>>>>> user
     $interventions = PlaceholderData::technicianInterventions();
     $equipment     = PlaceholderData::technicianEquipment();
     $zones         = PlaceholderData::technicianZones();

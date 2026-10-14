@@ -17,10 +17,13 @@ class WaterQualityController extends Controller
 
     public function index(): View
     {
+<<<<<<< HEAD
         if (! session('user')) {
             session(['user' => ['name' => 'Dr. Selim Dridi', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'role_key' => 'quality']]);
         }
 
+=======
+>>>>>>> user
         $records = MesureQualite::with('pointMesure')
             ->latest('date_mesure')
             ->get()
@@ -118,6 +121,32 @@ class WaterQualityController extends Controller
         return redirect()->route('manager.quality')->with('success', 'La mesure a été supprimée.');
     }
 
+<<<<<<< HEAD
+=======
+    public function validateMeasurement(MesureQualite $mesure): RedirectResponse
+    {
+        $sessionEmail = session('user.email');
+        $user = auth()->user() ?? ($sessionEmail ? \App\Models\User::where('email', $sessionEmail)->first() : null);
+
+        if ($user && ! $user->hasPermission('measurements.validate')) {
+            abort(403, 'Validation refusée : seuls les gestionnaires et administrateurs peuvent valider les mesures.');
+        }
+
+        $verifierName = $user ? $user->name . ' (' . $user->primary_role . ')' : 'Gestionnaire AquaSecure';
+        $mesure->update([
+            'is_verified' => true,
+            'verifier' => $verifierName,
+        ]);
+
+        \App\Models\AuditLog::record('measurement_validated', 'MesureQualite', $mesure->id, [
+            'reference' => $mesure->reference,
+            'validated_by' => $user?->email ?? $sessionEmail,
+        ], $user);
+
+        return redirect()->back()->with('success', "La mesure {$mesure->reference} a été validée avec succès.");
+    }
+
+>>>>>>> user
     /**
      * @return array<string, mixed>
      */
