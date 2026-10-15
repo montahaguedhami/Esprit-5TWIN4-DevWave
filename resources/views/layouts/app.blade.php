@@ -1,109 +1,109 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ $title ?? 'AquaSecure' }} — Gestion du réseau d'eau</title>
 
-    <title>{{ $title ?? 'AquaSecure' }} - Gestion du réseau d'eau potable</title>
-
-    <!-- Fonts: Inter & Inter Tight (Liquid Glass UI) -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
 
-    <!-- Styles -->
+    <!-- App styles & scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide icons (CDN — loaded before body so icons resolve on first paint) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-    <!-- Additional Styles -->
     @stack('styles')
-</head>
-<body class="antialiased bg-[#04121b] text-white min-h-screen">
-    <div id="app" class="min-h-screen flex flex-col">
-        @yield('content')
-    </div>
 
-    <div class="fixed bottom-20 left-3 z-[60] max-w-[calc(100vw-1.5rem)] rounded-2xl border border-cyan-300/20 bg-slate-950/90 px-3 py-2 text-xs text-cyan-50 shadow-xl shadow-black/20 backdrop-blur-md sm:bottom-5 sm:left-5 sm:px-4 sm:py-2.5" role="status" aria-label="Mode démonstration">
-        <span class="inline-flex items-center gap-2">
-            <i data-lucide="flask-conical" class="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true"></i>
-            <span><strong class="font-semibold text-cyan-200">Mode démonstration</strong><span class="hidden sm:inline"> · Données fictives, actions simulées</span></span>
-        </span>
-    </div>
-
-    <!-- AI Assistant (Global) -->
-    <x-ai-assistant />
-
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 max-w-sm"></div>
-
-    <!-- Route Sweep Effect -->
-    <div class="route-sweep" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-
-    <!-- Scripts -->
-    @stack('scripts')
-
+    {{-- Apply saved theme BEFORE paint to avoid flash --}}
     <script>
-        // Theme management
-        const theme = localStorage.getItem('aquasecure-theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
-
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('aquasecure-theme', newTheme);
-        }
-
-        // Toast notification system
-        window.showToast = function(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const id = 'toast-' + Date.now();
-            
-            const icons = {
-                success: `<svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
-                error: `<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
-                info: `<svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
-            };
-            
-            const borders = {
-                success: 'border-teal-400/40',
-                error: 'border-red-400/40',
-                info: 'border-cyan-400/40'
-            };
-            
-            const toast = document.createElement('div');
-            toast.id = id;
-            toast.className = `toast-drop glass-strong px-5 py-4 flex items-center gap-3 border ${borders[type]} rounded-2xl`;
-            toast.innerHTML = `
-                ${icons[type]}
-                <p class="text-sm text-white/90 flex-1">${message}</p>
-                <button onclick="document.getElementById('${id}').remove()" class="text-white/40 hover:text-white/80 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
-        };
-
-        // Initialize Lucide icons
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
+        (function () {
+            var t = localStorage.getItem('aq-theme')
+                || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', t);
+        })();
     </script>
+</head>
+<body>
+
+<div id="app" class="min-h-screen flex flex-col">
+@yield('content')
+</div>
+
+{{-- ── Demo-mode banner ── --}}
+@unless (request()->routeIs('auth.login', 'auth.register', 'auth.forgot-password'))
+<div class="demo-banner" role="status" aria-label="Mode démonstration">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+    <span><strong>Démo</strong><span class="hide-mobile"> · Données fictives</span></span>
+</div>
+@endunless
+
+{{-- ── AI Assistant ── --}}
+<x-ai-assistant />
+
+{{-- ── Toast container ── --}}
+<div id="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>
+
+<div class="route-sweep" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+</div>
+
+@stack('scripts')
+
+<script>
+/* ── Theme toggle ── */
+window.toggleTheme = function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('aq-theme', next);
+    // Update chart / map colours if needed (dispatch custom event)
+    window.dispatchEvent(new CustomEvent('aq:themechange', { detail: { theme: next } }));
+};
+
+/* ── Toast system ── */
+window.showToast = function (message, type) {
+    type = type || 'info';
+    var container = document.getElementById('toast-container');
+    var id = 'toast-' + Date.now();
+    var icons = {
+        success: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        error:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        info:    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+        warning: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+    };
+    var colors = { success: 'var(--success)', error: 'var(--danger)', info: 'var(--info)', warning: 'var(--warning)' };
+    var el = document.createElement('div');
+    el.id = id;
+    el.className = 'toast';
+    el.style.borderLeftColor = colors[type] || colors.info;
+    el.style.borderLeftWidth = '3px';
+    el.innerHTML =
+        '<span style="color:' + (colors[type] || colors.info) + ';flex-shrink:0">' + (icons[type] || icons.info) + '</span>' +
+        '<span style="flex:1;font-size:13px">' + message + '</span>' +
+        '<button onclick="this.closest(\'.toast\').remove()" style="background:none;border:none;padding:0;cursor:pointer;color:var(--text-muted);line-height:1" aria-label="Fermer">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>' +
+        '</button>';
+    container.appendChild(el);
+    setTimeout(function () {
+        if (el.parentNode) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(100%)';
+            el.style.transition = 'opacity .3s ease, transform .3s ease';
+            setTimeout(function () { if (el.parentNode) el.remove(); }, 300);
+        }
+    }, 5000);
+};
+
+/* ── Init Lucide on every page ── */
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+});
+</script>
 </body>
 </html>

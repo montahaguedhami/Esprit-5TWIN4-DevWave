@@ -28,7 +28,10 @@ class IncidentController extends Controller
 
     public function create()
     {
-        return view('front.incidents.create');
+        $zones = \App\Models\Zone::orderBy('nom')->get(['id', 'nom']);
+        $infrastructures = \App\Models\Infrastructure::orderBy('nom')->get(['id', 'nom', 'zone_id']);
+
+        return view('front.incidents.create', compact('zones', 'infrastructures'));
     }
 
     public function store(Request $request)
@@ -53,7 +56,10 @@ class IncidentController extends Controller
     public function edit(Request $request, Incident $incident)
     {
         $this->authorizeOwner($request, $incident);
-        return view('front.incidents.edit', compact('incident'));
+        $zones = \App\Models\Zone::orderBy('nom')->get(['id', 'nom']);
+        $infrastructures = \App\Models\Infrastructure::orderBy('nom')->get(['id', 'nom', 'zone_id']);
+
+        return view('front.incidents.edit', compact('incident', 'zones', 'infrastructures'));
     }
 
     public function update(Request $request, Incident $incident)
@@ -81,6 +87,8 @@ class IncidentController extends Controller
             'gravite' => ['required', Rule::in(['faible', 'moyenne', 'elevee', 'critique'])],
             'date_signalement' => 'required|date',
             'localisation' => 'required|string|max:255',
+            'zone_id' => 'nullable|exists:zones,id',
+            'infrastructure_id' => 'nullable|exists:infrastructures,id',
         ];
 
         if ($updating) {

@@ -11,8 +11,6 @@ use App\Models\User;
 use App\Services\WaterQualityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 
 class WaterQualityController extends Controller
 {

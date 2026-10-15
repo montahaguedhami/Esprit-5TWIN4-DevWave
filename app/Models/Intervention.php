@@ -19,6 +19,7 @@ class Intervention extends Model
 
     protected $fillable = [
         'technicien_id',
+        'infrastructure_id',
         'date',
         'description',
         'statut',
@@ -33,11 +34,24 @@ class Intervention extends Model
         ];
     }
 
+    public function setStatutAttribute(?string $value): void
+    {
+        $this->attributes['statut'] = $value ?? 'Planifiée';
+    }
+
     /**
      * Une intervention est réalisée par un seul technicien.
      */
     public function technicien(): BelongsTo
     {
         return $this->belongsTo(Technicien::class);
+    }
+
+    /**
+     * Une intervention peut être rattachée à une infrastructure du réseau.
+     */
+    public function infrastructure(): BelongsTo
+    {
+        return $this->belongsTo(Infrastructure::class);
     }
 }

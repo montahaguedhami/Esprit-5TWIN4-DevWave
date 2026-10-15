@@ -1,53 +1,23 @@
-﻿{{--
-  This view intentionally extends layouts.app instead of layouts.manager.
-  layouts.manager wraps content inside a sidebar+navbar shell that would produce
-  a double navigation bar here, because quality.blade.php already renders its own
-  sticky top header with back-navigation, action buttons, and user menu components.
-  Using layouts.app keeps the full-width dark layout required by the map, chart and
-  data table without the extra nesting that layouts.manager would introduce.
---}}
-@extends('layouts.app')
+@extends('layouts.manager')
 
 @section('title', 'AquaSecure — Qualité de l’eau et mesures')
+
+@php
+    $user = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
+@endphp
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 #quality-map { height: 320px; border-radius: 1rem; }
-.leaflet-tile-pane { filter: brightness(.88) contrast(1.1) saturate(0.8); }
+.leaflet-tile-pane { filter: brightness(.98) contrast(1.02) saturate(.9); }
 </style>
+@include('manager.shared.light-shell')
 @endpush
 
-@section('content')
-<div class="min-h-screen bg-[#070e17] text-slate-100 flex flex-col font-sans">
-
-    {{-- Top Header --}}
-    <header class="sticky top-0 z-50 bg-[#0c1624]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <a href="{{ route('manager.dashboard') }}" class="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </a>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center">
-                        <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i>
-                    </div>
-                    <span class="font-display font-bold text-white text-base">Qualité de l’eau et conformité</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openThresholdModal()" class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 text-xs font-semibold flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Régler les seuils
-                </button>
-                <x-notification-center />
-                <x-user-menu />
-            </div>
-        </div>
-    </header>
-
-    {{-- Main Container --}}
-    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+@section('manager-content')
+<div class="aqua-manager-standalone w-full space-y-6">
         
         {{-- Section Header --}}
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -55,7 +25,10 @@
                 <h1 class="text-2xl font-display font-bold text-white tracking-tight">Qualité de l’eau : mesures et prélèvements</h1>
                 <p class="text-slate-400 text-xs mt-1">Analyses de laboratoire, seuils de contrôle et alertes de contamination.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="openThresholdModal()" class="px-3.5 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 text-xs font-semibold flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Régler les seuils
+                </button>
                 <a href="{{ route('manager.points-mesure.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold">Points de prélèvement</a>
                 @can('create', App\Models\MesureQualite::class)
                     @if($activePointsCount > 0)

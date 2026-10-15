@@ -53,6 +53,7 @@ class WaterQualityController extends Controller
             ->whereNotNull('longitude')
             ->get()
             ->map(fn (PointMesure $point) => $this->pointForMap($point));
+        $user = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
 
         return view('manager.quality', compact(
             'records',
@@ -62,7 +63,8 @@ class WaterQualityController extends Controller
             'averageCompliance',
             'activePointsCount',
             'chartRecords',
-            'points'
+            'points',
+            'user'
         ));
     }
 

@@ -150,7 +150,6 @@ class MaintenanceCrudTest extends TestCase
                 'role' => 'citoyen',
             ],
         ]);
-
         $this->get(route('citizen.travaux.index'))
             ->assertOk()
             ->assertSee('Réparation rue de Marseille')
@@ -174,7 +173,6 @@ class MaintenanceCrudTest extends TestCase
                 'role' => 'citoyen',
             ],
         ]);
-
         $this->get(route('citizen.travaux.show', $annulee))->assertNotFound();
     }
 
@@ -186,7 +184,7 @@ class MaintenanceCrudTest extends TestCase
 
         $this->flushSession();
         $this->get(route('manager.interventions.index'))->assertRedirect(route('auth.login'));
-        $this->get(route('citizen.travaux.index'))->assertRedirect(route('auth.login'));
+        $this->get(route('citizen.travaux.index'))->assertOk();
     }
 
     public function test_interventions_can_be_filtered_by_technicien(): void

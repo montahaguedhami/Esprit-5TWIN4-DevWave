@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,8 +16,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RbacSeeder::class);
+
+        // Créer les utilisateurs de démo (version équipe)
+        User::firstOrCreate(['email' => 'test@example.com'], [
+            'name' => 'Test User',
+            'password' => Hash::make('password'),
+        ]);
+        User::firstOrCreate(['email' => 'citoyen@aquasecure.tn'], [
+            'name' => 'Yassine Hamdi',
+            'password' => Hash::make('password'),
+        ]);
+
+        // Seeders de l'équipe (Incidents, Actions, Techniciens)
         $this->call([
-            RbacSeeder::class,
             IncidentSeeder::class,
             ActionCorrectiveSeeder::class,
             TechnicienSeeder::class,
@@ -148,5 +162,8 @@ class DatabaseSeeder extends Seeder
             'latitude' => null,
             'longitude' => null,
         ]);
+
+        // Interconnexions transversales démo (Zones, Infrastructures, Interventions, Incidents, Projets)
+        $this->call(DemoSeeder::class);
     }
 }

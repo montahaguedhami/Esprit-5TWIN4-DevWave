@@ -4,7 +4,7 @@
     <button 
         id="ai-assistant-toggle" 
         onclick="toggleAIAssistant()"
-        class="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+        class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-700 shadow-lg shadow-cyan-900/20 hover:shadow-cyan-700/25 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center group"
         aria-label="Ouvrir l'assistant IA"
     >
         <!-- AI Icon -->
@@ -20,27 +20,25 @@
             </svg>
         </div>
         
-        <!-- Pulse Animation -->
-        <span class="absolute -inset-1 rounded-full bg-purple-500/30 animate-ping"></span>
     </button>
 
     <!-- Chat Panel -->
     <div 
         id="ai-chat-panel" 
-        class="fixed bottom-24 right-6 z-50 w-96 h-[600px] glass-strong rounded-2xl shadow-2xl border border-purple-500/20 hidden flex-col overflow-hidden"
+        class="fixed bottom-24 right-6 z-50 w-96 h-[600px] glass-strong rounded-2xl shadow-xl border border-slate-200 hidden flex-col overflow-hidden"
         style="animation: slideUp 0.3s ease-out;"
     >
         <!-- Header -->
-        <div class="p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/20 to-pink-600/20">
+        <div class="p-4 border-b border-slate-100 bg-gradient-to-r from-cyan-50 to-blue-50">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-white">AquaSecure AI</h3>
+                        <h3 class="text-sm font-bold text-slate-900">AquaSecure AI</h3>
                         <div class="flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                             <span class="text-xs text-emerald-400">En ligne</span>
@@ -49,7 +47,7 @@
                 </div>
                 <button 
                     onclick="toggleAIAssistant()" 
-                    class="p-2 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
+                    class="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-700"
                 >
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -60,15 +58,15 @@
         <div id="ai-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
             <!-- Welcome Message -->
             <div class="flex items-start gap-3 animate-fadeIn">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center flex-shrink-0">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                     </svg>
                 </div>
                 <div class="flex-1">
                     <div class="glass p-3 rounded-2xl rounded-tl-none">
-                        <p class="text-sm text-white mb-2">👋 Bonjour ! Je suis votre assistant IA AquaSecure.</p>
-                        <p class="text-sm text-slate-300">Comment puis-je vous aider aujourd'hui ?</p>
+                        <p class="text-sm text-slate-800 mb-2">Bonjour ! Je suis votre assistant IA AquaSecure.</p>
+                        <p class="text-sm text-slate-600">Comment puis-je vous aider aujourd'hui ?</p>
                     </div>
                     <span class="text-xs text-slate-500 mt-1 block">À l'instant</span>
                 </div>
@@ -78,40 +76,40 @@
             <div class="flex flex-wrap gap-2">
                 <button 
                     onclick="sendQuickMessage('Quelle est la qualité de l\'eau dans ma zone ?')"
-                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-400 hover:text-cyan-300"
+                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-800 hover:text-cyan-950"
                 >
-                    💧 Qualité de l'eau
+                    Qualité de l'eau
                 </button>
                 <button 
                     onclick="sendQuickMessage('Comment signaler un problème ?')"
-                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-400 hover:text-cyan-300"
+                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-800 hover:text-cyan-950"
                 >
-                    🔧 Signaler un problème
+                    Signaler un problème
                 </button>
                 <button 
                     onclick="sendQuickMessage('Consulter ma facture')"
-                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-400 hover:text-cyan-300"
+                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-800 hover:text-cyan-950"
                 >
-                    📄 Ma facture
+                    Ma facture
                 </button>
             </div>
         </div>
 
         <!-- Input Area -->
-        <div class="p-4 border-t border-white/10 bg-slate-900/50">
+        <div class="p-4 border-t border-slate-100 bg-slate-50">
             <form id="ai-chat-form" onsubmit="sendAIMessage(event)" class="flex items-end gap-2">
                 <div class="flex-1">
                     <textarea 
                         id="ai-input"
                         placeholder="Posez votre question..."
                         rows="1"
-                        class="w-full px-4 py-3 rounded-xl glass text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-cyan-600/20"
                         onkeydown="handleAIInputKeydown(event)"
                     ></textarea>
                 </div>
                 <button 
                     type="submit"
-                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 transition-all flex items-center justify-center flex-shrink-0"
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 hover:from-cyan-600 hover:to-blue-800 transition-all flex items-center justify-center flex-shrink-0"
                 >
                     <i data-lucide="send" class="w-5 h-5 text-white"></i>
                 </button>
@@ -166,12 +164,12 @@
     }
 
     #ai-messages::-webkit-scrollbar-thumb {
-        background: rgba(139, 92, 246, 0.3);
+        background: rgba(8, 145, 178, 0.3);
         border-radius: 10px;
     }
 
     #ai-messages::-webkit-scrollbar-thumb:hover {
-        background: rgba(139, 92, 246, 0.5);
+        background: rgba(8, 145, 178, 0.5);
     }
 
     /* Typing indicator */
@@ -185,7 +183,7 @@
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: rgba(139, 92, 246, 0.6);
+        background: rgba(8, 145, 178, 0.6);
         animation: typing 1.4s infinite;
     }
 
@@ -215,23 +213,23 @@
     // AI Assistant Data
     const aiResponses = {
         'qualité': {
-            response: "D'après les dernières analyses, la qualité de l'eau dans votre zone (Tunis Nord) est **excellente** avec un score de 98/100. 💧\n\n✅ Taux de chlore: Normal\n✅ pH: 7.2 (optimal)\n✅ Turbidité: Faible\n\nDernière analyse: Il y a 2 heures",
+            response: "D'après les dernières analyses, la qualité de l'eau dans votre zone (Tunis Nord) est **excellente** avec un score de 98/100.\n\nTaux de chlore : Normal\npH : 7.2 (optimal)\nTurbidité : Faible\n\nDernière analyse : Il y a 2 heures",
             delay: 1500
         },
         'problème': {
-            response: "Pour signaler un problème, c'est très simple ! 🔧\n\n1. Cliquez sur **Nouvelle Déclaration** dans votre dashboard\n2. Décrivez le problème (fuite, pression, qualité)\n3. Ajoutez une photo si possible\n4. Validez votre signalement\n\nUn technicien sera notifié immédiatement et vous recevrez un numéro de suivi.",
+            response: "Pour signaler un problème, c'est très simple !\n\n1. Cliquez sur **Nouvelle Déclaration** dans votre dashboard\n2. Décrivez le problème (fuite, pression, qualité)\n3. Ajoutez une photo si possible\n4. Validez votre signalement\n\nUn technicien sera notifié immédiatement et vous recevrez un numéro de suivi.",
             delay: 2000
         },
         'facture': {
-            response: "Voici vos informations de facturation 📄\n\n**Dernière facture:** Septembre 2026\n💰 Montant: 87.50 TND\n📊 Consommation: 18.5 m³\n📅 Échéance: 05/10/2026\n\nStatut: ⏳ En attente de paiement\n\n[Voir la facture détaillée](#)",
+            response: "Voici vos informations de facturation.\n\n**Dernière facture :** Septembre 2026\nMontant : 87.50 TND\nConsommation : 18.5 m³\nÉchéance : 05/10/2026\n\nStatut : En attente de paiement\n\n[Voir la facture détaillée](#)",
             delay: 1800
         },
         'maintenance': {
-            response: "Les prochaines maintenances programmées dans votre zone 🛠️\n\n📅 **28 septembre 2026**\n⏰ 9h00 - 12h00\n📍 Zone: Tunis Nord\n\nImpact: Interruption possible du service\n\nVous recevrez une notification 24h avant l'intervention.",
+            response: "Les prochaines maintenances programmées dans votre zone.\n\n**28 septembre 2026**\n9h00 - 12h00\nZone : Tunis Nord\n\nImpact : Interruption possible du service\n\nVous recevrez une notification 24h avant l'intervention.",
             delay: 1600
         },
         'aide': {
-            response: "Je peux vous aider avec:\n\n💧 Qualité de l'eau et analyses\n🔧 Signalement de problèmes\n📄 Factures et consommation\n🛠️ Interventions et maintenance\n📊 Statistiques et rapports\n⚙️ Utilisation de la plateforme\n\nPosez-moi votre question ou choisissez un sujet ci-dessus!",
+            response: "Je peux vous aider avec :\n\nQualité de l'eau et analyses\nSignalement de problèmes\nFactures et consommation\nInterventions et maintenance\nStatistiques et rapports\nUtilisation de la plateforme\n\nPosez-moi votre question ou choisissez un sujet ci-dessus !",
             delay: 1400
         },
         'default': {
@@ -307,8 +305,8 @@
         messageDiv.className = 'flex items-start gap-3 justify-end animate-fadeIn';
         messageDiv.innerHTML = `
             <div class="flex-1 flex flex-col items-end">
-                <div class="glass-strong p-3 rounded-2xl rounded-tr-none bg-gradient-to-br from-cyan-500/20 to-blue-600/20">
-                    <p class="text-sm text-white">${escapeHtml(message)}</p>
+                <div class="glass-strong p-3 rounded-2xl rounded-tr-none bg-cyan-50">
+                    <p class="text-sm text-slate-800">${escapeHtml(message)}</p>
                 </div>
                 <span class="text-xs text-slate-500 mt-1">À l'instant</span>
             </div>
@@ -331,18 +329,18 @@
         
         // Convert markdown-style bold to HTML
         const formattedMessage = message
-            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-purple-400">$1</strong>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-800">$1</strong>')
             .replace(/\n/g, '<br>');
         
         messageDiv.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                 </svg>
             </div>
             <div class="flex-1">
                 <div class="glass p-3 rounded-2xl rounded-tl-none">
-                    <p class="text-sm text-white">${formattedMessage}</p>
+                    <p class="text-sm text-slate-800">${formattedMessage}</p>
                 </div>
                 <span class="text-xs text-slate-500 mt-1 block">À l'instant</span>
             </div>
@@ -357,7 +355,7 @@
         typingDiv.id = 'typing-indicator';
         typingDiv.className = 'flex items-start gap-3';
         typingDiv.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center flex-shrink-0">
                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                 </svg>

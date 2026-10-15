@@ -1,238 +1,173 @@
 @extends('layouts.technician')
 
-@section('title', 'Mes interventions')
-
-@php
-    use App\Data\PlaceholderData;
-    $interventions = PlaceholderData::technicianInterventions();
-    $scheduled = array_filter($interventions, fn($i) => $i['status'] === 'scheduled');
-    $inProgress = array_filter($interventions, fn($i) => $i['status'] === 'in_progress');
-    $completed = array_filter($interventions, fn($i) => $i['status'] === 'completed');
-@endphp
+@section('title', 'Mes Interventions — Technicien')
 
 @section('technician-content')
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+<div class="max-w-6xl mx-auto space-y-6">
+
+    {{-- En-tête mobile --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-display font-bold text-white mb-2">Mes interventions</h1>
-            <p class="text-cyan-100/60 text-sm">Gérez vos interventions terrain</p>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/20 text-cyan-400 text-xs font-semibold mb-2">
+                <i data-lucide="wrench" class="w-3.5 h-3.5"></i>
+                Technicien · {{ $technicien->nom }}
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">Mes Interventions</h1>
+            <p class="text-cyan-100/60 text-sm mt-0.5">Suivi de vos missions de maintenance préventive et corrective.</p>
         </div>
-        
+
         <div class="flex items-center gap-2">
-            <x-ui.button variant="outline" size="sm" icon="filter">
-                Filtrer
-            </x-ui.button>
-            <x-ui.button size="sm" icon="map">
-                Vue carte
-            </x-ui.button>
+            <a href="{{ route('technician.tournee') }}"
+               class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
+                <i data-lucide="map" class="w-4 h-4"></i>
+                <span>Tournée du jour</span>
+            </a>
+            <a href="{{ route('technician.scan') }}"
+               class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold glass text-cyan-300 hover:text-white transition-all">
+                <i data-lucide="qr-code" class="w-4 h-4"></i>
+                <span>Scanner Ouvrage</span>
+            </a>
         </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <x-ui.card hover>
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-sm text-cyan-100/60 mb-1">Programmées</div>
-                    <div class="text-3xl font-display font-bold text-white">{{ count($scheduled) }}</div>
-                </div>
-                <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                    <i data-lucide="calendar" class="w-6 h-6 text-amber-400"></i>
-                </div>
+    {{-- 3 Cartes de résumé --}}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <a href="{{ route('technician.interventions.index', ['status' => 'scheduled']) }}"
+           class="glass rounded-2xl p-4 border {{ $selectedStatus === 'scheduled' ? 'border-cyan-400 bg-cyan-500/10' : 'border-white/10' }} hover:border-cyan-400/40 transition-all flex items-center justify-between">
+            <div>
+                <span class="text-xs text-cyan-100/60 block mb-1">Programmées</span>
+                <span class="text-2xl font-bold font-display text-white">{{ $counts['scheduled'] }}</span>
             </div>
-        </x-ui.card>
-        
-        <x-ui.card hover>
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-sm text-cyan-100/60 mb-1">En cours</div>
-                    <div class="text-3xl font-display font-bold text-white">{{ count($inProgress) }}</div>
-                </div>
-                <div class="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                    <i data-lucide="loader" class="w-6 h-6 text-cyan-400"></i>
-                </div>
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center">
+                <i data-lucide="calendar" class="w-5 h-5 text-cyan-400"></i>
             </div>
-        </x-ui.card>
-        
-        <x-ui.card hover>
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="text-sm text-cyan-100/60 mb-1">Complétées</div>
-                    <div class="text-3xl font-display font-bold text-white">{{ count($completed) }}</div>
-                </div>
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                    <i data-lucide="check-circle" class="w-6 h-6 text-emerald-400"></i>
-                </div>
+        </a>
+
+        <a href="{{ route('technician.interventions.index', ['status' => 'in_progress']) }}"
+           class="glass rounded-2xl p-4 border {{ $selectedStatus === 'in_progress' ? 'border-amber-400 bg-amber-500/10' : 'border-amber-500/20' }} hover:border-amber-400/40 transition-all flex items-center justify-between">
+            <div>
+                <span class="text-xs text-amber-300 block mb-1">En cours</span>
+                <span class="text-2xl font-bold font-display text-white">{{ $counts['in_progress'] }}</span>
             </div>
-        </x-ui.card>
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                <i data-lucide="loader" class="w-5 h-5 text-amber-400 animate-pulse"></i>
+            </div>
+        </a>
+
+        <a href="{{ route('technician.interventions.index', ['status' => 'completed']) }}"
+           class="glass rounded-2xl p-4 border {{ $selectedStatus === 'completed' ? 'border-emerald-400 bg-emerald-500/10' : 'border-emerald-500/20' }} hover:border-emerald-400/40 transition-all flex items-center justify-between">
+            <div>
+                <span class="text-xs text-emerald-300 block mb-1">Complétées</span>
+                <span class="text-2xl font-bold font-display text-white">{{ $counts['completed'] }}</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+            </div>
+        </a>
     </div>
 
-    <!-- Filters -->
-    <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-        <button class="status-filter px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors bg-cyan-500/10 text-white border border-cyan-400/20" data-status="all">
-            Toutes ({{ count($interventions) }})
-        </button>
-        <button class="status-filter px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors text-cyan-100/60 hover:bg-white/5" data-status="scheduled">
-            Programmées ({{ count($scheduled) }})
-        </button>
-        <button class="status-filter px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors text-cyan-100/60 hover:bg-white/5" data-status="in_progress">
-            En cours ({{ count($inProgress) }})
-        </button>
-        <button class="status-filter px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors text-cyan-100/60 hover:bg-white/5" data-status="completed">
-            Complétées ({{ count($completed) }})
-        </button>
+    {{-- Filtres par onglets --}}
+    <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold">
+        <a href="{{ route('technician.interventions.index') }}"
+           class="px-4 py-2 rounded-xl transition-all whitespace-nowrap {{ !$selectedStatus || $selectedStatus === 'all' ? 'bg-cyan-600 text-white shadow-md' : 'glass text-cyan-100/70 hover:text-white' }}">
+            Toutes ({{ $counts['total'] }})
+        </a>
+        <a href="{{ route('technician.interventions.index', ['status' => 'scheduled']) }}"
+           class="px-4 py-2 rounded-xl transition-all whitespace-nowrap {{ $selectedStatus === 'scheduled' ? 'bg-cyan-600 text-white shadow-md' : 'glass text-cyan-100/70 hover:text-white' }}">
+            Programmées ({{ $counts['scheduled'] }})
+        </a>
+        <a href="{{ route('technician.interventions.index', ['status' => 'in_progress']) }}"
+           class="px-4 py-2 rounded-xl transition-all whitespace-nowrap {{ $selectedStatus === 'in_progress' ? 'bg-cyan-600 text-white shadow-md' : 'glass text-cyan-100/70 hover:text-white' }}">
+            En cours ({{ $counts['in_progress'] }})
+        </a>
+        <a href="{{ route('technician.interventions.index', ['status' => 'completed']) }}"
+           class="px-4 py-2 rounded-xl transition-all whitespace-nowrap {{ $selectedStatus === 'completed' ? 'bg-cyan-600 text-white shadow-md' : 'glass text-cyan-100/70 hover:text-white' }}">
+            Complétées ({{ $counts['completed'] }})
+        </a>
     </div>
 
-    <!-- Interventions List -->
-    <div class="space-y-4">
-        @forelse($interventions as $intervention)
-        <x-ui.card hover class="intervention-item" data-status="{{ $intervention['status'] }}">
-            <div class="flex flex-col lg:flex-row lg:items-center gap-6">
-                <!-- Left: Status Indicator -->
-                <div class="flex items-center gap-4 lg:gap-6">
-                    <div class="flex flex-col items-center">
-                        @if($intervention['status'] === 'in_progress')
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center animate-pulse">
-                            <i data-lucide="loader" class="w-8 h-8 text-white"></i>
-                        </div>
-                        @elseif($intervention['status'] === 'scheduled')
-                        <div class="w-16 h-16 rounded-full bg-amber-500/10 border-2 border-amber-400/30 flex items-center justify-center">
-                            <i data-lucide="calendar" class="w-8 h-8 text-amber-400"></i>
-                        </div>
+    {{-- Liste des interventions réelles (SANS COÛT) --}}
+    @if($interventions->isEmpty())
+        <div class="glass rounded-3xl p-10 text-center border border-white/10 space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center mx-auto text-cyan-400">
+                <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-bold text-white">Aucune intervention dans cette vue</h3>
+            <p class="text-xs text-cyan-100/60 max-w-sm mx-auto">Toutes les interventions de ce statut ont été traitées ou aucune n'est planifiée.</p>
+        </div>
+    @else
+        <div class="space-y-3">
+            @foreach($interventions as $intervention)
+            @php
+                $infra = $intervention->infrastructure;
+            @endphp
+            <div class="glass rounded-2xl p-5 border border-white/10 hover:border-cyan-400/40 transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-11 h-11 rounded-2xl {{ $intervention->statut === 'En cours' ? 'bg-amber-500/15 border border-amber-400/30' : ($intervention->statut === 'Terminée' ? 'bg-emerald-500/15 border border-emerald-400/30' : 'bg-cyan-500/15 border border-cyan-400/30') }} flex items-center justify-center shrink-0 mt-0.5">
+                        @if($intervention->statut === 'En cours')
+                            <i data-lucide="loader" class="w-5 h-5 text-amber-400 animate-spin"></i>
+                        @elseif($intervention->statut === 'Terminée')
+                            <i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>
                         @else
-                        <div class="w-16 h-16 rounded-full bg-emerald-500/10 border-2 border-emerald-400/30 flex items-center justify-center">
-                            <i data-lucide="check-circle" class="w-8 h-8 text-emerald-400"></i>
-                        </div>
-                        @endif
-                        <x-ui.status-badge 
-                            :status="$intervention['status'] === 'in_progress' ? 'info' : ($intervention['status'] === 'scheduled' ? 'warning' : 'success')" 
-                            size="sm"
-                            class="mt-2"
-                        >
-                            {{ $intervention['status'] === 'in_progress' ? 'En cours' : ($intervention['status'] === 'scheduled' ? 'Programmée' : 'Terminée') }}
-                        </x-ui.status-badge>
-                    </div>
-
-                    <!-- Priority Badge -->
-                    <div class="hidden sm:flex flex-col items-center gap-2">
-                        @if($intervention['priority'] === 'high')
-                        <div class="w-3 h-12 rounded-full bg-gradient-to-b from-rose-500 to-rose-600"></div>
-                        <span class="text-xs text-rose-400 font-semibold">URGENT</span>
-                        @elseif($intervention['priority'] === 'medium')
-                        <div class="w-3 h-12 rounded-full bg-gradient-to-b from-amber-500 to-amber-600"></div>
-                        <span class="text-xs text-amber-400 font-semibold">MOYEN</span>
-                        @else
-                        <div class="w-3 h-12 rounded-full bg-gradient-to-b from-emerald-500 to-emerald-600"></div>
-                        <span class="text-xs text-emerald-400 font-semibold">FAIBLE</span>
+                            <i data-lucide="calendar" class="w-5 h-5 text-cyan-400"></i>
                         @endif
                     </div>
+
+                    <div>
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
+                            <span class="text-xs font-mono font-bold text-cyan-400">#{{ $intervention->id }}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $intervention->statut === 'Terminée' ? 'bg-emerald-500/15 text-emerald-300' : ($intervention->statut === 'En cours' ? 'bg-amber-500/15 text-amber-300' : 'bg-cyan-500/15 text-cyan-300') }}">
+                                {{ $intervention->statut }}
+                            </span>
+                            <span class="text-xs text-cyan-100/50">
+                                {{ $intervention->date?->format('d/m/Y') }}
+                            </span>
+                        </div>
+
+                        <h3 class="text-sm font-bold text-white">
+                            {{ $infra?->nom ?? 'Ouvrage non rattaché' }}
+                        </h3>
+
+                        <p class="text-xs text-cyan-100/60 mt-0.5">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 inline text-cyan-400"></i>
+                            {{ $infra?->zone?->nom ?? 'Zone' }} · {{ $infra?->localisation ?? 'Localisation terrain' }}
+                        </p>
+
+                        <p class="text-xs text-white/80 mt-2 bg-slate-900/60 p-2.5 rounded-xl border border-white/5 line-clamp-2">
+                            {{ $intervention->description }}
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Center: Info -->
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-3 mb-3">
-                        <div>
-                            <h3 class="text-xl font-display font-bold text-white mb-1">{{ $intervention['id'] }}</h3>
-                            <p class="text-cyan-100/60 text-sm">{{ $intervention['type'] }}</p>
-                        </div>
-                    </div>
-
-                    <div class="grid sm:grid-cols-2 gap-3 text-sm">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400 flex-shrink-0"></i>
-                            <span class="text-white truncate">{{ $intervention['address'] }}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="clock" class="w-4 h-4 text-cyan-400 flex-shrink-0"></i>
-                            <span class="text-white">{{ \Carbon\Carbon::parse($intervention['scheduled_time'])->format('d/m/Y H:i') }}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="map" class="w-4 h-4 text-cyan-400 flex-shrink-0"></i>
-                            <span class="text-white">{{ $intervention['zone'] }}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="timer" class="w-4 h-4 text-cyan-400 flex-shrink-0"></i>
-                            <span class="text-white">Durée estimée: {{ $intervention['estimated_duration'] }}</span>
-                        </div>
-                    </div>
-
-                    @if(isset($intervention['started_at']) && $intervention['status'] === 'in_progress')
-                    <div class="mt-3 flex items-center gap-2 text-sm">
-                        <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full animate-pulse" style="width: 60%"></div>
-                        </div>
-                        <span class="text-cyan-300 font-semibold">En cours...</span>
-                    </div>
-                    @endif
-                </div>
-
-                <!-- Right: Actions -->
-                <div class="flex flex-col gap-2 sm:flex-row lg:flex-col lg:items-end">
-                    <a href="{{ route('technician.interventions.show', ['id' => $intervention['id']]) }}">
-                        <x-ui.button variant="outline" size="sm" icon="eye" class="w-full sm:w-auto">
-                            Détails
-                        </x-ui.button>
+                <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    @if($infra)
+                    <a href="{{ route('technician.infrastructures.show', $infra) }}"
+                       class="px-3 py-1.5 rounded-xl text-xs font-semibold glass text-cyan-300 hover:text-white transition-all">
+                        Fiche Ouvrage
                     </a>
-                    
-                    @if($intervention['status'] === 'scheduled')
-                    <x-ui.button size="sm" icon="play" class="w-full sm:w-auto">
-                        Démarrer
-                    </x-ui.button>
-                    @elseif($intervention['status'] === 'in_progress')
-                    <x-ui.button variant="outline" size="sm" icon="pause" class="w-full sm:w-auto">
-                        Pause
-                    </x-ui.button>
-                    <a href="{{ route('technician.interventions.report', ['id' => $intervention['id']]) }}">
-                        <x-ui.button size="sm" icon="check" class="w-full sm:w-auto">
-                            Terminer
-                        </x-ui.button>
-                    </a>
-                    @else
-                    <x-ui.button variant="outline" size="sm" icon="file-text" class="w-full sm:w-auto">
-                        Voir rapport
-                    </x-ui.button>
                     @endif
+
+                    @if($intervention->statut !== 'Terminée')
+                    <a href="{{ route('technician.interventions.report', $intervention) }}"
+                       class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-600 hover:bg-cyan-500 text-white shadow-md transition-all">
+                        Rapport
+                    </a>
+                    @endif
+
+                    <a href="{{ route('technician.interventions.show', $intervention) }}"
+                       class="p-2 rounded-xl glass text-cyan-100/50 hover:text-white transition-colors"
+                       title="Détails de l'intervention">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
                 </div>
             </div>
-        </x-ui.card>
-        @empty
-        <x-ui.empty-state 
-            icon="clipboard-list"
-            title="Aucune intervention"
-            description="Vous n'avez pas d'interventions assignées pour le moment"
-        />
-        @endforelse
-    </div>
+            @endforeach
+        </div>
+
+        <div class="pt-4">
+            {{ $interventions->links() }}
+        </div>
+    @endif
+
 </div>
-
-@push('scripts')
-<script>
-// Filter interventions by status
-document.querySelectorAll('.status-filter').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const status = this.dataset.status;
-        
-        // Update active state
-        document.querySelectorAll('.status-filter').forEach(b => {
-            b.classList.remove('bg-cyan-500/10', 'text-white', 'border-cyan-400/20');
-            b.classList.add('text-cyan-100/60');
-        });
-        this.classList.add('bg-cyan-500/10', 'text-white', 'border-cyan-400/20');
-        this.classList.remove('text-cyan-100/60');
-        
-        // Filter interventions
-        document.querySelectorAll('.intervention-item').forEach(item => {
-            const itemStatus = item.dataset.status;
-            
-            if (status === 'all') {
-                item.classList.remove('hidden');
-            } else {
-                item.classList.toggle('hidden', itemStatus !== status);
-            }
-        });
-    });
-});
-</script>
-@endpush
 @endsection

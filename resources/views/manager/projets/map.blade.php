@@ -14,6 +14,19 @@
     .leaflet-container {
         border-radius: 0.75rem;
     }
+    .leaflet-popup-content-wrapper,
+    .leaflet-popup-tip {
+        background: #fff;
+        color: #152b42;
+    }
+    .leaflet-control-zoom a {
+        background: #fff;
+        border-color: #dce6ef;
+        color: #087e9b;
+    }
+    @media (max-width: 640px) {
+        #projets-map { height: 380px; }
+    }
 </style>
 @endif
 @endpush

@@ -47,6 +47,7 @@
                         <tr class="border-b border-white/10 text-left">
                             <th class="px-5 py-3 text-xs font-semibold text-cyan-100/50">Date</th>
                             <th class="px-5 py-3 text-xs font-semibold text-cyan-100/50">Technicien</th>
+                            <th class="px-5 py-3 text-xs font-semibold text-cyan-100/50">Infrastructure</th>
                             <th class="px-5 py-3 text-xs font-semibold text-cyan-100/50">Description</th>
                             <th class="px-5 py-3 text-xs font-semibold text-cyan-100/50">Statut</th>
                             <th class="px-5 py-3 text-xs font-semibold text-cyan-100/50 text-right">Coût</th>
@@ -59,6 +60,15 @@
                                 <td class="px-5 py-3 text-cyan-100/80 whitespace-nowrap">{{ $intervention->date->format('d/m/Y') }}</td>
                                 <td class="px-5 py-3 whitespace-nowrap">
                                     <a href="{{ route('manager.techniciens.show', $intervention->technicien) }}" class="font-semibold text-white hover:text-cyan-300">{{ $intervention->technicien->nom }}</a>
+                                </td>
+                                <td class="px-5 py-3 whitespace-nowrap">
+                                    @if($intervention->infrastructure)
+                                        <a href="{{ route('manager.infrastructures.show', $intervention->infrastructure) }}" class="font-medium text-cyan-300 hover:text-cyan-200">
+                                            {{ $intervention->infrastructure->nom }}
+                                        </a>
+                                    @else
+                                        <span class="text-xs text-cyan-100/30">Générale</span>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-3 text-cyan-100/80">{{ Str::limit($intervention->description, 60) }}</td>
                                 <td class="px-5 py-3"><x-maintenance.badge :value="$intervention->statut" /></td>
