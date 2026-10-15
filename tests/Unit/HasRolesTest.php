@@ -126,6 +126,11 @@ class HasRolesTest extends TestCase
 
     public function test_is_last_administrator_is_false_when_another_active_admin_exists(): void
     {
+        $adminRole = Role::where('slug', Role::ADMINISTRATEUR)->firstOrFail();
+        foreach (User::whereHas('roles', fn ($q) => $q->where('slug', Role::ADMINISTRATEUR))->get() as $existingAdmin) {
+            $existingAdmin->roles()->detach($adminRole->id);
+        }
+
         $admin1 = $this->createUserWithRole(Role::ADMINISTRATEUR, ['email' => 'a1@test.com']);
         $admin2 = $this->createUserWithRole(Role::ADMINISTRATEUR, ['email' => 'a2@test.com']);
 

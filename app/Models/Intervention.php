@@ -25,6 +25,11 @@ class Intervention extends Model
         'cout',
     ];
 
+    public function setStatutAttribute($value): void
+    {
+        $this->attributes['statut'] = $value ?: 'Planifiée';
+    }
+
     protected function casts(): array
     {
         return [

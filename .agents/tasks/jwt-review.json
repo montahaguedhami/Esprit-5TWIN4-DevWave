@@ -1,0 +1,42 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "BLOCKING",
+      "label": "aud not validated",
+      "detail": "aud is emitted in the token payload via getJWTCustomClaims() but is absent from required_claims in config/jwt.php. tymon never enforces it, so any token with a wrong or missing audience is accepted. Add 'aud' to the required_claims array."
+    },
+    {
+      "id": 2,
+      "severity": "BLOCKING",
+      "label": "Cookie double-encryption",
+      "detail": "config/jwt.php sets decrypt_cookies: false but EncryptCookies has no $except entries for access_token or refresh_token. Laravel encrypts the cookie; tymon reads the ciphertext as a JWT and fails with TokenInvalidException. Add both cookie names to EncryptCookies::$except, or set decrypt_cookies: true."
+    },
+    {
+      "id": 3,
+      "severity": "WARNING",
+      "label": "Hardcoded expires_in: 3600",
+      "detail": "issueTokenPair() always returns expires_in: 3600 regardless of JWT_TTL. If JWT_TTL is changed, clients receive wrong lifetime information. Replace with config('jwt.ttl') * 60."
+    },
+    {
+      "id": 4,
+      "severity": "WARNING",
+      "label": "Inactive-account status code",
+      "detail": "Both JwtAuthenticate and JwtAuthController::login() return 401 for is_active = false. 403 is the correct semantic (identity confirmed, access denied). Update both paths."
+    },
+    {
+      "id": 5,
+      "severity": "WARNING",
+      "label": "No rate limiting on auth endpoints",
+      "detail": "/api/auth/login and /api/auth/refresh have no throttle middleware. Apply throttle:5,1 as a minimum to prevent credential enumeration and refresh token replay attacks."
+    },
+    {
+      "id": 6,
+      "severity": "INFO",
+      "label": "Docs package version mismatch",
+      "detail": "docs/jwt-security.md references tymon/jwt-auth ^2.3 but composer.json targets ^2.1. Update the docs header to match."
+    }
+  ],
+  "reviewDoc": "c:\\Users\\monta\\Downloads\\Esprit-5TWIN4-DevWave-main (2)\\Esprit-5TWIN4-DevWave-main\\.agents\\tasks\\jwt-security-review.md"
+}

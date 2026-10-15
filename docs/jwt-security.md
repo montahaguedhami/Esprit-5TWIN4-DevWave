@@ -2,7 +2,7 @@
 
 ## Choix retenu
 
-**Bibliothèque :** `tymon/jwt-auth ^2.3`  
+**Bibliothèque :** `tymon/jwt-auth ^2.1`  
 **Algorithme :** HS256  
 **Transport :** Header `Authorization: Bearer <token>` ou cookie HttpOnly `access_token` (opt-in)
 
@@ -190,8 +190,7 @@ php artisan route:cache
 
 ## Recommandations futures
 
-- **Rate limiting** sur `POST /api/auth/login` : utiliser `RateLimiter` de Laravel pour limiter
-  les tentatives de connexion (ex. 5 tentatives par IP sur 60 secondes).
+- **Rate limiting** sur `POST /api/auth/login` et `POST /api/auth/refresh` : middleware `throttle:5,1` appliqué — 5 tentatives par minute par IP avant que Laravel ne réponde `429 Too Many Requests`. Augmentez la limite dans `routes/api.php` si des clients légitimes sont rejetés.
 - **Rotation automatique** des access tokens proches de l'expiration : émettre un nouveau token
   si `exp - now() < 5 min` et retourner le nouveau token dans un header `X-New-Access-Token`.
 - **Audit des refresh tokens révoqués** : alerter si un token révoqué est présenté à nouveau

@@ -5,22 +5,54 @@ namespace App\Http\Controllers\Manager;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePointMesureRequest;
 use App\Http\Requests\UpdatePointMesureRequest;
+use App\Models\AuditLog;
 use App\Models\PointMesure;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PointMesureController extends Controller
 {
-    // NOTE — Authorization on point operations:
-    // PointMesureController is protected by the `role:manager` middleware at the route level.
-    // No PointMesurePolicy exists and no `points.*` permissions are defined in the RBAC schema
-    // (RbacSeeder). Adding granular permission checks here would require new permissions to be
-    // defined and seeded — a product decision deferred to a later phase.
-    // Any role that passes the `role:manager` middleware can create, update, or deactivate points.
-
-    public function index(): View
+    public function index(Request $request): View
     {
-        $points = PointMesure::with('derniereMesure')->orderBy('nom')->paginate(15);
+        $query = PointMesure::with('derniereMesure');
+
+        // Search by keyword in name, code, zone, address
+        if ($search = trim((string) $request->input('search', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nom', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%")
+                  ->orWhere('zone', 'like', "%{$search}%")
+                  ->orWhere('adresse', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($statut = $request->input('statut')) {
+            if (in_array($statut, ['actif', 'inactif'], true)) {
+                $query->where('statut', $statut);
+            }
+        }
+
+        // Filter by type
+        if ($type = $request->input('type')) {
+            if (in_array($type, ['Station', 'Puits', 'Réservoir', 'Réseau', 'Autre'], true)) {
+                $query->where('type', $type);
+            }
+        }
+
+        // Sorting
+        $sort = $request->input('sort', 'nom_asc');
+        match ($sort) {
+            'nom_desc'  => $query->orderByDesc('nom'),
+            'code_asc'  => $query->orderBy('code'),
+            'code_desc' => $query->orderByDesc('code'),
+            'recent'    => $query->latest('id'),
+            default     => $query->orderBy('nom'),
+        };
+
+        $points = $query->paginate(15)->withQueryString();
 
         return view('manager.points-mesure.index', compact('points'));
     }
@@ -32,9 +64,18 @@ class PointMesureController extends Controller
 
     public function store(StorePointMesureRequest $request): RedirectResponse
     {
-        $point = PointMesure::create($request->validated());
+        $point = DB::transaction(function () use ($request) {
+            $point = PointMesure::create($request->validated());
 
-        return redirect()->route('manager.points-mesure.show', $point)->with('success', 'Le point de mesure a été créé.');
+            AuditLog::record('point_mesure_created', 'PointMesure', $point->id, [
+                'code' => $point->code,
+                'nom'  => $point->nom,
+            ], auth()->user());
+
+            return $point;
+        });
+
+        return redirect()->route('manager.points-mesure.show', $point)->with('success', 'Le point de mesure a été créé avec succès.');
     }
 
     public function show(PointMesure $point_mesure): View
@@ -51,22 +92,41 @@ class PointMesureController extends Controller
 
     public function update(UpdatePointMesureRequest $request, PointMesure $point_mesure): RedirectResponse
     {
-        $point_mesure->update($request->validated());
+        DB::transaction(function () use ($request, $point_mesure) {
+            $point_mesure->update($request->validated());
 
-        return redirect()->route('manager.points-mesure.show', $point_mesure)->with('success', 'Le point de mesure a été mis à jour.');
+            AuditLog::record('point_mesure_updated', 'PointMesure', $point_mesure->id, [
+                'code' => $point_mesure->code,
+                'nom'  => $point_mesure->nom,
+            ], auth()->user());
+        });
+
+        return redirect()->route('manager.points-mesure.show', $point_mesure)->with('success', 'Le point de mesure a été mis à jour avec succès.');
     }
 
     public function destroy(PointMesure $point_mesure): RedirectResponse
     {
-        if ($point_mesure->mesuresQualites()->exists()) {
-            $point_mesure->update(['statut' => 'inactif']);
+        return DB::transaction(function () use ($point_mesure) {
+            if ($point_mesure->mesuresQualites()->exists()) {
+                $point_mesure->update(['statut' => 'inactif']);
 
-            return redirect()->route('manager.points-mesure.index')
-                ->with('success', 'Le point possède un historique de mesures : il a été désactivé.');
-        }
+                AuditLog::record('point_mesure_deactivated', 'PointMesure', $point_mesure->id, [
+                    'code'   => $point_mesure->code,
+                    'reason' => 'has_historical_measurements',
+                ], auth()->user());
 
-        $point_mesure->delete();
+                return redirect()->route('manager.points-mesure.index')
+                    ->with('success', 'Le point possède un historique de mesures : il a été désactivé pour préserver l’intégrité des données.');
+            }
 
-        return redirect()->route('manager.points-mesure.index')->with('success', 'Le point de mesure a été supprimé.');
+            $code = $point_mesure->code;
+            $point_mesure->delete();
+
+            AuditLog::record('point_mesure_deleted', 'PointMesure', null, [
+                'code' => $code,
+            ], auth()->user());
+
+            return redirect()->route('manager.points-mesure.index')->with('success', 'Le point de mesure a été supprimé.');
+        });
     }
 }

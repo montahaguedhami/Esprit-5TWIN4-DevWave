@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 | Public auth endpoints (no JWT required)
 |--------------------------------------------------------------------------
 */
-Route::prefix('auth')->group(function () {
+Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     Route::post('login',   [JwtAuthController::class, 'login']);
     Route::post('refresh', [JwtAuthController::class, 'refresh']);
 });

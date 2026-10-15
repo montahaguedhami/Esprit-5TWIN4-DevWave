@@ -76,18 +76,21 @@ class CheckRole
         }
 
         $sessionUser = $request->session()->get('user');
-        if ($sessionUser && ! empty($sessionUser['email'])) {
-            $user = User::where('email', $sessionUser['email'])->first();
-            if ($user) {
-                Auth::login($user);
+        if (is_array($sessionUser) && ! empty($sessionUser)) {
+            $email = $sessionUser['email'] ?? null;
+            if (! empty($email)) {
+                $user = User::where('email', $email)->first();
+                if ($user) {
+                    Auth::login($user);
 
-                return $user;
+                    return $user;
+                }
             }
 
             // Create temporary instance for mock tests that don't hit DB
             $mockUser = new User([
                 'name' => $sessionUser['name'] ?? 'User',
-                'email' => $sessionUser['email'],
+                'email' => $email ?? 'session@aquasecure.local',
                 'is_active' => true,
             ]);
             $mockUser->id = 9999;

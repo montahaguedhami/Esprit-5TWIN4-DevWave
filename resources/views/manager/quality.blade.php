@@ -1,4 +1,4 @@
-﻿{{--
+{{--
   This view intentionally extends layouts.app instead of layouts.manager.
   layouts.manager wraps content inside a sidebar+navbar shell that would produce
   a double navigation bar here, because quality.blade.php already renders its own
@@ -183,13 +183,81 @@
 
         {{-- Water Sampling Records Table --}}
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+            <div class="p-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i data-lucide="clipboard-list" class="w-4 h-4 text-teal-400"></i> Résultats d'analyses et suivi de la qualité
                     </h3>
                     <p class="text-xs text-slate-400">Consultez les résultats vérifiés par laboratoire et les relevés en attente de validation.</p>
                 </div>
+                <div class="text-xs text-slate-400 font-mono">
+                    {{ $paginator->total() }} mesure(s) au total
+                </div>
+            </div>
+
+            {{-- Search & Filters Form --}}
+            <div class="p-4 bg-slate-950/60 border-b border-slate-800">
+                <form method="GET" action="{{ route('manager.quality') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 items-end">
+                    {{-- Keyword --}}
+                    <div class="lg:col-span-2">
+                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Recherche (Réf., point, zone)</label>
+                        <div class="relative">
+                            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                            <input 
+                                type="text" 
+                                name="search" 
+                                value="{{ request('search') }}" 
+                                placeholder="Ex: WQR-2026 ou Belvédère" 
+                                class="w-full rounded-xl border border-slate-700 bg-slate-950 pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-teal-400 focus:outline-none"
+                            >
+                        </div>
+                    </div>
+
+                    {{-- Point de mesure --}}
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Point de prélèvement</label>
+                        <select name="point_mesure_id" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white focus:border-teal-400 focus:outline-none">
+                            <option value="">Tous les points</option>
+                            @foreach($allPointsForFilter ?? [] as $pt)
+                                <option value="{{ $pt->id }}" @selected((string) request('point_mesure_id') === (string) $pt->id)>{{ $pt->nom }} ({{ $pt->code }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Statut conformité --}}
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Conformité</label>
+                        <select name="status" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white focus:border-teal-400 focus:outline-none">
+                            <option value="">Tous les états</option>
+                            <option value="Compliant" @selected(request('status') === 'Compliant')>Conforme (Compliant)</option>
+                            <option value="Alert" @selected(request('status') === 'Alert')>Alerte (Alert)</option>
+                            <option value="Non-Compliant" @selected(request('status') === 'Non-Compliant')>Non conforme</option>
+                        </select>
+                    </div>
+
+                    {{-- Provenance --}}
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-400 mb-1">Provenance</label>
+                        <select name="source_donnee" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white focus:border-teal-400 focus:outline-none">
+                            <option value="">Toutes sources</option>
+                            <option value="manuel" @selected(request('source_donnee') === 'manuel')>Manuel (terrain)</option>
+                            <option value="laboratoire" @selected(request('source_donnee') === 'laboratoire')>Laboratoire</option>
+                            <option value="simule" @selected(request('source_donnee') === 'simule')>Simulé</option>
+                        </select>
+                    </div>
+
+                    {{-- Actions --}}
+                    <div class="flex items-center gap-2">
+                        <button type="submit" class="flex-1 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 px-3 py-1.5 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                            <i data-lucide="filter" class="w-3.5 h-3.5"></i> Filtrer
+                        </button>
+                        @if(request()->hasAny(['search', 'point_mesure_id', 'status', 'source_donnee', 'is_verified', 'date_from', 'date_to']))
+                            <a href="{{ route('manager.quality') }}" class="rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white px-2.5 py-1.5 text-xs border border-slate-700" title="Réinitialiser les filtres">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            </a>
+                        @endif
+                    </div>
+                </form>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-300">

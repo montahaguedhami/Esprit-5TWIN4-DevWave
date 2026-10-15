@@ -12,6 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Exclude JWT cookies from Laravel's cookie encryption — tymon reads raw JWTs
+        $middleware->encryptCookies(except: [
+            'access_token',
+            'refresh_token',
+        ]);
+
         $middleware->alias([
             'role'       => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
