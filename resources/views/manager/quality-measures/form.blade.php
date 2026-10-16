@@ -20,9 +20,6 @@
             type="text"
             id="reference"
             name="reference" 
-            required 
-            minlength="2" 
-            maxlength="50" 
             placeholder="Ex: WQR-2026-001"
             value="{{ old('reference', $mesure->reference ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('reference') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:outline-none"
@@ -43,7 +40,6 @@
         <select 
             id="point_mesure_id"
             name="point_mesure_id" 
-            required 
             class="mt-1 w-full rounded-xl border @error('point_mesure_id') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
         >
             <option value="" disabled @selected(!old('point_mesure_id', request('point_mesure_id', $mesure->point_mesure_id ?? '')))>Sélectionnez un point de prélèvement...</option>
@@ -67,7 +63,6 @@
             type="datetime-local" 
             id="date_mesure"
             name="date_mesure" 
-            required 
             value="{{ old('date_mesure', isset($mesure) ? $mesure->date_mesure->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i')) }}" 
             class="mt-1 w-full rounded-xl border @error('date_mesure') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
         >
@@ -84,7 +79,6 @@
         <select 
             id="source_donnee"
             name="source_donnee" 
-            required 
             class="mt-1 w-full rounded-xl border @error('source_donnee') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
         >
             <option value="manuel" @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'manuel')>Manuel (saisie terrain technicien)</option>
@@ -111,10 +105,7 @@
             type="number" 
             id="ph"
             name="ph" 
-            min="0" 
-            max="14" 
             step="0.01" 
-            required 
             placeholder="Ex: 7.2"
             value="{{ old('ph', $mesure->ph ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('ph') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
@@ -136,10 +127,7 @@
             type="number" 
             id="turbidite"
             name="turbidite" 
-            min="0" 
-            max="1000"
             step="0.01" 
-            required 
             placeholder="Ex: 0.45"
             value="{{ old('turbidite', $mesure->turbidite ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('turbidite') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
@@ -161,10 +149,7 @@
             type="number" 
             id="chlore_residuel"
             name="chlore_residuel" 
-            min="0" 
-            max="100"
             step="0.001" 
-            required 
             placeholder="Ex: 0.65"
             value="{{ old('chlore_residuel', $mesure->chlore_residuel ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('chlore_residuel') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
@@ -186,10 +171,7 @@
             type="number" 
             id="plomb"
             name="plomb" 
-            min="0" 
-            max="10000"
             step="0.001" 
-            required 
             placeholder="Ex: 1.2"
             value="{{ old('plomb', $mesure->plomb ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('plomb') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
@@ -211,10 +193,7 @@
             type="number" 
             id="nitrates"
             name="nitrates" 
-            min="0" 
-            max="1000"
             step="0.01" 
-            required 
             placeholder="Ex: 8.5"
             value="{{ old('nitrates', $mesure->nitrates ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('nitrates') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white focus:outline-none"
@@ -236,7 +215,6 @@
             type="text"
             id="verifier"
             name="verifier" 
-            maxlength="255" 
             placeholder="Ex: Labo Central des Eaux Tunis"
             value="{{ old('verifier', $mesure->verifier ?? '') }}" 
             class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:border-teal-400 focus:outline-none"
@@ -265,3 +243,80 @@
         @enderror
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function showFieldError(input, message) {
+        let box = input.parentElement.querySelector('.validation-error');
+        if (!box) {
+            box = document.createElement('div');
+            box.className = 'validation-error mt-1 block text-xs text-red-400';
+            input.insertAdjacentElement('afterend', box);
+        }
+        box.textContent = message;
+        box.hidden = false;
+    }
+
+    function hideFieldErrors(input) {
+        const box = input.parentElement.querySelector('.validation-error');
+        if (box) {
+            box.hidden = true;
+        }
+    }
+
+    function validateMesureForm() {
+        const problèmes = [];
+
+        const ph = document.getElementById('ph');
+        hideFieldErrors(ph);
+        if (ph.value !== '' && (Number(ph.value) < 0 || Number(ph.value) > 14)) {
+            showFieldError(ph, 'Le pH doit être compris dans l’échelle physico-chimique de 0 à 14.');
+            problèmes.push('ph');
+        }
+
+        const turbidite = document.getElementById('turbidite');
+        hideFieldErrors(turbidite);
+        if (turbidite.value !== '' && (Number(turbidite.value) < 0 || Number(turbidite.value) > 1000)) {
+            showFieldError(turbidite, 'La turbidité (NTU) ne peut pas dépasser 1000.');
+            problèmes.push('turbidite');
+        }
+
+        const chloreResiduel = document.getElementById('chlore_residuel');
+        hideFieldErrors(chloreResiduel);
+        if (chloreResiduel.value !== '' && (Number(chloreResiduel.value) < 0 || Number(chloreResiduel.value) > 100)) {
+            showFieldError(chloreResiduel, 'Le chlore résiduel (mg/L) ne peut pas dépasser 100.');
+            problèmes.push('chlore_residuel');
+        }
+
+        const plomb = document.getElementById('plomb');
+        hideFieldErrors(plomb);
+        if (plomb.value !== '' && (Number(plomb.value) < 0 || Number(plomb.value) > 10000)) {
+            showFieldError(plomb, 'La concentration en plomb (ppb) ne peut pas dépasser 10000.');
+            problèmes.push('plomb');
+        }
+
+        const nitrates = document.getElementById('nitrates');
+        hideFieldErrors(nitrates);
+        if (nitrates.value !== '' && (Number(nitrates.value) < 0 || Number(nitrates.value) > 1000)) {
+            showFieldError(nitrates, 'Les nitrates (mg/L) ne peuvent pas dépasser 1000.');
+            problèmes.push('nitrates');
+        }
+
+        if (problèmes.length > 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    const container = document.getElementById('ph')?.closest('form');
+
+    if (container) {
+        container.addEventListener('submit', function (event) {
+            if (!validateMesureForm()) {
+                event.preventDefault();
+            }
+        });
+    }
+});
+</script>
