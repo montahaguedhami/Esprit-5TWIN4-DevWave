@@ -1,6 +1,8 @@
 
 <?php
 
+use Illuminate\Contracts\Auth\PasswordBroker;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
@@ -116,7 +118,15 @@ Route::post('/register', function (Request $request) {
         ->with('success', 'Compte créé avec succès. Connectez-vous avec votre email et mot de passe.');
 })->name('register.post');
 
+// Forgot password — always answers the same way, whether or not the
+// account exists, so the endpoint cannot be used to enumerate emails.
 Route::post('/forgot-password', function (Request $request) {
+    $request->validate([
+        'email' => ['required', 'email'],
+    ]);
+
+    Password::broker()->sendResetLink($request->only('email'));
+
     return back()->with('success', 'Si ce compte existe, un email a été envoyé.');
 })->name('forgot-password.post');
 
@@ -130,10 +140,11 @@ Route::get('/reset-password/{token}', function (Request $request, $token) {
     ]);
 })->name('password.reset');
 
+
 Route::post('/reset-password', function (Request $request) {
     $validated = $request->validate([
-        'token' => ['required', 'string'],
-        'email' => ['required', 'email'],
+        'token'    => ['required', 'string'],
+        'email'    => ['required', 'email'],
         'password' => ['required', 'string', 'min:6', 'confirmed'],
     ]);
 
@@ -386,4 +397,12 @@ Route::middleware('role:manager')->prefix('manager/financements')->name('manager
     Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
     Route::put('/{financement}',   [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
     Route::delete('/{financement}',[App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});
+
+Route::middleware('role:administrateur,manager')->group(function () {
+    Route::post('/manager/data-collection/trigger',    [\App\Http\Controllers\Manager\DataCollectionController::class, 'trigger'])->name('manager.data-collection.trigger');
+    Route::get('/manager/data-collection/status',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
+    Route::get('/manager/data-collection/history',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
+    Route::post('/manager/data-collection/import-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
+    Route::get('/manager/quality/{point}/analyse',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
 });

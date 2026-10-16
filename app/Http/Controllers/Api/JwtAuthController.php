@@ -211,7 +211,7 @@ class JwtAuthController extends Controller
             'name'        => $user->name,
             'email'       => $user->email,
             'is_active'   => $user->is_active,
-            'roles'       => $user->roles->pluck('name'),
+            'roles'       => $user->roles->pluck('slug'),
             'permissions' => $user->roles->flatMap(fn($r) => $r->permissions->pluck('name'))->unique()->values(),
         ]);
     }

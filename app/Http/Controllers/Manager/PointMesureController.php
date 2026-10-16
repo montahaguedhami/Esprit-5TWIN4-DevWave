@@ -7,6 +7,7 @@ use App\Http\Requests\StorePointMesureRequest;
 use App\Http\Requests\UpdatePointMesureRequest;
 use App\Models\AuditLog;
 use App\Models\PointMesure;
+use App\Models\Zone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,13 +60,22 @@ class PointMesureController extends Controller
 
     public function create(): View
     {
-        return view('manager.points-mesure.create');
+        $zones     = Zone::orderBy('nom')->pluck('nom')->all();
+        $nextCode  = $this->generateUniqueCode(null);
+        $pointForm = [
+            'zones'   => $zones,
+            'nextCode' => $nextCode,
+        ];
+
+        return view('manager.points-mesure.create', $pointForm);
     }
 
     public function store(StorePointMesureRequest $request): RedirectResponse
     {
         $point = DB::transaction(function () use ($request) {
-            $point = PointMesure::create($request->validated());
+            $data             = $request->validated();
+            $data['code']     = $this->generateUniqueCode($data['code'] ?? null);
+            $point = PointMesure::create($data);
 
             AuditLog::record('point_mesure_created', 'PointMesure', $point->id, [
                 'code' => $point->code,
@@ -87,13 +97,20 @@ class PointMesureController extends Controller
 
     public function edit(PointMesure $point_mesure): View
     {
-        return view('manager.points-mesure.edit', ['point' => $point_mesure]);
+        $zones = Zone::orderBy('nom')->pluck('nom')->all();
+
+        return view('manager.points-mesure.edit', [
+            'point' => $point_mesure,
+            'zones' => $zones,
+        ]);
     }
 
     public function update(UpdatePointMesureRequest $request, PointMesure $point_mesure): RedirectResponse
     {
         DB::transaction(function () use ($request, $point_mesure) {
-            $point_mesure->update($request->validated());
+            $data           = $request->validated();
+            $data['code']   = $this->resolveExistingCode($request, $point_mesure);
+            $point_mesure->update($data);
 
             AuditLog::record('point_mesure_updated', 'PointMesure', $point_mesure->id, [
                 'code' => $point_mesure->code,
@@ -128,5 +145,42 @@ class PointMesureController extends Controller
 
             return redirect()->route('manager.points-mesure.index')->with('success', 'Le point de mesure a été supprimé.');
         });
+    }
+
+    /**
+     * Keep an explicitly supplied code, otherwise keep the existing one.
+     *
+     * The "update" form no longer asks for the code: it is only kept
+     * when the request still carries one (backward compatibility).
+     */
+    private function resolveExistingCode(UpdatePointMesureRequest $request, PointMesure $point_mesure): string
+    {
+        $code = $request->input('code');
+
+        return $code !== null && $code !== ''
+            ? $code
+            : $point_mesure->code;
+    }
+
+    /**
+     * Generate the next unique point code (e.g. PMS-001).
+     *
+     * Used when the client did not send a code (the create form leaves the
+     * code field empty and readonly); an explicit code always wins.
+     */
+    private function generateUniqueCode(?string $code): string
+    {
+        if ($code !== null && $code !== '') {
+            return $code;
+        }
+
+        $max = 0;
+        foreach (PointMesure::pluck('code') as $existingCode) {
+            if (preg_match('/(\d+)$/', (string) $existingCode, $matches) === 1) {
+                $max = max($max, (int) $matches[1]);
+            }
+        }
+
+        return sprintf('PMS-%04d', $max + 1);
     }
 }
