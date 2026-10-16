@@ -32,6 +32,7 @@ class InterventionRequest extends FormRequest
             'date' => ['required', 'date', Rule::when($this->input('statut') === 'Terminée', 'before_or_equal:today')],
             'description' => ['required', 'string', 'min:5', 'max:1000'],
             'statut' => ['required', Rule::in(Intervention::STATUTS)],
+            'type' => ['sometimes', Rule::in(Intervention::TYPES)],
             'cout' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
         ];
     }
@@ -69,6 +70,7 @@ class InterventionRequest extends FormRequest
             'date' => 'date',
             'description' => 'description',
             'statut' => 'statut',
+            'type' => 'type',
             'cout' => 'coût',
         ];
     }

@@ -39,6 +39,80 @@
 
     @include('manager.maintenance._flash')
 
+    {{-- Maintenance préventive automatique --}}
+    <x-ui.card padding="sm" class="mb-6 border border-violet-500/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="font-display font-semibold text-white flex items-center gap-2">
+                    <i data-lucide="calendar-clock" class="w-5 h-5 text-violet-300"></i> Maintenance préventive
+                </h2>
+                <p class="text-xs text-cyan-100/60 mt-1">
+                    Planifie les équipements dont la maintenance arrive à échéance sous {{ config('maintenance.horizon_jours') }} jours,
+                    avec le technicien disponible le plus adapté. Exécutée automatiquement chaque jour à 6h15.
+                </p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <form method="POST" action="{{ route('manager.planning.preventive') }}">
+                    @csrf
+                    <input type="hidden" name="simulation" value="1">
+                    <x-ui.button type="submit" variant="secondary" icon="eye">Simuler</x-ui.button>
+                </form>
+                <form method="POST" action="{{ route('manager.planning.preventive') }}"
+                      onsubmit="return confirm('Créer les interventions préventives à échéance ?');">
+                    @csrf
+                    <x-ui.button type="submit" icon="calendar-plus">Planifier</x-ui.button>
+                </form>
+            </div>
+        </div>
+
+        @if($rapport = session('rapport_preventif'))
+            @if(! empty($rapport['lignes']))
+                <div class="overflow-x-auto mt-4 pt-4 border-t border-white/10">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="text-left">
+                                <th class="px-3 py-2 text-xs font-semibold text-cyan-100/50">Infrastructure</th>
+                                <th class="px-3 py-2 text-xs font-semibold text-cyan-100/50">Échéance</th>
+                                <th class="px-3 py-2 text-xs font-semibold text-cyan-100/50">Résultat</th>
+                                <th class="px-3 py-2 text-xs font-semibold text-cyan-100/50">Date</th>
+                                <th class="px-3 py-2 text-xs font-semibold text-cyan-100/50">Technicien</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            @foreach($rapport['lignes'] as $ligne)
+                                <tr>
+                                    <td class="px-3 py-2 text-white">{{ $ligne['infrastructure'] }}</td>
+                                    <td class="px-3 py-2 text-cyan-100/80">{{ $ligne['echeance'] }}</td>
+                                    <td class="px-3 py-2">
+                                        @switch($ligne['resultat'])
+                                            @case(\App\Services\PreventiveMaintenanceService::PLANIFIEE)
+                                                @if($ligne['intervention_id'])
+                                                    <a href="{{ route('manager.interventions.show', $ligne['intervention_id']) }}" class="text-emerald-300 hover:underline">Planifiée #{{ $ligne['intervention_id'] }}</a>
+                                                @else
+                                                    <span class="text-violet-300">À planifier</span>
+                                                @endif
+                                                @break
+                                            @case(\App\Services\PreventiveMaintenanceService::DEJA_PLANIFIEE)
+                                                <span class="text-cyan-100/60">Déjà planifiée</span>
+                                                @break
+                                            @default
+                                                <span class="text-rose-300">Aucun technicien disponible</span>
+                                        @endswitch
+                                    </td>
+                                    <td class="px-3 py-2 text-cyan-100/80">{{ $ligne['date'] ?? '—' }}</td>
+                                    <td class="px-3 py-2 text-cyan-100/80">
+                                        {{ $ligne['technicien'] ?? '—' }}
+                                        @if($ligne['hors_specialite'])<span class="text-amber-300 text-xs">(hors spécialité)</span>@endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        @endif
+    </x-ui.card>
+
     {{-- Message de retour du glisser-déposer --}}
     <div id="planning-feedback" class="hidden mb-4 rounded-xl px-4 py-3 text-sm flex items-center gap-2" role="status"></div>
 
@@ -94,6 +168,7 @@
                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded" style="background: {{ $couleur }}"></span>{{ $statut }}</span>
                 @endforeach
                 <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded border-2 border-rose-500"></span>Conflit</span>
+                <span class="flex items-center gap-1.5"><span class="text-white">⟳</span>Préventive</span>
             </div>
         </div>
     </x-ui.card>
@@ -140,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         eventDidMount: function (info) {
             var p = info.event.extendedProps;
-            info.el.title = [p.statut, p.technicien, p.infrastructure, p.conflit ? '⚠ Conflit de planification' : null]
+            info.el.title = [p.type, p.statut, p.technicien, p.infrastructure, p.conflit ? '⚠ Conflit de planification' : null]
                 .filter(Boolean).join(' · ');
         },
         dateClick: function (info) {

@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Contracts\Auth\PasswordBroker;
@@ -8,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\ActionCorrectiveController;
 use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\TechnicienController;
 use App\Http\Controllers\TravauxController;
@@ -354,7 +354,9 @@ Route::middleware('role:administrateur,manager,technicien,citoyen')->group(funct
     Route::get('/profile',                fn () => view('profile.show'))->name('profile.show');
     Route::get('/settings',               fn () => view('settings.index'))->name('settings.index');
     Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
-    Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
+    Route::get('/notifications',             [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/tout-lire',  [NotificationController::class, 'toutLire'])->name('notifications.tout-lire');
+    Route::get('/notifications/{id}/ouvrir', [NotificationController::class, 'ouvrir'])->name('notifications.ouvrir');
 });
 
 // ── Public demo pages ─────────────────────────────────────────────────────────
@@ -370,6 +372,7 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::get('planning',                              [PlanningController::class, 'index'])->name('planning.index');
     Route::get('planning/evenements',                   [PlanningController::class, 'evenements'])->name('planning.evenements');
     Route::patch('planning/interventions/{intervention}', [PlanningController::class, 'deplacer'])->name('planning.deplacer');
+    Route::post('planning/preventive',                  [PlanningController::class, 'preventive'])->name('planning.preventive');
 });
 
 // ── Travaux (citizen read-only) ───────────────────────────────────────────────

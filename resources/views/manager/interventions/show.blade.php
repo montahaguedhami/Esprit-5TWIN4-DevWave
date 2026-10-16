@@ -16,7 +16,12 @@
         <x-ui.card class="md:col-span-2">
             <div class="flex items-center justify-between gap-3 mb-4">
                 <h2 class="font-display font-semibold text-white">Détails</h2>
-                <x-maintenance.badge :value="$intervention->statut" />
+                <div class="flex items-center gap-2">
+                    @if($intervention->estPreventive())
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-violet-300 bg-violet-500/10 border border-violet-500/30 rounded-lg px-2 py-1"><i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>Préventive</span>
+                    @endif
+                    <x-maintenance.badge :value="$intervention->statut" />
+                </div>
             </div>
             <p class="text-cyan-100/80 leading-relaxed whitespace-pre-line">{{ $intervention->description }}</p>
 

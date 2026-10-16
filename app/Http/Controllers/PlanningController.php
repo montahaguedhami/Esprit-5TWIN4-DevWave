@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Intervention;
 use App\Models\Technicien;
 use App\Services\InterventionPlanningService;
+use App\Services\PreventiveMaintenanceService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -72,7 +73,7 @@ class PlanningController extends Controller
 
             return [
                 'id' => $intervention->id,
-                'title' => ($intervention->technicien?->nom ?? 'Sans technicien').' — '.str($intervention->description)->limit(40),
+                'title' => ($intervention->estPreventive() ? '⟳ ' : '').($intervention->technicien?->nom ?? 'Sans technicien').' — '.str($intervention->description)->limit(40),
                 'start' => $intervention->date->toDateString(),
                 'allDay' => true,
                 'url' => route('manager.interventions.show', $intervention),
@@ -83,12 +84,44 @@ class PlanningController extends Controller
                 'editable' => in_array($intervention->statut, InterventionPlanningService::STATUTS_ACTIFS, true),
                 'extendedProps' => [
                     'statut' => $intervention->statut,
+                    'type' => $intervention->type,
                     'technicien' => $intervention->technicien?->nom,
                     'infrastructure' => $intervention->infrastructure?->nom,
                     'conflit' => $conflit,
                 ],
             ];
         })->values());
+    }
+
+    /**
+     * Lance (ou simule) la planification préventive depuis le calendrier.
+     */
+    public function preventive(Request $request, PreventiveMaintenanceService $preventive)
+    {
+        $simulation = $request->boolean('simulation');
+        $lignes = $preventive->planifier(null, $simulation);
+        $planifiees = $lignes->where('resultat', PreventiveMaintenanceService::PLANIFIEE)->count();
+
+        $rapport = $lignes->map(fn (array $ligne) => [
+            'infrastructure' => $ligne['infrastructure']->nom,
+            'echeance' => $ligne['echeance']->format('d/m/Y'),
+            'resultat' => $ligne['resultat'],
+            'date' => $ligne['date']?->format('d/m/Y'),
+            'technicien' => $ligne['technicien']?->nom,
+            'hors_specialite' => $ligne['hors_specialite'],
+            'intervention_id' => $ligne['intervention']?->id,
+        ])->all();
+
+        $message = match (true) {
+            $lignes->isEmpty() => 'Aucune maintenance préventive n\'arrive à échéance.',
+            $simulation => "Simulation : {$planifiees} intervention(s) préventive(s) seraient créées.",
+            default => "{$planifiees} intervention(s) préventive(s) créée(s).",
+        };
+
+        return redirect()
+            ->route('manager.planning.index')
+            ->with('success', $message)
+            ->with('rapport_preventif', ['simulation' => $simulation, 'lignes' => $rapport]);
     }
 
     /**

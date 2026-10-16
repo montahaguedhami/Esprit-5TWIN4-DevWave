@@ -70,7 +70,12 @@
                                         <span class="text-xs text-cyan-100/30">Générale</span>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3 text-cyan-100/80">{{ Str::limit($intervention->description, 60) }}</td>
+                                <td class="px-5 py-3 text-cyan-100/80">
+                                    @if($intervention->estPreventive())
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-300 bg-violet-500/10 border border-violet-500/30 rounded-md px-1.5 py-0.5 mr-1"><i data-lucide="calendar-clock" class="w-3 h-3"></i>Préventive</span>
+                                    @endif
+                                    {{ Str::limit($intervention->description, 60) }}
+                                </td>
                                 <td class="px-5 py-3"><x-maintenance.badge :value="$intervention->statut" /></td>
                                 <td class="px-5 py-3 text-right text-cyan-100/80 whitespace-nowrap">{{ number_format($intervention->cout, 2, ',', ' ') }} DT</td>
                                 <td class="px-5 py-3">

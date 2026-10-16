@@ -32,6 +32,12 @@
         @endforeach
     </x-forms.select>
 
+    <x-forms.select name="type" label="Type" :placeholder="null" :error="$errors->first('type')" required>
+        @foreach(\App\Models\Intervention::TYPES as $type)
+            <option value="{{ $type }}" @selected(old('type', $intervention->type) === $type)>{{ $type }}</option>
+        @endforeach
+    </x-forms.select>
+
     <x-forms.input name="cout" label="Coût (DT)" icon="banknote" placeholder="ex. 1250.50"
         :value="$intervention->cout" :error="$errors->first('cout')" required />
 

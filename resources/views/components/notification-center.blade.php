@@ -1,6 +1,25 @@
 @php
-    $notifications = \App\Data\PlaceholderData::globalNotifications();
-    $unreadCount = count(array_filter($notifications, fn($n) => !$n['read']));
+    // Notifications réelles (table notifications) de l'utilisateur connecté
+    $currentUser = auth()->user();
+    $couleurs = [
+        'cyan' => 'bg-cyan-500/20 text-cyan-500',
+        'amber' => 'bg-amber-500/20 text-amber-500',
+        'rose' => 'bg-rose-500/20 text-rose-500',
+        'emerald' => 'bg-emerald-500/20 text-emerald-500',
+    ];
+    $notifications = $currentUser
+        ? $currentUser->notifications()->take(8)->get()->map(fn ($n) => [
+            'id' => $n->id,
+            'title' => $n->data['titre'] ?? 'Notification',
+            'message' => $n->data['message'] ?? '',
+            'icon' => $n->data['icone'] ?? 'bell',
+            'classes' => $couleurs[$n->data['couleur'] ?? 'cyan'] ?? $couleurs['cyan'],
+            'time' => $n->created_at->locale('fr')->diffForHumans(),
+            'read' => $n->read_at !== null,
+            'url' => route('notifications.ouvrir', $n->id),
+        ])->all()
+        : [];
+    $unreadCount = $currentUser ? $currentUser->unreadNotifications()->count() : 0;
 @endphp
 
 <!-- Notification Bell Button -->
@@ -41,12 +60,11 @@
         <!-- Notifications List -->
         <div class="overflow-y-auto" style="max-height: 450px;">
             @forelse($notifications as $notification)
-            <div class="notification-item p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer {{ !$notification['read'] ? 'bg-cyan-500/5' : '' }}"
-                 onclick="markAsRead('{{ $notification['id'] }}')">
+            <a href="{{ $notification['url'] }}" class="notification-item block p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer {{ !$notification['read'] ? 'bg-cyan-500/5' : '' }}">
                 <div class="flex items-start gap-3">
                     <!-- Icon -->
-                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-{{ $notification['color'] }}-500/20 flex items-center justify-center">
-                        <i data-lucide="{{ $notification['icon'] }}" class="w-5 h-5 text-{{ $notification['color'] }}-400"></i>
+                    <div class="flex-shrink-0 w-10 h-10 rounded-lg {{ $notification['classes'] }} flex items-center justify-center">
+                        <i data-lucide="{{ $notification['icon'] }}" class="w-5 h-5"></i>
                     </div>
 
                     <!-- Content -->
@@ -58,17 +76,10 @@
                             @endif
                         </div>
                         <p class="text-xs text-slate-600 line-clamp-2 mb-2">{{ $notification['message'] }}</p>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs text-slate-400">{{ $notification['time'] }}</span>
-                            @if(isset($notification['action']))
-                            <a href="{{ $notification['action']['url'] }}" class="text-xs text-cyan-700 hover:text-cyan-900 font-medium">
-                                {{ $notification['action']['label'] }} →
-                            </a>
-                            @endif
-                        </div>
+                        <span class="text-xs text-slate-400">{{ $notification['time'] }}</span>
                     </div>
                 </div>
-            </div>
+            </a>
             @empty
             <div class="p-8 text-center">
                 <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
@@ -114,28 +125,27 @@
         }
     }
 
-    function markAsRead(id) {
-        // Simulate marking as read
-        const item = event.currentTarget;
-        item.classList.remove('bg-cyan-500/5');
-        const badge = item.querySelector('.bg-cyan-400');
-        if (badge) badge.remove();
-        
-        // Update counter
-        updateUnreadCount();
-        
-        showToast('Notification marquée comme lue', 'success');
-    }
-
     function markAllAsRead() {
-        document.querySelectorAll('.notification-item').forEach(item => {
-            item.classList.remove('bg-cyan-500/5');
-            const badge = item.querySelector('.bg-cyan-400');
-            if (badge) badge.remove();
+        fetch(@json(route('notifications.tout-lire')), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        }).then(response => {
+            if (! response.ok) { return; }
+
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.remove('bg-cyan-500/5');
+                const badge = item.querySelector('.bg-cyan-400');
+                if (badge) badge.remove();
+            });
+
+            updateUnreadCount();
+            if (typeof showToast === 'function') {
+                showToast('Toutes les notifications sont marquées comme lues', 'success');
+            }
         });
-        
-        updateUnreadCount();
-        showToast('Toutes les notifications sont marquées comme lues', 'success');
     }
 
     function updateUnreadCount() {
