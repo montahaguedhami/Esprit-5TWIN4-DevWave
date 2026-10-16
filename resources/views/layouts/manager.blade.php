@@ -118,6 +118,10 @@
                    class="sidebar-link {{ request()->routeIs('manager.techniciens.*', 'manager.interventions.*') ? 'is-active' : '' }}">
                     <i data-lucide="wrench"></i><span>Maintenance</span>
                 </a>
+                <a href="{{ route('manager.planning.index') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.planning.*') ? 'is-active' : '' }}">
+                    <i data-lucide="calendar-days"></i><span>Planning</span>
+                </a>
             </div>
 
             <div class="sidebar-section">

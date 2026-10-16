@@ -32,10 +32,11 @@ class InterventionController extends Controller
      */
     public function create(Request $request)
     {
-        // Permet de pré-sélectionner le technicien ou l'infrastructure depuis sa fiche
+        // Permet de pré-sélectionner le technicien, l'infrastructure ou la date (fiche, planning)
         $intervention = new Intervention([
             'technicien_id' => $request->query('technicien_id'),
             'infrastructure_id' => $request->query('infrastructure_id'),
+            'date' => rescue(fn () => $request->date('date'), null, false),
         ]);
         $techniciens = Technicien::orderBy('nom')->get(['id', 'nom', 'specialite']);
         $infrastructures = \App\Models\Infrastructure::with('zone')->orderBy('nom')->get(['id', 'nom', 'zone_id']);

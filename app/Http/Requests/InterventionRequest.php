@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\Intervention;
+use App\Services\InterventionPlanningService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class InterventionRequest extends FormRequest
 {
@@ -31,6 +33,31 @@ class InterventionRequest extends FormRequest
             'description' => ['required', 'string', 'min:5', 'max:1000'],
             'statut' => ['required', Rule::in(Intervention::STATUTS)],
             'cout' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
+        ];
+    }
+
+    /**
+     * Règles de planification : pas de double affectation le même jour, pas d'affectation en congé.
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->hasAny(['technicien_id', 'date', 'statut'])) {
+                    return;
+                }
+
+                $message = app(InterventionPlanningService::class)->verifier(
+                    (int) $this->input('technicien_id'),
+                    (string) $this->input('date'),
+                    (string) $this->input('statut'),
+                    $this->route('intervention')?->id
+                );
+
+                if ($message) {
+                    $validator->errors()->add('date', $message);
+                }
+            },
         ];
     }
 

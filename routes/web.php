@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\ActionCorrectiveController;
 use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\TechnicienController;
 use App\Http\Controllers\TravauxController;
 use App\Http\Controllers\Manager\MapController;
@@ -309,6 +310,11 @@ Route::get('/weather',  fn () => response()->file(public_path('weather.html')))-
 Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(function () {
     Route::resource('techniciens',   TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
+
+    // Planning des interventions (calendrier + détection de conflits)
+    Route::get('planning',                              [PlanningController::class, 'index'])->name('planning.index');
+    Route::get('planning/evenements',                   [PlanningController::class, 'evenements'])->name('planning.evenements');
+    Route::patch('planning/interventions/{intervention}', [PlanningController::class, 'deplacer'])->name('planning.deplacer');
 });
 
 // ── Travaux (citizen read-only) ───────────────────────────────────────────────

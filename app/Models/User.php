@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Traits\HasRoles;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Validation\ValidationException;
@@ -64,6 +65,14 @@ class User extends Authenticatable implements JWTSubject
                 ]);
             }
         });
+    }
+
+    /**
+     * Fiche technicien liée à ce compte (module Maintenance).
+     */
+    public function technicien(): HasOne
+    {
+        return $this->hasOne(Technicien::class);
     }
 
     /**

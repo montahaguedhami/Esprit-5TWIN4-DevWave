@@ -16,6 +16,8 @@ class ZoneController extends Controller
     public function index(Request $request): View
     {
         $technicien = TechnicianScopeService::currentTechnicien();
+        abort_unless($technicien, 403, 'Compte technicien introuvable.');
+
         $query = TechnicianScopeService::zonesQuery($technicien);
 
         if ($search = $request->input('q')) {
@@ -37,6 +39,8 @@ class ZoneController extends Controller
     public function show(Zone $zone): View
     {
         $technicien = TechnicianScopeService::currentTechnicien();
+        abort_unless($technicien, 403, 'Compte technicien introuvable.');
+
         $zone->load('responsable');
 
         // Récupérer les infrastructures de cette zone assignées à ce technicien

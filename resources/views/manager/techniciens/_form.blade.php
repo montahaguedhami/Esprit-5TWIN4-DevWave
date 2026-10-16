@@ -19,6 +19,14 @@
             <option value="{{ $disponibilite }}" @selected(old('disponibilite', $technicien->disponibilite) === $disponibilite)>{{ $disponibilite }}</option>
         @endforeach
     </x-forms.select>
+
+    <x-forms.select name="user_id" label="Compte de connexion" placeholder="— Aucun compte lié —" class="sm:col-span-2"
+        :error="$errors->first('user_id')"
+        hint="Compte au rôle Technicien utilisé pour se connecter à l'espace terrain. Sans compte lié, la fiche n'a pas accès à l'espace technicien.">
+        @foreach($comptes as $compte)
+            <option value="{{ $compte->id }}" @selected((string) old('user_id', $technicien->user_id) === (string) $compte->id)>{{ $compte->name }} ({{ $compte->email }})</option>
+        @endforeach
+    </x-forms.select>
 </div>
 
 <div class="flex items-center justify-end gap-2 mt-8 pt-6 border-t border-white/10">
