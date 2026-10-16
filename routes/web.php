@@ -120,6 +120,50 @@ Route::post('/forgot-password', function (Request $request) {
     return back()->with('success', 'Si ce compte existe, un email a été envoyé.');
 })->name('forgot-password.post');
 
+// Reset password — the email is carried over from the link that was sent.
+// NOTE: this route must keep the conventional `password.reset` name expected
+// by Illuminate\Auth\Notifications\ResetPassword when building the email link.
+Route::get('/reset-password/{token}', function (Request $request, $token) {
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => $request->query('email'),
+    ]);
+})->name('password.reset');
+
+Route::post('/reset-password', function (Request $request) {
+    $validated = $request->validate([
+        'token' => ['required', 'string'],
+        'email' => ['required', 'email'],
+        'password' => ['required', 'string', 'min:6', 'confirmed'],
+    ]);
+
+    $status = Password::broker()->reset(
+        $validated,
+        function ($user, $password) {
+            // The "hashed" cast takes care of hashing the plain password.
+            $user->forceFill([
+                'password' => $password,
+            ])->save();
+        }
+    );
+
+    if ($status !== PasswordBroker::PASSWORD_RESET) {
+        return back()
+            ->withInput($request->only('email', 'token'))
+            ->with('error', 'Ce lien de réinitialisation n’est plus valide ou a expiré.');
+    }
+
+    $user = \App\Models\User::where('email', $validated['email'])->first();
+
+    \App\Models\AuditLog::record('user_password_reset', 'User', $user?->id, [
+        'ip' => $request->ip(),
+    ], $user);
+
+    return redirect()
+        ->route('auth.login')
+        ->with('success', 'Votre mot de passe a été réinitialisé. Connectez-vous avec votre email et votre nouveau mot de passe.');
+})->name('reset-password.post');
+
 // Logout
 Route::post('/logout', function (Request $request) {
     \Illuminate\Support\Facades\Auth::logout();

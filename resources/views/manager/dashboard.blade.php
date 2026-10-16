@@ -11,7 +11,6 @@
     $reclamations = PlaceholderData::adminAllReclamations();
     $monthly      = PlaceholderData::analyticsMonthly();
     $projects     = PlaceholderData::projects();
-    $qualityData  = PlaceholderData::waterQualityRecords();
     $funding      = PlaceholderData::fundingData();
 
     $firstName    = explode(' ', $user['name'])[0];
@@ -199,22 +198,6 @@
                         <canvas id="incidentTrendsChart"></canvas>
                     </div>
                 </div>
-
-                {{-- Chart 2: Historique de la qualité de l'eau (pH, Turbidité, Chlore) --}}
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i> Indicateurs de qualité de l’eau
-                            </h3>
-                            <p class="text-xs text-slate-400">Résultats de qualité de l'eau et seuils EPA / INNORPI</p>
-                        </div>
-                        <span class="text-xs font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg">Plage optimale</span>
-                    </div>
-                    <div style="height: 220px;">
-                        <canvas id="qualityHistoryChart"></canvas>
-                    </div>
-                </div>
             </div>
 
             {{-- ══ RECENT INCIDENTS TABLE & BUDGET ALLOCATION ════════════════════ --}}
@@ -388,43 +371,6 @@ function switchUtility(id) {
                     backgroundColor: 'rgba(45, 212, 191, 0.1)',
                     fill: true,
                     tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
-            scales: {
-                x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
-    });
-})();
-
-/* ── Chart 2: Water Quality History ──────────────────────── */
-(function() {
-    const ctx = document.getElementById('qualityHistoryChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Tunis Nord', 'Ariana', 'Ben Arous', 'Sousse', 'Sfax'],
-            datasets: [
-                {
-                    label: 'pH Level (Optimal 6.5-8.5)',
-                    data: [7.42, 7.82, 8.45, 7.20, 7.30],
-                    backgroundColor: '#0284c7'
-                },
-                {
-                    label: 'Turbidity (NTU <1.0)',
-                    data: [0.45, 1.25, 2.45, 0.22, 0.41],
-                    backgroundColor: '#0d9488'
-                },
-                {
-                    label: 'Chlore résiduel (mg/L)',
-                    data: [0.85, 0.35, 0.12, 1.10, 0.95],
-                    backgroundColor: '#3b82f6'
                 }
             ]
         },
