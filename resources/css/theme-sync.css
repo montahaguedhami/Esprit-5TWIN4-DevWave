@@ -1,0 +1,365 @@
+/*
+ * theme-sync.css — AquaSecure
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Single source of truth for every custom component that uses hardcoded colors.
+ * All rules use var(--*) tokens defined in app.css so they automatically
+ * respond to [data-theme="light"] / [data-theme="dark"] with ZERO duplication.
+ *
+ * Covers:
+ *   - .aq-stat-card / .aq-param-card / .aq-card / .aq-card-header
+ *   - .aq-banner
+ *   - .aq-table
+ *   - .aq-filter-bar + its inputs/selects
+ *   - .badge-* variants
+ *   - .dc-card / .dc-status-bar / .dc-panel + its inputs/buttons
+ *   - .analytics-wrap .glass cards
+ *   - .pro-card / .pro-setting / .pro-activity / .pro-field / .pro-quick-btn
+ *   - Modals (#threshold-modal, general .modal-box)
+ *   - Leaflet popups & zoom buttons
+ *   - light-shell overrides (aqua-manager-standalone)
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. MANAGER QUALITY — stat cards, param cards, section cards
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.aq-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary);
+    transition: background .2s, border-color .2s, box-shadow .2s;
+}
+.aq-stat-card:hover { box-shadow: var(--shadow-md); }
+
+.aq-stat-value { color: var(--text-primary); }
+.aq-stat-label { color: var(--text-muted); }
+.aq-stat-sub   { color: var(--text-secondary); }
+
+/* icon wrappers — keep hue, neutralise lightness in dark */
+.aq-stat-icon.bg-cyan-50    { background: var(--accent-light); }
+.aq-stat-icon.bg-blue-50    { background: var(--info-light); }
+.aq-stat-icon.bg-emerald-50 { background: var(--success-light); }
+.aq-stat-icon.bg-red-50     { background: var(--danger-light); }
+.aq-stat-icon.bg-slate-50   { background: var(--bg-muted); }
+
+/* ── parameter cards ── */
+.aq-param-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+.aq-param-card .param-name  { color: var(--text-muted); }
+.aq-param-card .param-value { color: var(--text-primary); }
+.aq-param-card .param-unit  { color: var(--text-secondary); }
+.aq-param-card p            { color: var(--text-secondary); }
+.aq-progress                { background: var(--border); }
+
+.aq-param-badge.bg-cyan-50   { background: var(--accent-light);   color: var(--accent);   border-color: var(--accent-light); }
+.aq-param-badge.bg-blue-50   { background: var(--info-light);     color: var(--info);     border-color: var(--info-light); }
+.aq-param-badge.bg-indigo-50 { background: var(--info-light);     color: var(--info);     border-color: var(--info-light); }
+.aq-param-badge.bg-amber-50  { background: var(--warning-light);  color: var(--warning);  border-color: var(--warning-light); }
+.aq-param-badge.bg-violet-50 { background: var(--info-light);     color: var(--info);     border-color: var(--info-light); }
+.aq-param-badge.bg-slate-50  { background: var(--bg-muted);       color: var(--text-muted); border-color: var(--border); }
+
+/* ── section cards ── */
+.aq-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+.aq-card-header {
+    background: var(--bg-muted);
+    border-bottom: 1px solid var(--border);
+}
+.aq-card-title { color: var(--text-primary); }
+
+/* ── banner ── */
+.aq-banner {
+    border-color: var(--border);
+}
+[data-theme="light"] .aq-banner {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #dbeafe 100%);
+}
+[data-theme="dark"] .aq-banner {
+    background: linear-gradient(135deg,
+        rgba(8,145,178,.15) 0%,
+        rgba(14,116,144,.12) 40%,
+        rgba(30,64,175,.10) 100%);
+}
+
+/* ── table ── */
+.aq-table                  { color: var(--text-primary); }
+.aq-table thead th         { background: var(--bg-muted); color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.aq-table tbody td         { border-bottom: 1px solid var(--border); }
+.aq-table tbody tr:hover td{ background: var(--bg-hover); }
+.aq-table tfoot tr         { border-top: 1px solid var(--border); }
+
+/* ── filter bar ── */
+.aq-filter-bar        { background: var(--bg-muted); border-bottom: 1px solid var(--border); }
+.aq-filter-bar label  { color: var(--text-muted); }
+.aq-filter-bar input,
+.aq-filter-bar select {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+}
+.aq-filter-bar input::placeholder { color: var(--text-muted); }
+.aq-filter-bar input:focus,
+.aq-filter-bar select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-light); }
+
+/* ── badges ── */
+.badge-green  { background: var(--success-light); color: var(--success); border-color: var(--success-light); }
+.badge-amber  { background: var(--warning-light); color: var(--warning); border-color: var(--warning-light); }
+.badge-red    { background: var(--danger-light);  color: var(--danger);  border-color: var(--danger-light); }
+.badge-blue   { background: var(--info-light);    color: var(--info);    border-color: var(--info-light); }
+.badge-slate  { background: var(--bg-muted);      color: var(--text-muted); border-color: var(--border); }
+.badge-violet { background: var(--info-light);    color: var(--info);    border-color: var(--info-light); }
+
+/* ── modals ── */
+#threshold-modal > div {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+}
+#threshold-modal h3          { color: var(--text-primary); }
+#threshold-modal .text-slate-900,
+#threshold-modal .text-slate-800 { color: var(--text-primary) !important; }
+#threshold-modal .text-slate-600,
+#threshold-modal .text-slate-500 { color: var(--text-secondary) !important; }
+#threshold-modal .border-slate-100 { border-color: var(--border) !important; }
+#threshold-modal .bg-slate-100 { background: var(--bg-muted) !important; color: var(--text-primary) !important; }
+#threshold-modal .bg-cyan-50   { background: var(--accent-light) !important; border-color: var(--accent-light) !important; color: var(--accent) !important; }
+#threshold-modal .bg-amber-50  { background: var(--warning-light) !important; border-color: var(--warning-light) !important; color: var(--warning) !important; }
+#threshold-modal .bg-amber-100 { background: var(--warning-light) !important; }
+#threshold-modal code          { background: var(--bg-muted); color: var(--warning); border-radius: 3px; padding: 0 3px; }
+
+/* ── Leaflet ── */
+.leaflet-control-zoom a {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    color: var(--accent) !important;
+}
+.leaflet-control-zoom a:hover { background: var(--bg-hover) !important; }
+.leaflet-popup-content-wrapper {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-primary) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+.leaflet-popup-tip { background: var(--bg-card) !important; }
+.leaflet-popup-close-button { color: var(--text-muted) !important; }
+.leaflet-popup-close-button:hover { color: var(--accent) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. DATA-COLLECTION CARD
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.dc-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    color: var(--text-primary);
+}
+.dc-card-title { color: var(--text-primary); }
+.dc-card-sub   { color: var(--text-secondary); }
+
+.dc-status-bar           { background: var(--bg-muted); border: 1px solid var(--border); }
+.dc-status-bar .status-text { color: var(--text-secondary); }
+.dc-status-bar .stat-item   { color: var(--text-secondary); }
+.dc-status-bar .stat-val    { color: var(--text-primary); }
+
+.dc-panel          { background: var(--bg-muted); border: 1px solid var(--border); }
+.dc-panel h3       { color: var(--text-primary); }
+.dc-panel p        { color: var(--text-secondary); }
+
+.dc-label          { color: var(--text-muted); }
+.dc-input,
+.dc-select         { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-primary); }
+.dc-input:focus,
+.dc-select:focus   { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-light); }
+
+.dc-btn-primary    { background: var(--accent); color: #fff; border: none; }
+.dc-btn-primary:hover { background: var(--accent-hover); }
+
+.dc-btn-secondary  { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); }
+.dc-btn-secondary:hover { background: var(--bg-hover); }
+
+.dc-file-input     { color: var(--text-secondary); }
+.dc-file-input::file-selector-button {
+    background: var(--accent-light);
+    border: 1px solid var(--border);
+    color: var(--accent);
+}
+.dc-file-input::file-selector-button:hover { background: var(--border); }
+
+.dc-result         { background: var(--bg-muted); border: 1px solid var(--border); color: var(--text-primary); }
+.dc-result .result-title         { color: var(--text-primary); }
+.dc-result .result-section-title { color: var(--text-primary); }
+.dc-result .result-label         { color: var(--text-secondary); }
+.dc-result .result-muted         { color: var(--text-muted); }
+.dc-result .result-warning       { background: var(--warning-light); border: 1px solid var(--warning); color: var(--warning); }
+.dc-result .result-critique      { color: var(--danger); }
+.dc-result .result-alerte        { color: var(--warning); }
+.dc-result .result-ok            { color: var(--success); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. ANALYTICS PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.analytics-wrap .glass,
+.analytics-wrap .glass-strong {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: var(--shadow-sm) !important;
+    backdrop-filter: none;
+}
+.analytics-wrap .glass:hover { box-shadow: var(--shadow-md) !important; }
+
+.analytics-wrap h1,
+.analytics-wrap h2              { color: var(--text-primary) !important; }
+.analytics-wrap .text-white     { color: var(--text-primary) !important; }
+.analytics-wrap .text-cyan-100\/50,
+.analytics-wrap .text-cyan-100\/60 { color: var(--text-secondary) !important; }
+.analytics-wrap .text-cyan-100\/40,
+.analytics-wrap .text-cyan-100\/30 { color: var(--text-muted) !important; }
+.analytics-wrap .text-cyan-100\/70 { color: var(--text-secondary) !important; }
+.analytics-wrap .text-cyan-300  { color: var(--accent) !important; }
+.analytics-wrap .text-teal-300,
+.analytics-wrap .text-teal-400  { color: var(--success) !important; }
+.analytics-wrap .text-red-300,
+.analytics-wrap .text-red-400   { color: var(--danger) !important; }
+.analytics-wrap .text-amber-300,
+.analytics-wrap .text-amber-400 { color: var(--warning) !important; }
+.analytics-wrap .text-blue-300  { color: var(--info) !important; }
+
+.analytics-wrap table           { color: var(--text-primary); }
+.analytics-wrap thead tr        { border-bottom: 1px solid var(--border); }
+.analytics-wrap tbody tr td     { border-bottom: 1px solid var(--border); }
+.analytics-wrap tbody tr:hover  { background: var(--bg-hover); }
+.analytics-wrap tfoot tr        { border-top: 1px solid var(--border); }
+.analytics-wrap thead th        { color: var(--text-muted) !important; background: var(--bg-muted); }
+
+.analytics-wrap select {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: .625rem;
+    padding: .375rem .75rem;
+}
+.analytics-wrap .divide-white\/5 > * { border-color: var(--border) !important; }
+.analytics-wrap .border-white\/5,
+.analytics-wrap .border-white\/10 { border-color: var(--border) !important; }
+.analytics-wrap .bg-slate-950\/60 { background: var(--bg-muted) !important; }
+
+.chart-tooltip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-md);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. PROFILE PAGE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.profile-page          { background: var(--bg-app); }
+
+.pro-card              { background: var(--bg-card); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.pro-card-title        { color: var(--text-primary); }
+.pro-card-body h2      { color: var(--text-primary); }
+.pro-card-body p       { color: var(--text-secondary); }
+
+.pro-stat-val          { color: var(--text-primary); }
+.pro-stat-lbl          { color: var(--text-muted); }
+.pro-stats             { border-top-color: var(--border); }
+
+.pro-field label       { color: var(--text-muted); }
+.pro-field input {
+    background: var(--bg-input);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+.pro-field input[readonly] { background: var(--bg-muted); }
+.pro-field input:not([readonly]):focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-light); }
+
+.pro-setting           { background: var(--bg-muted); border-color: var(--border); }
+.pro-setting:hover     { background: var(--bg-hover); }
+.pro-setting-title     { color: var(--text-primary); }
+.pro-setting-sub       { color: var(--text-muted); }
+
+.pro-quick-btn         { background: var(--bg-card); border-color: var(--border); color: var(--text-primary); }
+.pro-quick-btn:hover   { background: var(--bg-hover); border-color: var(--border-focus); }
+
+.pro-activity          { background: var(--bg-muted); border-color: var(--border); }
+.pro-activity-title    { color: var(--text-primary); }
+.pro-activity-time     { color: var(--text-muted); }
+
+.pro-back              { background: var(--bg-card); border-color: var(--border); color: var(--text-secondary); }
+.pro-back:hover        { background: var(--bg-hover); color: var(--accent); }
+
+.pro-page-title        { color: var(--text-primary); }
+.pro-page-sub          { color: var(--text-secondary); }
+
+.pro-toggle-track      { background: var(--border); }
+.pro-toggle input:checked + .pro-toggle-track { background: var(--accent); }
+
+/* role badges use semantic vars */
+.pro-role-admin      { background: var(--info-light);    color: var(--info);    border-color: var(--info-light); }
+.pro-role-manager    { background: var(--info-light);    color: var(--info);    border-color: var(--info-light); }
+.pro-role-technician { background: var(--accent-light);  color: var(--accent);  border-color: var(--accent-light); }
+.pro-role-citizen    { background: var(--success-light); color: var(--success); border-color: var(--success-light); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. LIGHT-SHELL (aqua-manager-standalone) — boost specificity for vars
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The light-shell already handles most overrides via class matching.
+   These rules catch the remaining hardcoded cases using token vars. */
+
+.aqua-manager-standalone {
+    color: var(--text-primary);
+    background: var(--bg-app);
+}
+
+/* header buttons (Seuils, Points, Exporter) */
+.aqua-manager-standalone .border-slate-300.bg-white {
+    background: var(--bg-card) !important;
+    border-color: var(--border) !important;
+    color: var(--text-primary) !important;
+}
+.aqua-manager-standalone .border-slate-300.bg-white:hover {
+    background: var(--bg-hover) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. GENERAL — any remaining hardcoded whites inside themed wrappers
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* manager catalog pages (zones, infras) */
+.manager-catalog-page {
+    color: var(--text-primary);
+}
+.manager-catalog-page .glass,
+.manager-catalog-page .glass-strong {
+    background: var(--bg-card);
+    border-color: var(--border);
+}
+
+/* Toast container — always uses CSS vars already */
+
+/* Pagination links */
+nav[aria-label] .page-link,
+nav[aria-label] a,
+nav[aria-label] span {
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border-color: var(--border);
+}
+nav[aria-label] .active span,
+nav[aria-label] [aria-current] {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}

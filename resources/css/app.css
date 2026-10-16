@@ -3975,3 +3975,6 @@ body:has(.landing-shell) > .ai-assistant-wrapper > #ai-chat-panel {
 [data-theme="light"] #main-content .manager-catalog-page [class*="text-cyan-200/"] {
   color: #0e6478 !important;
 }
+
+/* -- Theme-sync: custom components auto-adapt to light/dark tokens -- */
+@import './theme-sync.css';
