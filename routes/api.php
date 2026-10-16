@@ -24,9 +24,7 @@ Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
 | Public zone and infrastructure endpoints
 |--------------------------------------------------------------------------
 */
-Route::middleware('throttle:60,1')->group(function () {
-    Route::get('/zones', [ZoneApiController::class, 'index'])
-        ->name('api.zones.index');
+Route::middleware('jwt.authenticate')->group(function () {
 
     Route::get('/zones/{zone}', [ZoneApiController::class, 'show'])
         ->name('api.zones.show');

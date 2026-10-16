@@ -14,8 +14,22 @@
     <!-- App styles & scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Lucide icons (CDN — loaded before body so icons resolve on first paint) -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Additional Styles -->
+    @stack('styles')
+</head>
+<body class="antialiased bg-[#04121b] text-white min-h-screen">
+    <div id="app" class="min-h-screen flex flex-col">
+        @yield('content')
+    </div>
+
+    <!-- AI Assistant (Global) -->
+    <x-ai-assistant />
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 max-w-sm"></div>
 
    @stack('styles')
     <div class="route-sweep" aria-hidden="true">

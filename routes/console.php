@@ -3,24 +3,16 @@
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
-use Illuminate\Foundation\Inspiring;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Vérifier quotidiennement la maintenance des infrastructures.
-Schedule::command('infrastructures:check-maintenance')
-    ->dailyAt('06:00');
+// Run the simulation fill nightly to keep dashboards populated when no real data arrives.
+// The simulation provider only generates data for points stale for > 30 days.
+// Adjust frequency as needed; 'daily' is safe because the provider is idempotent.
+Schedule::command('water:sync --provider=simulation')->daily()->withoutOverlapping(10);
 
-// Synchronisation quotidienne des données simulées.
-// Le fournisseur doit éviter de régénérer les données récentes.
-Schedule::command('water:sync --provider=simulation')
-    ->daily()
-    ->withoutOverlapping(10);
-
-// Synchronisation hebdomadaire des données externes.
-// Nécessite une configuration valide du fournisseur externe.
-Schedule::command('water:sync --provider=data_gov_tn --no-simulation')
-    ->weekly()
-    ->withoutOverlapping(30);
+// Run external providers (data.gov.tn, etc.) weekly — reduce API load.
+// Comment out if DATA_GOV_TN_DATASET_ID is not configured.
+Schedule::command('water:sync --provider=data_gov_tn --no-simulation')->weekly()->withoutOverlapping(30);

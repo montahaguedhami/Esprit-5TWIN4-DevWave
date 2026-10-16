@@ -140,7 +140,6 @@ Route::get('/reset-password/{token}', function (Request $request, $token) {
     ]);
 })->name('password.reset');
 
-
 Route::post('/reset-password', function (Request $request) {
     $validated = $request->validate([
         'token'    => ['required', 'string'],
