@@ -16,7 +16,10 @@ class FinancementController extends Controller
      */
     public function index(Request $request)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -37,11 +40,15 @@ class FinancementController extends Controller
      */
     public function create(Request $request)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
-        $projets  = Projet::orderBy('nom')->get();
+        $projets = Projet::orderBy('nom')->get();
+
         $projetId = $request->query('projet_id');
 
         return view('manager.financements.create', compact('projets', 'projetId'));
@@ -64,7 +71,10 @@ class FinancementController extends Controller
      */
     public function show(Financement $financement)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -78,7 +88,10 @@ class FinancementController extends Controller
      */
     public function edit(Financement $financement)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -104,7 +117,10 @@ class FinancementController extends Controller
      */
     public function destroy(Financement $financement)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 

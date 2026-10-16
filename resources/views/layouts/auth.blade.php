@@ -1,41 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-[#04121b] text-white relative overflow-hidden flex flex-col justify-center">
-    <!-- Atmospheric Rain & Vignette Overlay -->
-    <x-rain-effect :count="48" />
-    <div class="absolute inset-0 bg-gradient-to-b from-[#04121b]/80 via-transparent to-[#04121b]/90 pointer-events-none"></div>
-
-    <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
-        <a href="{{ route('landing') }}" class="flex items-center gap-3 group">
-            <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
-                <i data-lucide="droplet" class="w-6 h-6 text-white"></i>
-            </span>
-            <span class="font-display text-xl font-semibold text-white tracking-tight">AquaSecure</span>
+<div class="auth-layout">
+    <div class="auth-tools" aria-label="Contrôles de la page">
+        <a href="{{ route('landing') }}" class="auth-home-link">
+            <i data-lucide="arrow-left" aria-hidden="true"></i>
+            <span>Accueil</span>
         </a>
-        <a href="{{ route('landing') }}" class="liquid-tool text-white/80 hover:text-white" aria-label="Retour à l'accueil">
-            <i data-lucide="x" class="w-5 h-5"></i>
-        </a>
-    </nav>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+            <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+    </div>
 
-    <!-- Main Content Shell -->
-    <main class="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-8 py-12 w-full max-w-[1500px] mx-auto">
+    {{-- Main content --}}
+    <main class="auth-main">
         @yield('auth-content')
     </main>
 
-    <!-- Toast Notifications -->
     <x-ui.toast />
 </div>
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+});
 </script>
 @endpush
 @endsection
-

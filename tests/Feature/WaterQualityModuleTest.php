@@ -534,4 +534,3 @@ class WaterQualityModuleTest extends TestCase
             ->assertDontSee('Valider');
     }
 }
-

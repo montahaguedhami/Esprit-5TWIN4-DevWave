@@ -17,6 +17,8 @@ class Incident extends Model
         'statut',
         'date_signalement',
         'localisation',
+        'zone_id',
+        'infrastructure_id',
         'user_id',
     ];
 
@@ -32,5 +34,15 @@ class Incident extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function zone(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Zone::class);
+    }
+
+    public function infrastructure(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Infrastructure::class);
     }
 }

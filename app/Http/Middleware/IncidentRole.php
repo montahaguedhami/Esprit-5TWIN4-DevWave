@@ -16,7 +16,7 @@ class IncidentRole
             return redirect()->route('auth.login');
         }
 
-        $sessionRole  = Role::normalizeSlug($request->session()->get('user.role'));
+        $sessionRole = Role::normalizeSlug($request->session()->get('user.role'));
         $expectedRole = Role::normalizeSlug($role);
 
         abort_unless($sessionRole === $expectedRole, 403);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Projet extends Model
@@ -54,7 +55,15 @@ class Projet extends Model
     }
 
     /**
-     * Get the total amount financed for this projet.
+      * Get the zones associated with the projet.
+      */
+    public function zones(): BelongsToMany
+    {
+         return $this->belongsToMany(Zone::class, 'projet_zone')->withTimestamps();
+    }
+
+    /**
+      * Get the total amount financed for this projet.
      */
     public function getTotalFinanceAttribute(): float
     {

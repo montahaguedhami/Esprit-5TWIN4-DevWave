@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Manager\MapController;
 use App\Http\Controllers\Manager\PointMesureController;
 use App\Http\Controllers\Manager\WaterQualityController;
 use App\Http\Controllers\InfrastructureController;
+use App\Http\Controllers\Manager\InventaireExportController;
 use App\Http\Controllers\ZoneController;
 
 // Landing Page (Public)
@@ -141,10 +143,11 @@ Route::middleware('role:citoyen')->group(function () {
 // ── Technicien ────────────────────────────────────────────────────────────────
 Route::middleware('role:technicien')->group(function () {
     Route::get('/technician/dashboard',              fn () => view('technician.dashboard'))->name('technician.dashboard');
-    Route::get('/technician/interventions',          fn () => view('technician.interventions.index'))->name('technician.interventions.index');
-    Route::get('/technician/interventions/{id}',     fn ($id) => view('technician.interventions.show', ['id' => $id]))->name('technician.interventions.show');
-    Route::get('/technician/interventions/{id}/report', fn ($id) => view('technician.interventions.report', ['id' => $id]))->name('technician.interventions.report');
-    Route::post('/technician/interventions/{id}/report', fn ($id) => redirect()->route('technician.interventions.index')->with('success', 'Rapport d\'intervention créé avec succès'))->name('technician.interventions.report.store');
+    Route::get('/technician/interventions', [\App\Http\Controllers\Technician\InterventionController::class, 'index'])->name('technician.interventions.index');
+    Route::get('/technician/interventions/{id}', [\App\Http\Controllers\Technician\InterventionController::class, 'show'])->name('technician.interventions.show');
+    Route::post('/technician/interventions/{id}/start', [\App\Http\Controllers\Technician\InterventionController::class, 'start'])->name('technician.interventions.start');
+    Route::get('/technician/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'report'])->name('technician.interventions.report');
+    Route::post('/technician/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'storeReport'])->name('technician.interventions.report.store');
     Route::get('/technician/equipment',              fn () => view('technician.equipment'))->name('technician.equipment');
 });
 
@@ -188,8 +191,8 @@ Route::middleware('role:manager')->group(function () {
     })->name('manager.budget');
 
     Route::get('/manager/analytics', fn () => view('manager.analytics'))->name('manager.analytics');
-    Route::get('/manager/map',       MapController::class)->name('manager.map');
-    Route::get('/manager/quality',   [WaterQualityController::class, 'index'])->name('manager.quality');
+    Route::get('/manager/map', MapController::class)->name('manager.map');
+    Route::get('/manager/quality', [WaterQualityController::class, 'index'])->name('manager.quality');
 
     Route::resource('/manager/points-mesure', PointMesureController::class)
         ->parameters(['points-mesure' => 'point_mesure'])
@@ -203,14 +206,76 @@ Route::middleware('role:manager')->group(function () {
     Route::post('/manager/quality/mesures/{mesure}/validate', [WaterQualityController::class, 'validateMeasurement'])
         ->name('manager.quality.mesures.validate');
 
-    Route::get('/manager/teams',   fn () => view('manager.teams'))->name('manager.teams');
+    Route::get('/manager/teams', fn () => view('manager.teams'))->name('manager.teams');
     Route::get('/manager/reports', fn () => view('manager.reports'))->name('manager.reports');
 });
 
 Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(function () {
-    Route::resource('zones',           ZoneController::class);
+    Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
+    Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
+    Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
+    Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
+    Route::resource('zones', ZoneController::class);
+    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
     Route::resource('infrastructures', InfrastructureController::class);
 });
+
+Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
+    Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
+    Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
+    Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
+    Route::resource('zones', ZoneController::class);
+    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
+    Route::resource('infrastructures', InfrastructureController::class);
+});
+
+Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
+    Route::get('/zones', [\App\Http\Controllers\Citizen\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Citizen\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/infrastructures', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'index'])->name('infrastructures.index');
+    Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'show'])->name('infrastructures.show');
+});
+
+Route::middleware('role:technicien')->prefix('technician')->name('technician.')->group(function () {
+    Route::get('/zones', [\App\Http\Controllers\Technician\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Technician\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/infrastructures', [\App\Http\Controllers\Technician\InfrastructureController::class, 'index'])->name('infrastructures.index');
+    Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Technician\InfrastructureController::class, 'show'])->name('infrastructures.show');
+    Route::patch('/infrastructures/{infrastructure}/etat', [\App\Http\Controllers\Technician\InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::get('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'scan'])->name('scan');
+    Route::post('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'processScan'])->name('scan.process');
+    Route::get('/tournee', [\App\Http\Controllers\Technician\TourneeController::class, 'index'])->name('tournee');
+    Route::get('/incidents/create', [\App\Http\Controllers\Technician\IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [\App\Http\Controllers\Technician\IncidentController::class, 'store'])->name('incidents.store');
+});
+
+if (app()->environment(['local', 'testing'])) {
+    Route::get('/switch-role/{role}', function (string $role) {
+        $rolesMap = [
+            'admin' => ['name' => 'Amina Kacem (System Admin)', 'email' => 'admin@aquasecure.tn', 'role' => 'admin', 'route' => 'admin.dashboard'],
+            'manager' => ['name' => 'Ines Mansouri (Utility Manager)', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.dashboard'],
+            'quality' => ['name' => 'Dr. Selim Dridi (Water Quality Specialist)', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.quality'],
+            'technician' => ['name' => 'Amira Ben Ali (Field Technician)', 'email' => 'amira@aquasecure.tn', 'role' => 'technician', 'route' => 'technician.dashboard'],
+            'finance' => ['name' => 'Moncef Triki (Finance Manager)', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.budget'],
+            'citizen' => ['name' => 'Yassine Hamdi (Resident Citizen)', 'email' => 'citoyen@aquasecure.tn', 'role' => 'citizen', 'route' => 'citizen.dashboard'],
+        ];
+
+        abort_unless(isset($rolesMap[$role]), 404);
+
+        $user = $rolesMap[$role];
+        session(['user' => [
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'role' => $user['role'],
+            'role_key' => $role,
+        ]]);
+
+        return redirect()->route($user['route'])->with('success', 'Passé au rôle : ' . $user['name']);
+    })->name('switch.role');
+}
 
 // ── Administrateur ────────────────────────────────────────────────────────────
 Route::middleware('role:administrateur')->group(function () {
@@ -247,9 +312,10 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
 });
 
 // ── Travaux (citizen read-only) ───────────────────────────────────────────────
+Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
+Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
+
 Route::middleware('role:citoyen')->group(function () {
-    Route::get('/citizen/travaux',               [TravauxController::class, 'index'])->name('citizen.travaux.index');
-    Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
     Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
         Route::get('/',        [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
         Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');

@@ -108,6 +108,7 @@ class WaterQualityController extends Controller
             ->whereNotNull('longitude')
             ->get()
             ->map(fn (PointMesure $point) => $this->pointForMap($point));
+        $user = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
 
         $allPointsForFilter = PointMesure::orderBy('nom')->get(['id', 'nom', 'code']);
 
@@ -120,7 +121,8 @@ class WaterQualityController extends Controller
             'activePointsCount',
             'chartRecords',
             'points',
-            'allPointsForFilter'
+            'allPointsForFilter',
+            'user'
         ));
     }
 

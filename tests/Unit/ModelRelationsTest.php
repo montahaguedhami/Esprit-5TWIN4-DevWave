@@ -10,7 +10,6 @@ use App\Models\MesureQualite;
 use App\Models\PointMesure;
 use App\Models\User;
 use App\Models\Zone;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -91,8 +90,8 @@ class ModelRelationsTest extends TestCase
         $this->assertTrue($zone->infrastructures->contains($infrastructure));
         $this->assertTrue($infrastructure->zone->is($zone));
 
-        $this->expectException(QueryException::class);
-        $zone->delete();
+        $this->assertFalse($zone->delete());
+        $this->assertFalse($zone->trashed());
     }
 
     public function test_mesure_qualite_casts_numeric_and_boolean_fields(): void

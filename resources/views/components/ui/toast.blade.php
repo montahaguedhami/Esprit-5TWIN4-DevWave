@@ -14,25 +14,25 @@ function showToast(message, type = 'info', duration = 5000) {
         success: {
             bg: 'bg-emerald-500/10',
             border: 'border-emerald-400/30',
-            text: 'text-emerald-400',
+            text: 'text-emerald-700',
             icon: 'check-circle',
         },
         error: {
             bg: 'bg-rose-500/10',
             border: 'border-rose-400/30',
-            text: 'text-rose-400',
+            text: 'text-rose-700',
             icon: 'x-circle',
         },
         warning: {
             bg: 'bg-amber-500/10',
             border: 'border-amber-400/30',
-            text: 'text-amber-400',
+            text: 'text-amber-700',
             icon: 'alert-triangle',
         },
         info: {
             bg: 'bg-cyan-500/10',
             border: 'border-cyan-400/30',
-            text: 'text-cyan-400',
+            text: 'text-cyan-800',
             icon: 'info',
         },
     };
@@ -46,13 +46,13 @@ function showToast(message, type = 'info', duration = 5000) {
     toast.innerHTML = `
         <i data-lucide="${cfg.icon}" class="w-5 h-5 ${cfg.text} flex-shrink-0 mt-0.5"></i>
         <div class="flex-1 min-w-0">
-            <p class="text-sm text-white font-medium">${message}</p>
+            <p class="text-sm text-slate-800 font-medium">${message}</p>
         </div>
         <button 
             onclick="removeToast('${toastId}')"
-            class="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors flex-shrink-0"
+            class="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors flex-shrink-0"
         >
-            <i data-lucide="x" class="w-4 h-4 text-cyan-100/60"></i>
+            <i data-lucide="x" class="w-4 h-4 text-slate-500"></i>
         </button>
     `;
     

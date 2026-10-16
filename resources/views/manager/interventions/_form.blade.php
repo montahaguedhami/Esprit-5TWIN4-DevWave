@@ -11,6 +11,18 @@
         @endforeach
     </x-forms.select>
 
+    {{-- Relation optionnelle : infrastructure concernée --}}
+    <x-forms.select name="infrastructure_id" label="Infrastructure concernée (optionnel)" placeholder="Aucune (intervention non rattachée)" :error="$errors->first('infrastructure_id')" class="sm:col-span-2">
+        <option value="">Aucune infrastructure spécifique</option>
+        @if(isset($infrastructures))
+            @foreach($infrastructures as $infra)
+                <option value="{{ $infra->id }}" @selected((string) old('infrastructure_id', $intervention->infrastructure_id) === (string) $infra->id)>
+                    {{ $infra->nom }} (Zone : {{ $infra->zone?->nom ?? 'Sans zone' }})
+                </option>
+            @endforeach
+        @endif
+    </x-forms.select>
+
     <x-forms.input type="date" name="date" label="Date de l'intervention"
         :value="$intervention->date?->format('Y-m-d')" :error="$errors->first('date')" required />
 
