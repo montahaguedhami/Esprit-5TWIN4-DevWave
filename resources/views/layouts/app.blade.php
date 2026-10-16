@@ -17,15 +17,7 @@
     <!-- Lucide icons (CDN — loaded before body so icons resolve on first paint) -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-   @stack('styles')
-    <div class="route-sweep" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-
-    <!-- Scripts -->
-    @stack('scripts')
+    @stack('styles')
 
     {{-- Apply saved theme BEFORE paint to avoid flash --}}
     <script>
