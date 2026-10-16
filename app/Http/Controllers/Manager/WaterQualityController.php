@@ -93,6 +93,17 @@ class WaterQualityController extends Controller
             ? round((float) MesureQualite::avg('overall_compliance'), 2)
             : null;
         $activePointsCount = PointMesure::where('statut', 'actif')->count();
+        $recentMeasurementsCount = MesureQualite::where('date_mesure', '>=', now()->subDays(7))->count();
+        $activeAlertsCount = MesureQualite::where('date_mesure', '>=', now()->subDays(30))
+            ->whereIn('status', ['Alert', 'Non-Compliant'])
+            ->count();
+        $realMeasurementsCount = MesureQualite::where('date_mesure', '>=', now()->subDays(30))
+            ->where('source_type', 'real')
+            ->count();
+        $recentMeasurementsBaseCount = MesureQualite::where('date_mesure', '>=', now()->subDays(30))->count();
+        $realDataCoverage = $recentMeasurementsBaseCount > 0
+            ? round(($realMeasurementsCount / $recentMeasurementsBaseCount) * 100, 1)
+            : 0.0;
 
         $chartCutoff  = now()->subDays(30)->format('Y-m-d H:i');
         $chartRecords = MesureQualite::with('pointMesure')
@@ -118,6 +129,9 @@ class WaterQualityController extends Controller
             'latestAssessment',
             'averageCompliance',
             'activePointsCount',
+            'recentMeasurementsCount',
+            'activeAlertsCount',
+            'realDataCoverage',
             'chartRecords',
             'points',
             'allPointsForFilter'
@@ -250,12 +264,12 @@ class WaterQualityController extends Controller
             'measurement_id'     => $mesure->id,
             'sampling_point'     => $mesure->pointMesure?->nom ?? 'Point supprimé',
             'zone'               => $mesure->pointMesure?->zone ?? '—',
-            'date'               => $mesure->date_mesure->format('Y-m-d H:i'),
-            'pH'                 => (float) $mesure->ph,
-            'turbidity'          => (float) $mesure->turbidite,
-            'residual_chlorine'  => (float) $mesure->chlore_residuel,
-            'lead_pb'            => (float) $mesure->plomb,
-            'nitrates'           => (float) $mesure->nitrates,
+            'date'               => $mesure->date_mesure?->format('Y-m-d H:i') ?? '-',
+            'pH'                 => (float) ($mesure->ph ?? 0),
+            'turbidity'          => (float) ($mesure->turbidite ?? 0),
+            'residual_chlorine'  => (float) ($mesure->chlore_residuel ?? 0),
+            'lead_pb'            => (float) ($mesure->plomb ?? 0),
+            'nitrates'           => (float) ($mesure->nitrates ?? 0),
             'source_donnee'      => $mesure->source_donnee ?? 'manuel',
             'is_verified'        => $mesure->is_verified,
             'verifier'           => $mesure->verifier,
@@ -294,12 +308,12 @@ class WaterQualityController extends Controller
             'overall_compliance' => $assessment['overall_compliance'] ?? null,
             'measurement'        => $measurement ? [
                 'reference'       => $measurement->reference,
-                'date'            => $measurement->date_mesure->format('Y-m-d H:i'),
-                'ph'              => (float) $measurement->ph,
-                'turbidite'       => (float) $measurement->turbidite,
-                'chlore_residuel' => (float) $measurement->chlore_residuel,
-                'plomb'           => (float) $measurement->plomb,
-                'nitrates'        => (float) $measurement->nitrates,
+                'date'            => $measurement->date_mesure?->format('Y-m-d H:i') ?? '-',
+                'ph'              => (float) ($measurement->ph ?? 0),
+                'turbidite'       => (float) ($measurement->turbidite ?? 0),
+                'chlore_residuel' => (float) ($measurement->chlore_residuel ?? 0),
+                'plomb'           => (float) ($measurement->plomb ?? 0),
+                'nitrates'        => (float) ($measurement->nitrates ?? 0),
                 'is_verified'     => $measurement->is_verified,
                 'verifier'        => $measurement->verifier,
             ] : null,

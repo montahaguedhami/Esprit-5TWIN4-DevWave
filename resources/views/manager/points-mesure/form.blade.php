@@ -24,14 +24,15 @@
             name="code" 
             required 
             minlength="2" 
-            maxlength="50" 
-            placeholder="Ex: TUN-CENTRE-01"
-            value="{{ old('code', $point->code ?? '') }}" 
-            class="mt-1 w-full rounded-xl border @error('code') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white placeholder-slate-500 transition-colors focus:outline-none"
+            maxlength="50"
+            value="{{ old('code', $point->code ?? $nextCode ?? 'PMS-001') }}" 
+            readonly
+            title="Le code est généré automatiquement"
+            class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:outline-none"
         >
         <div class="flex justify-between text-[11px] text-slate-400 mt-1">
             <span>Identifiant officiel unique</span>
-            <span>2–50 car.</span>
+            <span>Auto-généré</span>
         </div>
         @error('code')
             <span class="mt-1 block text-xs text-red-400 font-medium">{{ $message }}</span>
@@ -66,15 +67,36 @@
         <label for="zone" class="block text-sm font-medium text-slate-300">
             Zone / Commune <span class="text-xs text-slate-500">(optionnel)</span>
         </label>
-        <input 
+        @if(isset($zones) && count($zones) > 0)
+        <select
+            id="zone"
+            name="zone"
+            class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-teal-400 focus:outline-none"
+        >
+            <option value="">— Non renseignée —</option>
+            @foreach($zones as $zone)
+                <option value="{{ $zone }}" @selected(old('zone', $point->zone ?? '') === $zone)>{{ $zone }}</option>
+            @endforeach
+        </select>
+        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+            <span>Liste des zones du réseau</span>
+            <span>optionnel</span>
+        </div>
+        @else
+        <input
             type="text"
             id="zone"
-            name="zone" 
-            maxlength="255" 
+            name="zone"
+            maxlength="255"
             placeholder="Ex: Tunis Centre"
-            value="{{ old('zone', $point->zone ?? '') }}" 
+            value="{{ old('zone', $point->zone ?? '') }}"
             class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:border-teal-400 focus:outline-none"
         >
+        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+            <span>Zone / Commune</span>
+            <span>aucune zone enregistrée</span>
+        </div>
+        @endif
         @error('zone')
             <span class="mt-1 block text-xs text-red-400 font-medium">{{ $message }}</span>
         @enderror

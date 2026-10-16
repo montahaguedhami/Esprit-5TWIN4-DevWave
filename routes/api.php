@@ -22,7 +22,7 @@ Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
 | Protected endpoints — require valid JWT access token
 |--------------------------------------------------------------------------
 */
-Route::middleware('jwt.auth')->group(function () {
+Route::middleware('jwt.authenticate')->group(function () {
 
     // Auth management
     Route::post('auth/logout', [JwtAuthController::class, 'logout']);

@@ -26,13 +26,6 @@
         @yield('content')
     </div>
 
-    <div class="fixed bottom-20 left-3 z-[60] max-w-[calc(100vw-1.5rem)] rounded-2xl border border-cyan-300/20 bg-slate-950/90 px-3 py-2 text-xs text-cyan-50 shadow-xl shadow-black/20 backdrop-blur-md sm:bottom-5 sm:left-5 sm:px-4 sm:py-2.5" role="status" aria-label="Mode démonstration">
-        <span class="inline-flex items-center gap-2">
-            <i data-lucide="flask-conical" class="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true"></i>
-            <span><strong class="font-semibold text-cyan-200">Mode démonstration</strong><span class="hidden sm:inline"> · Données fictives, actions simulées</span></span>
-        </span>
-    </div>
-
     <!-- AI Assistant (Global) -->
     <x-ai-assistant />
 

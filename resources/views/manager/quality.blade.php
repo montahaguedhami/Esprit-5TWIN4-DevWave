@@ -332,6 +332,8 @@
 </div>
 
 {{-- Threshold Information Modal --}}
+<x-manager.data-collection-card :points="$allPointsForFilter ?? []" />
+
 <div id="threshold-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
         <div class="flex items-center justify-between">

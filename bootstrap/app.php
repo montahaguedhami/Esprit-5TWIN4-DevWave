@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role'       => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
-            'jwt.auth'   => \App\Http\Middleware\JwtAuthenticate::class,
+            'jwt.authenticate' => \App\Http\Middleware\JwtAuthenticate::class,
             'jwt.role'   => \App\Http\Middleware\JwtCheckRole::class,
         ]);
     })
