@@ -9,6 +9,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -39,7 +40,7 @@ jobs:
           --health-retries=10
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup PHP
@@ -49,8 +50,15 @@ jobs:
           extensions: mbstring, bcmath, pdo_mysql, dom, fileinfo, xml, curl
           coverage: none
 
-      - name: Validate Composer
+      - name: Validate Composer configuration
         run: composer validate --no-check-publish
+
+      - name: Prepare Laravel directories
+        run: |
+          mkdir -p storage/framework/cache/data
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p bootstrap/cache
 
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -60,6 +68,7 @@ jobs:
           cp .env.example .env
           php artisan key:generate
         env:
+          APP_ENV: testing
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
           DB_PORT: 3306
@@ -67,7 +76,18 @@ jobs:
           DB_USERNAME: aquasecure
           DB_PASSWORD: test_password
 
-      - name: Run migrations
+      - name: Clear Laravel configuration cache
+        run: php artisan config:clear
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: aquasecure_test
+          DB_USERNAME: aquasecure
+          DB_PASSWORD: test_password
+
+      - name: Run database migrations
         run: php artisan migrate:fresh --force
         env:
           APP_ENV: testing
@@ -78,7 +98,7 @@ jobs:
           DB_USERNAME: aquasecure
           DB_PASSWORD: test_password
 
-      - name: Run tests
+      - name: Run Laravel tests
         run: php artisan test
         env:
           APP_ENV: testing
@@ -94,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -103,7 +123,7 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
 
       - name: Build Vite assets
