@@ -42,6 +42,33 @@
             <p class="text-sm text-cyan-100/80 mt-3 flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-cyan-300"></i>{{ $intervention->technicien->telephone }}</p>
             <div class="mt-3"><x-maintenance.badge :value="$intervention->technicien->disponibilite" /></div>
         </x-ui.card>
+
+        {{-- Infrastructure concernée (relation optionnelle) --}}
+        <x-ui.card class="md:col-span-3">
+            <h2 class="font-display font-semibold text-white mb-3 flex items-center gap-2">
+                <i data-lucide="cpu" class="w-5 h-5 text-cyan-300"></i> Infrastructure rattachée
+            </h2>
+            @if($intervention->infrastructure)
+                <div class="flex flex-wrap items-center justify-between gap-4 p-3 rounded-xl bg-slate-950/40 border border-white/5">
+                    <div>
+                        <a href="{{ route('manager.infrastructures.show', $intervention->infrastructure) }}" class="text-base font-semibold text-white hover:text-cyan-300 transition">
+                            {{ $intervention->infrastructure->nom }}
+                        </a>
+                        <p class="text-xs text-cyan-100/60 mt-0.5">
+                            {{ $intervention->infrastructure->type->label() }} · Zone : {{ $intervention->infrastructure->zone?->nom ?? 'Sans zone' }}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <x-infrastructure.etat-badge :etat="$intervention->infrastructure->etat" />
+                        <a href="{{ route('manager.infrastructures.show', $intervention->infrastructure) }}" class="text-xs font-medium text-cyan-300 hover:text-cyan-200">
+                            Consulter l'équipement →
+                        </a>
+                    </div>
+                </div>
+            @else
+                <p class="text-sm text-cyan-100/50">Aucune infrastructure spécifique rattachée à cette intervention (intervention générale sur le réseau).</p>
+            @endif
+        </x-ui.card>
     </div>
 </div>
 @endsection

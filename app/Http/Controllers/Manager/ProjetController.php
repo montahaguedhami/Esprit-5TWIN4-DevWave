@@ -15,7 +15,10 @@ class ProjetController extends Controller
      */
     public function index(Request $request)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -46,7 +49,10 @@ class ProjetController extends Controller
      */
     public function create()
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -70,7 +76,10 @@ class ProjetController extends Controller
      */
     public function show(Projet $projet)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -84,7 +93,10 @@ class ProjetController extends Controller
      */
     public function edit(Projet $projet)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -108,7 +120,10 @@ class ProjetController extends Controller
      */
     public function destroy(Projet $projet)
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -125,7 +140,10 @@ class ProjetController extends Controller
      */
     public function map()
     {
-        if (! \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER)) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 

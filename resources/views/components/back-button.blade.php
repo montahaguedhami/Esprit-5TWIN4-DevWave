@@ -10,6 +10,6 @@
 <a href="{{ $fallback }}"
    onclick="if (document.referrer.startsWith(window.location.origin + '/') && window.history.length > 1) { window.history.back(); return false; }"
    title="Retour" aria-label="Retour"
-   {{ $attributes->merge(['class' => 'liquid-tool text-white/80 hover:text-white']) }}>
+   {{ $attributes->merge(['class' => 'liquid-tool text-slate-600 hover:text-cyan-800']) }}>
     <i data-lucide="arrow-left" class="{{ $iconClass }}"></i>
 </a>

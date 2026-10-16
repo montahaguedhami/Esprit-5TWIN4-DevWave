@@ -1,7 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-900">
+<style>
+    .aqua-light-page { min-height: 100vh; background: #f3f7fb !important; color: #102a43; }
+    .aqua-light-page .glass, .aqua-light-page .glass-strong { background: #fff; border: 1px solid #dce7ef; box-shadow: 0 8px 24px rgba(15,42,67,.06); backdrop-filter: none; }
+    .aqua-light-page [class~="text-white"] { color: #102a43 !important; }
+    .aqua-light-page [class~="text-slate-300"], .aqua-light-page [class~="text-slate-400"], .aqua-light-page [class~="text-slate-500"] { color: #64748b !important; }
+    .aqua-light-page [class*="text-cyan-100/"] { color: #64748b !important; }
+    .aqua-light-page [class*="bg-slate-800"], .aqua-light-page [class*="bg-slate-900"], .aqua-light-page [class*="bg-slate-950"] { background-color: #f1f6fa !important; }
+    .aqua-light-page [class*="border-slate-7"], .aqua-light-page [class*="border-slate-8"] { border-color: #e1eaf1 !important; }
+    .aqua-light-page input:not([type="checkbox"]), .aqua-light-page select { color: #102a43; background-color: #fff; border-color: #cbd9e5; }
+    .aqua-light-page .btn-primary { color: #fff !important; }
+    @media (max-width: 640px) {
+        .aqua-light-page .container { padding-left: 1rem; padding-right: 1rem; }
+        .aqua-light-page .notification-item { padding: 1rem; }
+    }
+</style>
+<div class="aqua-light-page min-h-screen bg-slate-50">
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">

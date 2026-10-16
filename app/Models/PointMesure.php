@@ -15,6 +15,7 @@ class PointMesure extends Model
         'code',
         'nom',
         'zone',
+        'zone_id',
         'adresse',
         'latitude',
         'longitude',
@@ -29,6 +30,11 @@ class PointMesure extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    public function zone(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Zone::class);
     }
 
     public function mesuresQualites(): HasMany

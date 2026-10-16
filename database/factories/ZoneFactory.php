@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\ZoneStatut;
+use App\Models\User;
 use App\Models\Zone;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,17 +19,37 @@ class ZoneFactory extends Factory
      */
     public function definition(): array
     {
-        $ville = fake()->randomElement(['Tunis', 'Ariana', 'Ben Arous', 'Sfax', 'Sousse', 'Monastir', 'Bizerte', 'Nabeul', 'Djerba', 'Gabès']);
+        $villes = [
+            'Tunis' => ['lat' => 36.8065, 'lng' => 10.1815, 'superficie' => 346.50, 'pop' => 1056000],
+            'Nabeul' => ['lat' => 36.4561, 'lng' => 10.7376, 'superficie' => 480.00, 'pop' => 380000],
+            'Sousse' => ['lat' => 35.8256, 'lng' => 10.6411, 'superficie' => 266.00, 'pop' => 675000],
+            'Sfax' => ['lat' => 34.7406, 'lng' => 10.7603, 'superficie' => 520.00, 'pop' => 955000],
+            'Djerba' => ['lat' => 33.8076, 'lng' => 10.8572, 'superficie' => 514.00, 'pop' => 164000],
+            'Bizerte' => ['lat' => 37.2744, 'lng' => 9.8739, 'superficie' => 395.00, 'pop' => 568000],
+            'Ariana' => ['lat' => 36.8625, 'lng' => 10.1956, 'superficie' => 482.00, 'pop' => 576000],
+            'Ben Arous' => ['lat' => 36.7531, 'lng' => 10.2189, 'superficie' => 761.00, 'pop' => 631000],
+            'Monastir' => ['lat' => 35.7643, 'lng' => 10.8113, 'superficie' => 1024.00, 'pop' => 548000],
+            'Gabès' => ['lat' => 33.8815, 'lng' => 10.0982, 'superficie' => 7166.00, 'pop' => 374000],
+        ];
+
+        $villeNom = fake()->randomElement(array_keys($villes));
+        $villeData = $villes[$villeNom];
 
         return [
-            'nom' => 'Zone '.$ville.' '.fake()->randomElement(['Nord', 'Sud', 'Est', 'Ouest', 'Centre']),
+            'nom' => 'Zone '.$villeNom.' '.fake()->randomElement(['Nord', 'Sud', 'Est', 'Ouest', 'Centre', 'Littoral']),
             'description' => fake()->randomElement([
-                'Secteur résidentiel desservi par le réseau principal.',
-                'Zone industrielle à forte consommation.',
-                'Secteur côtier soumis à des variations saisonnières de la demande.',
-                'Quartiers périurbains en extension.',
+                'Secteur résidentiel et commercial desservi par le réseau principal de distribution.',
+                'Zone industrielle à haute demande hydrique et surveillance continue de pression.',
+                'Secteur littoral soumis à de fortes variations saisonnières de consommation.',
+                'Périmètre périurbain en extension rapide avec nouvelles adductions.',
             ]),
-            'localisation' => $ville,
+            'localisation' => $villeNom,
+            'latitude' => $villeData['lat'],
+            'longitude' => $villeData['lng'],
+            'superficie_km2' => $villeData['superficie'],
+            'population_desservie' => $villeData['pop'],
+            'statut' => fake()->randomElement([ZoneStatut::Active, ZoneStatut::Active, ZoneStatut::Active, ZoneStatut::Inactive]),
+            'responsable_id' => User::inRandomOrder()->value('id'),
         ];
     }
 }

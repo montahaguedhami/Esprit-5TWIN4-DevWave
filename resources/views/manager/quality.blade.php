@@ -1,53 +1,23 @@
-{{--
-  This view intentionally extends layouts.app instead of layouts.manager.
-  layouts.manager wraps content inside a sidebar+navbar shell that would produce
-  a double navigation bar here, because quality.blade.php already renders its own
-  sticky top header with back-navigation, action buttons, and user menu components.
-  Using layouts.app keeps the full-width dark layout required by the map, chart and
-  data table without the extra nesting that layouts.manager would introduce.
---}}
-@extends('layouts.app')
+@extends('layouts.manager')
 
 @section('title', 'AquaSecure — Qualité de l’eau et mesures')
+
+@php
+    $user = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
+@endphp
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 #quality-map { height: 320px; border-radius: 1rem; }
-.leaflet-tile-pane { filter: brightness(.88) contrast(1.1) saturate(0.8); }
+.leaflet-tile-pane { filter: brightness(.98) contrast(1.02) saturate(.9); }
 </style>
+@include('manager.shared.light-shell')
 @endpush
 
-@section('content')
-<div class="min-h-screen bg-[#070e17] text-slate-100 flex flex-col font-sans">
-
-    {{-- Top Header --}}
-    <header class="sticky top-0 z-50 bg-[#0c1624]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <a href="{{ route('manager.dashboard') }}" class="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </a>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center">
-                        <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i>
-                    </div>
-                    <span class="font-display font-bold text-white text-base">Qualité de l’eau et conformité</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openThresholdModal()" class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 text-xs font-semibold flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Régler les seuils
-                </button>
-                <x-notification-center />
-                <x-user-menu />
-            </div>
-        </div>
-    </header>
-
-    {{-- Main Container --}}
-    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+@section('manager-content')
+<div class="aqua-manager-standalone w-full space-y-6">
         
         {{-- Section Header --}}
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -55,7 +25,10 @@
                 <h1 class="text-2xl font-display font-bold text-white tracking-tight">Qualité de l’eau : mesures et prélèvements</h1>
                 <p class="text-slate-400 text-xs mt-1">Analyses de laboratoire, seuils de contrôle et alertes de contamination.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="openThresholdModal()" class="px-3.5 py-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 text-xs font-semibold flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Régler les seuils
+                </button>
                 <a href="{{ route('manager.points-mesure.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold">Points de prélèvement</a>
                 @can('create', App\Models\MesureQualite::class)
                     @if($activePointsCount > 0)
@@ -160,7 +133,7 @@
             <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden p-4">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="map-pin" class="w-4 h-4 text-teal-400"></i> Carte des stations de prélèvement
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-teal-400"></i> Carte des stations de prélèvement
                     </h3>
                     <span class="text-xs text-slate-400">{{ $activePointsCount }} points de prélèvement actifs</span>
                 </div>
@@ -168,10 +141,10 @@
             </div>
 
             {{-- Chart: 30-Day Quality Trends --}}
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden p-4">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="line-chart" class="w-4 h-4 text-teal-400"></i> Conformité de la qualité de l’eau sur 30 jours
+                        <i data-lucide="line-chart" class="w-3.5 h-3.5 text-teal-400"></i> Conformité de la qualité de l’eau sur 30 jours
                     </h3>
                     <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded">{{ $averageCompliance !== null ? $averageCompliance.'% moyenne' : 'Aucune mesure' }}</span>
                 </div>
@@ -186,7 +159,7 @@
             <div class="p-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i data-lucide="clipboard-list" class="w-4 h-4 text-teal-400"></i> Résultats d'analyses et suivi de la qualité
+                        <i data-lucide="clipboard-list" class="w-3.5 h-3.5 text-teal-400"></i> Résultats d'analyses et suivi de la qualité
                     </h3>
                     <p class="text-xs text-slate-400">Consultez les résultats vérifiés par laboratoire et les relevés en attente de validation.</p>
                 </div>
@@ -253,7 +226,7 @@
                         </button>
                         @if(request()->hasAny(['search', 'point_mesure_id', 'status', 'source_donnee', 'is_verified', 'date_from', 'date_to']))
                             <a href="{{ route('manager.quality') }}" class="rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white px-2.5 py-1.5 text-xs border border-slate-700" title="Réinitialiser les filtres">
-                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Réinitialiser
                             </a>
                         @endif
                     </div>
@@ -263,7 +236,7 @@
                 <table class="w-full text-left text-xs text-slate-300">
                     <thead class="bg-slate-950/80 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
                         <tr>
-                            <th class="px-4 py-3">Sample ID & Point</th>
+                            <th class="px-4 py-3">Sample ID &amp; Point</th>
                             <th class="px-4 py-3">Zone</th>
                             <th class="px-4 py-3">Date</th>
                             <th class="px-4 py-3">pH</th>
@@ -289,14 +262,14 @@
                                 <td class="px-4 py-3 font-mono {{ $rec['turbidity'] > 1.0 ? 'text-amber-400 font-bold' : 'text-slate-200' }}">{{ $rec['turbidity'] }} NTU</td>
                                 <td class="px-4 py-3 font-mono {{ $rec['residual_chlorine'] < 0.2 ? 'text-red-400 font-bold' : 'text-slate-200' }}">{{ $rec['residual_chlorine'] }} mg/L</td>
                                 <td class="px-4 py-3 font-mono {{ $rec['lead_pb'] > 15 ? 'text-red-400 font-bold' : 'text-slate-200' }}">{{ $rec['lead_pb'] }} ppb</td>
-                                <td class="px-4 py-3 font-mono text-slate-200">{{ $rec['nitrates'] }} mg/L</td>
+                                <td class="px-4 py-3 text-slate-200">{{ $rec['nitrates'] }} mg/L</td>
                                 <td class="px-4 py-3">
                                     @if($rec['is_verified'])
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30 inline-flex items-center gap-1">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30 inline-flex items-center gap-2">
                                             <i data-lucide="check-circle-2" class="w-3 h-3 text-teal-400"></i> Vérifié en laboratoire
                                         </span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 inline-flex items-center gap-2">
                                             <i data-lucide="clipboard-check" class="w-3 h-3 text-amber-400"></i> Relevé à vérifier
                                         </span>
                                     @endif
@@ -308,7 +281,7 @@
                                     @elseif($src === 'simule')
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/15 text-slate-400 border border-slate-600">Simulé</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/15 text-violet-300 border border-violet-500/30">Manuel</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/15 text-violet-300 border border-violet-600">Manuel</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right font-bold {{ $rec['status'] === 'Compliant' ? 'text-emerald-400' : ($rec['status'] === 'Alert' ? 'text-amber-400' : 'text-red-400') }}">
@@ -341,7 +314,7 @@
                 <i data-lucide="sliders" class="w-5 h-5 text-teal-400"></i> Seuils appliqués
             </h3>
             <button onclick="closeThresholdModal()" class="text-slate-400 hover:text-white">
-                <i data-lucide="x" class="w-5 h-5"></i>
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
             </button>
         </div>
         <p class="text-xs text-slate-300 bg-slate-800/60 border border-slate-600 rounded-xl px-3 py-2 italic">
@@ -387,8 +360,7 @@
             <button onclick="closeThresholdModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold">Fermer</button>
         </div>
     </div>
-</div></div>
-@endsection
+</div>@endsection
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -420,7 +392,11 @@ function closeThresholdModal() { document.getElementById('threshold-modal').clas
 
 function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
     })[char]);
 }
 

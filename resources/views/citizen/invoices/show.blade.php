@@ -134,7 +134,7 @@
                 </div>
                 
                 <!-- Consumption Table -->
-                <div class="glass rounded-xl overflow-hidden">
+                <div class="glass frontoffice-table rounded-xl overflow-x-auto">
                     <table class="w-full">
                         <thead class="bg-slate-950/50">
                             <tr>

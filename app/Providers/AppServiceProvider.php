@@ -2,8 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Infrastructure;
 use App\Models\MesureQualite;
 use App\Models\User;
+use App\Models\Zone;
+use App\Observers\InfrastructureObserver;
+use App\Observers\InterventionObserver;
+use App\Observers\ZoneObserver;
 use App\Policies\MesureQualitePolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Support\Facades\Blade;
@@ -78,5 +83,9 @@ class AppServiceProvider extends ServiceProvider
 
             return false;
         });
+
+        Infrastructure::observe(InfrastructureObserver::class);
+        Zone::observe(ZoneObserver::class);
+        \App\Models\Intervention::observe(InterventionObserver::class);
     }
 }

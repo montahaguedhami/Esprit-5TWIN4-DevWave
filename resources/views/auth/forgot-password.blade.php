@@ -1,7 +1,25 @@
 @extends('layouts.auth')
 
 @section('auth-content')
-<div class="w-full max-w-5xl grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-stretch">
+<style>
+    .aqua-auth-page { min-height: 100vh; width: 100%; box-sizing: border-box; align-content: center; background: #f3f7fb; color: #102a43; padding: 5rem 1.5rem 1.5rem; }
+    .aqua-auth-page > section { border: 1px solid #dce7ef; border-radius: 1.5rem; box-shadow: 0 18px 48px rgba(15,42,67,.08); }
+    .aqua-auth-page > section:first-child { background: linear-gradient(145deg,#123b57,#0d5b76); border-color: #1e7892; }
+    .aqua-auth-page > section:first-child .text-white { color: #fff !important; }
+    .aqua-auth-page > section:first-child [class*="text-cyan-100/"] { color: #c5e5ef !important; }
+    .aqua-auth-page > section:last-child { background: #fff; }
+    .aqua-auth-page [class~="text-white"] { color: #102a43 !important; }
+    .aqua-auth-page [class*="text-cyan-100/"] { color: #647b8e !important; }
+    .aqua-auth-page [class*="bg-slate-950"] { background-color: #f5f8fb !important; }
+    .aqua-auth-page [class*="border-cyan-400/"] { border-color: #d5e2eb !important; }
+    .aqua-auth-page input:not([type="checkbox"]), .aqua-auth-page select { color: #102a43; background: #f8fafc; border-color: #cbd9e5; }
+    .aqua-auth-page input::placeholder { color: #94a3b8; }
+    .aqua-auth-page [class*="bg-gradient-to-r"],
+    .aqua-auth-page [class*="bg-gradient-to-r"] [class~="text-white"],
+    .aqua-auth-page .btn-primary { color: #fff !important; }
+    @media (max-width: 640px) { .aqua-auth-page { padding: 1rem; } }
+</style>
+<div class="aqua-auth-page w-full max-w-5xl grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-stretch">
     <!-- Left Section - Info (Desktop only) -->
     <section class="hidden lg:flex flex-col justify-between glass p-9 animate-fade-in-up">
         <div>

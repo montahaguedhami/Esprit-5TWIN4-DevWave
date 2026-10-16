@@ -12,7 +12,10 @@ class StoreFinancementRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return \App\Models\Role::sessionMatches(\App\Models\Role::MANAGER);
+        return \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        );
     }
 
     /**
@@ -23,28 +26,30 @@ class StoreFinancementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'projet_id'        => ['required', 'integer', 'exists:projets,id'],
-            'source'           => ['required', 'string', 'max:255'],
-            'montant'          => ['required', 'numeric', 'min:0', 'max:999999999999.99'],
+            'projet_id' => ['required', 'integer', 'exists:projets,id'],
+            'source' => ['required', 'string', 'max:255'],
+            'montant' => ['required', 'numeric', 'min:0', 'max:999999999999.99'],
             'date_financement' => ['required', 'date'],
         ];
     }
 
     /**
+     * Get custom messages for validator errors.
+     *
      * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'projet_id.required'        => 'Le projet est obligatoire.',
-            'projet_id.exists'          => 'Le projet sélectionné n\'existe pas.',
-            'source.required'           => 'La source de financement est obligatoire.',
-            'source.max'                => 'La source ne peut pas dépasser 255 caractères.',
-            'montant.required'          => 'Le montant est obligatoire.',
-            'montant.numeric'           => 'Le montant doit être un nombre.',
-            'montant.min'               => 'Le montant doit être positif ou nul.',
+            'projet_id.required' => 'Le projet est obligatoire.',
+            'projet_id.exists' => 'Le projet sélectionné n\'existe pas.',
+            'source.required' => 'La source de financement est obligatoire.',
+            'source.max' => 'La source ne peut pas dépasser 255 caractères.',
+            'montant.required' => 'Le montant est obligatoire.',
+            'montant.numeric' => 'Le montant doit être un nombre.',
+            'montant.min' => 'Le montant doit être positif ou nul.',
             'date_financement.required' => 'La date de financement est obligatoire.',
-            'date_financement.date'     => 'La date de financement doit être une date valide.',
+            'date_financement.date' => 'La date de financement doit être une date valide.',
         ];
     }
 }

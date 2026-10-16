@@ -7,8 +7,8 @@
 @php
     $variants = [
         'primary' => 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25',
-        'secondary' => 'glass text-cyan-100 hover:text-white border border-cyan-400/30 hover:border-cyan-400/60',
-        'ghost' => 'text-cyan-100 hover:bg-white/10',
+        'secondary' => 'glass text-cyan-800 hover:text-cyan-950 border border-cyan-200 hover:border-cyan-400',
+        'ghost' => 'text-slate-700 hover:bg-slate-100',
     ];
     
     $sizes = [
