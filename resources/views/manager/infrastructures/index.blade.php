@@ -2,9 +2,9 @@
 
 @section('title', 'Infrastructures — AquaSecure')
 
-@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
+@section('manager-content')
 @php
-    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
+    $inventoryRoutePrefix = 'manager';
 @endphp
 <div class="manager-catalog-page mx-auto max-w-7xl space-y-5">
     {{-- En-tête de la page --}}
