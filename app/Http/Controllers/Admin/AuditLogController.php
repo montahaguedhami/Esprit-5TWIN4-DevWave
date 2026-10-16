@@ -32,8 +32,14 @@ class AuditLogController extends Controller
         }
 
         $logs = $query->paginate(20)->withQueryString();
+        $stats = AuditLog::query()
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("COALESCE(SUM(CASE WHEN action LIKE ? THEN 1 ELSE 0 END), 0) as roles", ['%role%'])
+            ->selectRaw("COALESCE(SUM(CASE WHEN action LIKE ? THEN 1 ELSE 0 END), 0) as users", ['%user%'])
+            ->selectRaw("COALESCE(SUM(CASE WHEN action LIKE ? THEN 1 ELSE 0 END), 0) as measures", ['%measure%'])
+            ->first();
 
-        return view('admin.logs', compact('logs'));
+        return view('admin.logs', compact('logs', 'stats'));
     }
 
     private function resolveFallbackUser(): User

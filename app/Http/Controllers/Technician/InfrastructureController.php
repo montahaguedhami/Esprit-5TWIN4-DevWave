@@ -23,6 +23,11 @@ class InfrastructureController extends Controller
 
         $query = TechnicianScopeService::infrastructuresQuery($technicien);
 
+        // Les liens depuis une fiche de zone conservent le périmètre technicien.
+        if ($request->filled('zone_id') && ctype_digit((string) $request->input('zone_id'))) {
+            $query->where('zone_id', (int) $request->input('zone_id'));
+        }
+
         // Recherche par mot-clé
         if ($request->filled('q')) {
             $query->search($request->input('q'));

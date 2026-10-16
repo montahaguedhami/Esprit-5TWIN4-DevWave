@@ -146,7 +146,7 @@
                 <span class="text-xs font-semibold {{ $leg['t'] }}">{{ $leg['n'] }} {{ $leg['l'] }}</span>
             </div>
             @endforeach
-            <a href="{{ route('manager.map') }}"
+            <a href="#admin-map"
                class="glass px-3 py-1.5 rounded-lg text-xs text-cyan-300 hover:text-white font-semibold flex items-center gap-1 transition-all">
                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
                 <span class="hidden sm:inline">Plein écran</span>

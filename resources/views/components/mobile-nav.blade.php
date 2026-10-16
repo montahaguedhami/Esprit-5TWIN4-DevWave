@@ -114,10 +114,6 @@
                         <i data-lucide="users"></i>
                         <span>Utilisateurs</span>
                     </a></li>
-                    <li><a href="/admin/roles" class="mobile-nav-link {{ $currentRoute === 'admin.roles' ? 'active' : '' }}">
-                        <i data-lucide="shield"></i>
-                        <span>Rôles & Permissions</span>
-                    </a></li>
                     <li><a href="/admin/system" class="mobile-nav-link {{ $currentRoute === 'admin.system' ? 'active' : '' }}">
                         <i data-lucide="activity"></i>
                         <span>Système</span>

@@ -67,7 +67,7 @@ class InfrastructureController extends Controller
             ->take(6)
             ->get();
 
-        return view('manager.infrastructures.index', [
+        return view($request->routeIs('admin.*') ? 'admin.inventory.infrastructures.index' : 'manager.infrastructures.index', [
             'infrastructures' => $infrastructures,
             'zones' => Zone::orderBy('nom')->get(['id', 'nom']),
             'types' => InfrastructureType::cases(),
@@ -112,7 +112,7 @@ class InfrastructureController extends Controller
             ->with('success', 'Infrastructure créée avec succès.');
     }
 
-    public function show(Infrastructure $infrastructure): View
+    public function show(Request $request, Infrastructure $infrastructure): View
     {
         $infrastructure->load([
             'zone',
@@ -125,7 +125,7 @@ class InfrastructureController extends Controller
         $sante = $infrastructure->sante;
         $coutTotalMaintenance = (float) $infrastructure->interventions->sum('cout');
 
-        return view('manager.infrastructures.show', [
+        return view($request->routeIs('admin.*') ? 'admin.inventory.infrastructures.show' : 'manager.infrastructures.show', [
             'infrastructure' => $infrastructure,
             'sante' => $sante,
             'coutTotalMaintenance' => $coutTotalMaintenance,

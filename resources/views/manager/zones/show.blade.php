@@ -20,7 +20,7 @@
             <p class="text-sm text-cyan-100/60">{{ $zone->localisation }} · Réseau d’alimentation en eau potable</p>
         </div>
         <div class="flex items-center gap-2">
-            @if(session('user.role') !== 'admin' && $zone->latitude && $zone->longitude)
+            @if(!request()->routeIs('admin.*') && $zone->latitude && $zone->longitude)
                 <a href="{{ route('manager.map', ['zone' => $zone->id]) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-2 text-sm font-medium text-cyan-200 hover:bg-cyan-500/20 transition">
                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -254,6 +254,8 @@
         </div>
     </section>
 
+    @if(!request()->routeIs('admin.*'))
+    {{-- Sections de suivi réservées au gestionnaire --}}
     {{-- Section : Incidents ouverts sur la zone --}}
     <section class="space-y-4">
         <div class="flex items-center justify-between">
@@ -487,6 +489,7 @@
             @endif
         </div>
     </section>
+    @endif
 </div>
 
 {{-- Scripts Leaflet & Chart.js --}}
