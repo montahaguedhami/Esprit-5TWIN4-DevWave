@@ -1,4 +1,4 @@
-@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
+@extends('layouts.manager')
 
 @section('title', $zone->nom.' — AquaSecure')
 
