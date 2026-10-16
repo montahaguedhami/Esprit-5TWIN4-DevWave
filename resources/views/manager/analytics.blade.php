@@ -520,7 +520,7 @@ function renderGrid(svg, h, n = 4) {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', 0); line.setAttribute('x2', W);
         line.setAttribute('y1', y); line.setAttribute('y2', y);
-        line.setAttribute('stroke', 'rgba(94,221,247,0.06)');
+        line.setAttribute('stroke', 'rgba(15,42,67,0.07)');
         line.setAttribute('stroke-width', '1');
         svg.appendChild(line);
     }
@@ -580,7 +580,7 @@ function drawConsumption() {
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y);
         circle.setAttribute('r', 4); circle.setAttribute('fill', '#05bfdb');
-        circle.setAttribute('stroke', '#061525'); circle.setAttribute('stroke-width', '2');
+        circle.setAttribute('stroke', '#ffffff'); circle.setAttribute('stroke-width', '2');
         circle.style.cursor = 'pointer';
         circle.addEventListener('mouseenter', (e) => {
             const rect = svg.getBoundingClientRect();
@@ -709,7 +709,7 @@ function drawQuality() {
         const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         c.setAttribute('cx', p.x); c.setAttribute('cy', p.y);
         c.setAttribute('r', 4.5); c.setAttribute('fill', color);
-        c.setAttribute('stroke', '#061525'); c.setAttribute('stroke-width', '2');
+        c.setAttribute('stroke', '#ffffff'); c.setAttribute('stroke-width', '2');
         c.style.cursor = 'pointer';
         c.addEventListener('mouseenter', () => {
             tip.textContent = `${labels[i]}: ${data[i]}%`;
@@ -791,7 +791,7 @@ function drawWeekly() {
         const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         dot.setAttribute('cx', lastPt.x); dot.setAttribute('cy', lastPt.y);
         dot.setAttribute('r', 4); dot.setAttribute('fill', zone.color);
-        dot.setAttribute('stroke', '#061525'); dot.setAttribute('stroke-width', '2');
+        dot.setAttribute('stroke', '#ffffff'); dot.setAttribute('stroke-width', '2');
         svg.appendChild(dot);
     });
 }
@@ -848,7 +848,7 @@ function drawPressure() {
         const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         c.setAttribute('cx', p.x); c.setAttribute('cy', p.y);
         c.setAttribute('r', 4); c.setAttribute('fill', '#38bdf8');
-        c.setAttribute('stroke', '#061525'); c.setAttribute('stroke-width', '2');
+        c.setAttribute('stroke', '#ffffff'); c.setAttribute('stroke-width', '2');
         c.style.cursor = 'pointer';
         c.addEventListener('mouseenter', () => {
             tip.textContent = `${labels[i]}: ${data[i]} bar`;
