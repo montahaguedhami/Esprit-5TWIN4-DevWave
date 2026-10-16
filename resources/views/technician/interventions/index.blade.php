@@ -3,7 +3,7 @@
 @section('title', 'Mes Interventions — Technicien')
 
 @section('technician-content')
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="technician-interventions max-w-6xl mx-auto space-y-6">
 
     {{-- En-tête mobile --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

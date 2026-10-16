@@ -44,7 +44,7 @@ class JwtAuthController extends Controller
         return [
             'token_type'    => 'bearer',
             'access_token'  => $accessToken,
-            'expires_in'    => 3600,
+            'expires_in'    => (int) config('jwt.ttl', 60) * 60, // seconds — driven by JWT_TTL env
             'refresh_token' => $rawRefresh,
         ];
     }
@@ -80,8 +80,12 @@ class JwtAuthController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
-        if (!$user || !$user->is_active) {
-            return response()->json(['message' => 'Compte inactif ou inexistant.'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'Identifiants invalides.'], 401);
+        }
+
+        if (!$user->is_active) {
+            return response()->json(['message' => 'Compte désactivé.'], 403);
         }
 
         if (!Hash::check($credentials['password'], $user->password)) {
@@ -140,8 +144,12 @@ class JwtAuthController extends Controller
 
         $user = User::find($record->user_id);
 
-        if (!$user || !$user->is_active) {
-            return response()->json(['message' => 'Utilisateur inactif.'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur introuvable.'], 401);
+        }
+
+        if (!$user->is_active) {
+            return response()->json(['message' => 'Compte désactivé.'], 403);
         }
 
         $tokenData = $this->issueTokenPair($user, $request);
@@ -203,7 +211,7 @@ class JwtAuthController extends Controller
             'name'        => $user->name,
             'email'       => $user->email,
             'is_active'   => $user->is_active,
-            'roles'       => $user->roles->pluck('name'),
+            'roles'       => $user->roles->pluck('slug'),
             'permissions' => $user->roles->flatMap(fn($r) => $r->permissions->pluck('name'))->unique()->values(),
         ]);
     }

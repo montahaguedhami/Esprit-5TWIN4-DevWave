@@ -46,7 +46,7 @@ class JwtAuthenticate
         $freshUser = \App\Models\User::find($user->id);
 
         if (!$freshUser || !$freshUser->is_active) {
-            return response()->json(['message' => 'Compte désactivé.', 'error' => 'account_inactive'], 401);
+            return response()->json(['message' => 'Compte désactivé.', 'error' => 'account_inactive'], 403);
         }
 
         auth('api')->setUser($freshUser);

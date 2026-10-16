@@ -39,7 +39,7 @@ class ZoneController extends Controller
 
         $statsGlobales = $statsService->statsGlobales();
 
-        return view('manager.zones.index', [
+        return view($request->routeIs('admin.*') ? 'admin.inventory.zones.index' : 'manager.zones.index', [
             'zones' => $zones,
             'statsGlobales' => $statsGlobales,
             'filters' => [
@@ -94,7 +94,7 @@ class ZoneController extends Controller
 
         $stats = $statsService->statsZone($zone);
 
-        return view('manager.zones.show', [
+        return view($request->routeIs('admin.*') ? 'admin.inventory.zones.show' : 'manager.zones.show', [
             'zone' => $zone,
             'stats' => $stats,
             'selectedEtat' => $etat?->value ?? '',

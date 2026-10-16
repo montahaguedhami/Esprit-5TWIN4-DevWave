@@ -23,49 +23,72 @@ class WaterQualityService
         $chloreMax  = (float) config('water_quality.chlore_max', 2.0);
         $plombMax   = (float) config('water_quality.plomb_max', 15.0);
 
-        $parameterStatuses = [
-            'ph' => ($values['ph'] < $phMin || $values['ph'] > $phMax)
-                ? 'Non-Compliant'
-                : 'Compliant',
+        $parameterStatuses = [];
 
-            'turbidite' => $values['turbidite'] > $turbMax
-                ? 'Non-Compliant'
-                : ($values['turbidite'] > $turbAlert ? 'Alert' : 'Compliant'),
+        // Parameters are deliberately optional. A null value means "not measured",
+        // never a compliant or non-compliant value of zero.
+        if (array_key_exists('ph', $values) && $values['ph'] !== null) {
+            $parameterStatuses['ph'] = (
+                (float) $values['ph'] < $phMin || (float) $values['ph'] > $phMax
+            ) ? 'Non-Compliant' : 'Compliant';
+        }
 
-            'chlore_residuel' => ($values['chlore_residuel'] < $chloreMin || $values['chlore_residuel'] > $chloreMax)
+        if (array_key_exists('turbidite', $values) && $values['turbidite'] !== null) {
+            $turbidite = (float) $values['turbidite'];
+            $parameterStatuses['turbidite'] = $turbidite > $turbMax
                 ? 'Non-Compliant'
-                : 'Compliant',
+                : ($turbidite > $turbAlert ? 'Alert' : 'Compliant');
+        }
 
-            'plomb' => $values['plomb'] > $plombMax
+        if (array_key_exists('chlore_residuel', $values) && $values['chlore_residuel'] !== null) {
+            $chlore = (float) $values['chlore_residuel'];
+            $parameterStatuses['chlore_residuel'] = (
+                $chlore < $chloreMin || $chlore > $chloreMax
+            ) ? 'Non-Compliant' : 'Compliant';
+        }
+
+        if (array_key_exists('plomb', $values) && $values['plomb'] !== null) {
+            $plomb = (float) $values['plomb'];
+            $parameterStatuses['plomb'] = $plomb > $plombMax
                 ? 'Non-Compliant'
-                : 'Compliant',
-        ];
+                : 'Compliant';
+        }
 
         $nitratesMaximum = config('water_quality.nitrates_max');
-        if ($nitratesMaximum !== null) {
-            $parameterStatuses['nitrates'] = $values['nitrates'] > $nitratesMaximum
+        if ($nitratesMaximum !== null
+            && array_key_exists('nitrates', $values)
+            && $values['nitrates'] !== null) {
+            $parameterStatuses['nitrates'] = ((float) $values['nitrates']) > (float) $nitratesMaximum
                 ? 'Non-Compliant'
                 : 'Compliant';
         }
 
         $statuses = array_values($parameterStatuses);
-        $status = in_array('Non-Compliant', $statuses, true)
-            ? 'Non-Compliant'
-            : (in_array('Alert', $statuses, true) ? 'Alert' : 'Compliant');
 
-        $scoreValues = array_map(
-            static fn (string $parameterStatus): int => match ($parameterStatus) {
-                'Non-Compliant' => 0,
-                'Alert'         => 60,
-                default         => 100,
-            },
-            $statuses
-        );
+        if ($statuses === []) {
+            $status = 'Non evalue';
+            $overallCompliance = null;
+        } else {
+            $status = in_array('Non-Compliant', $statuses, true)
+                ? 'Non-Compliant'
+                : (in_array('Alert', $statuses, true) ? 'Alert' : 'Compliant');
+
+            $scoreValues = array_map(
+                static fn (string $parameterStatus): int => match ($parameterStatus) {
+                    'Non-Compliant' => 0,
+                    'Alert'         => 60,
+                    default         => 100,
+                },
+                $statuses
+            );
+
+            $overallCompliance = round(array_sum($scoreValues) / count($scoreValues), 2);
+        }
 
         return [
             'parameter_statuses' => $parameterStatuses,
             'status'             => $status,
-            'overall_compliance' => round(array_sum($scoreValues) / count($scoreValues), 2),
+            'overall_compliance' => $overallCompliance,
         ];
     }
 }
