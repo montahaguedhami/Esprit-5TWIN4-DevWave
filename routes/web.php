@@ -276,14 +276,17 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
 });
 
 Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('budget', [\App\Http\Controllers\Admin\ConsultationController::class, 'budget'])->name('budget');
+    Route::get('projets', [\App\Http\Controllers\Admin\ConsultationController::class, 'projets'])->name('projets.index');
+    Route::get('qualite', [\App\Http\Controllers\Admin\ConsultationController::class, 'qualite'])->name('qualite');
+    Route::get('incidents', [\App\Http\Controllers\Admin\ConsultationController::class, 'incidents'])->name('incidents');
+    Route::get('interventions', [\App\Http\Controllers\Admin\ConsultationController::class, 'interventions'])->name('interventions');
     Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
     Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
     Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
-    Route::resource('zones', ZoneController::class);
-    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
-    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
-    Route::resource('infrastructures', InfrastructureController::class);
+    Route::resource('zones', ZoneController::class)->only(['index', 'show']);
+    Route::resource('infrastructures', InfrastructureController::class)->only(['index', 'show']);
 });
 
 Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
@@ -339,8 +342,6 @@ Route::middleware('role:administrateur')->group(function () {
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
     Route::patch('/admin/users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
-    Route::get('/admin/roles',       [\App\Http\Controllers\Admin\RoleController::class, 'index'])->name('admin.roles');
-    Route::put('/admin/roles/{role}/permissions', [\App\Http\Controllers\Admin\RoleController::class, 'updatePermissions'])->name('admin.roles.update-permissions');
     Route::get('/admin/logs',        [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.logs');
     Route::get('/admin/system',      fn () => view('admin.system'))->name('admin.system');
     Route::get('/admin/security',    fn () => view('admin.security'))->name('admin.security');
@@ -398,10 +399,10 @@ Route::middleware('role:manager')->prefix('manager/financements')->name('manager
     Route::delete('/{financement}',[App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
 });
 
-Route::middleware('role:administrateur,manager')->group(function () {
+Route::middleware('role:manager')->group(function () {
     Route::post('/manager/data-collection/trigger',    [\App\Http\Controllers\Manager\DataCollectionController::class, 'trigger'])->name('manager.data-collection.trigger');
+    Route::post('/manager/data-collection/import-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
     Route::get('/manager/data-collection/status',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
     Route::get('/manager/data-collection/history',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
-    Route::post('/manager/data-collection/import-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
     Route::get('/manager/quality/{point}/analyse',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
 });

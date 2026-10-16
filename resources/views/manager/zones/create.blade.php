@@ -1,10 +1,10 @@
-@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
+@extends('layouts.manager')
 
 @section('title', 'Créer une zone — AquaSecure')
 
-@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
+@section('manager-content')
 @php
-    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
+    $inventoryRoutePrefix = 'manager';
 @endphp
 <div class="mx-auto max-w-3xl space-y-5">
     <div>

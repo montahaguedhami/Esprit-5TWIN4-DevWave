@@ -1,8 +1,8 @@
-@extends('layouts.manager')
+@extends('layouts.technician')
 
 @section('title', 'Mes Zones d\'Intervention — Technicien')
 
-@section('manager-content')
+@section('technician-content')
 <div class="max-w-6xl mx-auto space-y-6">
 
     {{-- En-tête mobile-first --}}
