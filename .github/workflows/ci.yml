@@ -1,6 +1,25 @@
 
+name: AquaSecure CI
+
+on:
+  push:
+    branches:
+      - main
+      - fix-branch
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aquasecure-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
   test:
-    name: Laravel tests (MySQL)
+    name: Laravel tests with MySQL
     runs-on: ubuntu-latest
 
     services:
@@ -26,7 +45,7 @@
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.5'
           extensions: mbstring, bcmath, pdo_mysql, dom, fileinfo, xml, curl
           coverage: none
 
@@ -59,7 +78,7 @@
           DB_USERNAME: aquasecure
           DB_PASSWORD: test_password
 
-      - name: Run Laravel tests
+      - name: Run tests
         run: php artisan test
         env:
           APP_ENV: testing
@@ -69,3 +88,23 @@
           DB_DATABASE: aquasecure_test
           DB_USERNAME: aquasecure
           DB_PASSWORD: test_password
+
+  frontend:
+    name: Build frontend assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Vite assets
+        run: npm run build
