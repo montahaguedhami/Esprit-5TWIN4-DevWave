@@ -67,6 +67,8 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
+        - name: Generate JWT secret for tests
+        run: php artisan jwt:secret --force
         env:
           APP_ENV: testing
           DB_CONNECTION: mysql
