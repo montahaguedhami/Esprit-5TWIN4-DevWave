@@ -21,17 +21,15 @@
         <input 
             type="text"
             id="code"
-            name="code" 
-            required 
-            minlength="2" 
-            maxlength="50" 
-            placeholder="Ex: TUN-CENTRE-01"
-            value="{{ old('code', $point->code ?? '') }}" 
-            class="mt-1 w-full rounded-xl border @error('code') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white placeholder-slate-500 transition-colors focus:outline-none"
+            name="code"
+            value="{{ old('code', $point->code ?? $nextCode ?? 'PMS-001') }}" 
+            readonly
+            title="Le code est généré automatiquement"
+            class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:outline-none"
         >
         <div class="flex justify-between text-[11px] text-slate-400 mt-1">
             <span>Identifiant officiel unique</span>
-            <span>2–50 car.</span>
+            <span>Auto-généré</span>
         </div>
         @error('code')
             <span class="mt-1 block text-xs text-red-400 font-medium">{{ $message }}</span>
@@ -46,10 +44,6 @@
             type="text"
             id="nom"
             name="nom" 
-            required 
-            minlength="2" 
-            maxlength="255" 
-            placeholder="Ex: Station de pompage Belvédère"
             value="{{ old('nom', $point->nom ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('nom') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white placeholder-slate-500 transition-colors focus:outline-none"
         >
@@ -66,15 +60,35 @@
         <label for="zone" class="block text-sm font-medium text-slate-300">
             Zone / Commune <span class="text-xs text-slate-500">(optionnel)</span>
         </label>
-        <input 
+        @if(isset($zones) && count($zones) > 0)
+        <select
+            id="zone"
+            name="zone"
+            class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-teal-400 focus:outline-none"
+        >
+            <option value="">— Non renseignée —</option>
+            @foreach($zones as $zone)
+                <option value="{{ $zone }}" @selected(old('zone', $point->zone ?? '') === $zone)>{{ $zone }}</option>
+            @endforeach
+        </select>
+        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+            <span>Liste des zones du réseau</span>
+            <span>optionnel</span>
+        </div>
+        @else
+        <input
             type="text"
             id="zone"
-            name="zone" 
-            maxlength="255" 
+            name="zone"
             placeholder="Ex: Tunis Centre"
-            value="{{ old('zone', $point->zone ?? '') }}" 
+            value="{{ old('zone', $point->zone ?? '') }}"
             class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:border-teal-400 focus:outline-none"
         >
+        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+            <span>Zone / Commune</span>
+            <span>aucune zone enregistrée</span>
+        </div>
+        @endif
         @error('zone')
             <span class="mt-1 block text-xs text-red-400 font-medium">{{ $message }}</span>
         @enderror
@@ -88,7 +102,6 @@
             type="text"
             id="adresse"
             name="adresse" 
-            maxlength="255" 
             placeholder="Ex: Avenue Habib Bourguiba, Tunis"
             value="{{ old('adresse', $point->adresse ?? '') }}" 
             class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:border-teal-400 focus:outline-none"
@@ -107,8 +120,6 @@
             id="latitude"
             name="latitude" 
             step="0.0000001" 
-            min="-90" 
-            max="90" 
             placeholder="Ex: 36.8064948"
             value="{{ old('latitude', $point->latitude ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('latitude') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:outline-none"
@@ -127,8 +138,6 @@
             id="longitude"
             name="longitude" 
             step="0.0000001" 
-            min="-180" 
-            max="180" 
             placeholder="Ex: 10.1815316"
             value="{{ old('longitude', $point->longitude ?? '') }}" 
             class="mt-1 w-full rounded-xl border @error('longitude') border-red-500/70 focus:border-red-400 @else border-slate-700 focus:border-teal-400 @enderror bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:outline-none"
@@ -145,7 +154,6 @@
         <select 
             id="type"
             name="type" 
-            required 
             class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-teal-400 focus:outline-none"
         >
             @foreach(['Station', 'Puits', 'Réservoir', 'Réseau', 'Autre'] as $type)
@@ -164,7 +172,6 @@
         <select 
             id="statut"
             name="statut" 
-            required 
             class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-teal-400 focus:outline-none"
         >
             <option value="actif" @selected(old('statut', $point->statut ?? 'actif') === 'actif')>Actif (surveillance en cours)</option>
@@ -183,7 +190,6 @@
             id="description"
             name="description" 
             rows="3" 
-            maxlength="2000"
             placeholder="Informations utiles sur la vanne, accès aux capteurs, historique..."
             class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white placeholder-slate-500 focus:border-teal-400 focus:outline-none"
         >{{ old('description', $point->description ?? '') }}</textarea>
@@ -192,3 +198,66 @@
         @enderror
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function showFieldError(input, message) {
+        let box = input.parentElement.querySelector('.validation-error');
+        if (!box) {
+            box = document.createElement('div');
+            box.className = 'validation-error mt-1 block text-xs text-red-400';
+            input.insertAdjacentElement('afterend', box);
+        }
+        box.textContent = message;
+        box.hidden = false;
+    }
+
+    function hideFieldErrors(input) {
+        const box = input.parentElement.querySelector('.validation-error');
+        if (box) {
+            box.hidden = true;
+        }
+    }
+
+    function validatePointForm() {
+        const problèmes = [];
+
+        const nom = document.getElementById('nom');
+        hideFieldErrors(nom);
+        if (!nom.value.trim() || nom.value.trim().length < 2) {
+            showFieldError(nom, 'Le nom du point doit contenir au moins 2 caractères.');
+            problèmes.push('nom');
+        }
+
+        const latitude = document.getElementById('latitude');
+        hideFieldErrors(latitude);
+        if (latitude.value !== '' && (Number(latitude.value) < -90 || Number(latitude.value) > 90)) {
+            showFieldError(latitude, 'La latitude doit être comprise entre -90 et 90.');
+            problèmes.push('latitude');
+        }
+
+        const longitude = document.getElementById('longitude');
+        hideFieldErrors(longitude);
+        if (longitude.value !== '' && (Number(longitude.value) < -180 || Number(longitude.value) > 180)) {
+            showFieldError(longitude, 'La longitude doit être comprise entre -180 et 180.');
+            problèmes.push('longitude');
+        }
+
+        if (problèmes.length > 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    const container = document.getElementById('nom')?.closest('form');
+
+    if (container) {
+        container.addEventListener('submit', function (event) {
+            if (!validatePointForm()) {
+                event.preventDefault();
+            }
+        });
+    }
+});
+</script>

@@ -34,7 +34,9 @@ class UpdatePointMesureRequest extends FormRequest
         $pointMesureId = $pointMesure instanceof PointMesure ? $pointMesure->id : $pointMesure;
 
         return [
-            'code'        => ['required', 'string', 'min:2', 'max:50', Rule::unique('point_mesures', 'code')->ignore($pointMesureId)],
+            // The code is generated automatically when absent (see
+            // PointMesureController::generateUniqueCode()).
+            'code'        => ['sometimes', 'string', 'min:2', 'max:50', Rule::unique('point_mesures', 'code')->ignore($pointMesureId)],
             'nom'         => ['required', 'string', 'min:2', 'max:255'],
             'zone'        => ['nullable', 'string', 'max:255'],
             'adresse'     => ['nullable', 'string', 'max:255'],
@@ -49,7 +51,6 @@ class UpdatePointMesureRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'code.required'        => 'Le code unique du point de mesure est obligatoire.',
             'code.min'             => 'Le code doit comporter au moins :min caractères.',
             'code.max'             => 'Le code ne peut pas dépasser :max caractères.',
             'code.unique'          => 'Ce code de point de mesure est déjà utilisé.',
