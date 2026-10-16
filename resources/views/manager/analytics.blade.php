@@ -14,10 +14,11 @@
 @endphp
 
 @push('styles')
+@include('manager.shared.light-shell')
 <style>
 .chart-container { position: relative; }
-.kpi-up   { color: #2dd4bf; }
-.kpi-down { color: #fb7185; }
+.kpi-up   { color: #0891b2; }
+.kpi-down { color: #dc2626; }
 
 /* Donut chart */
 .donut-ring { transition: stroke-dasharray .8s cubic-bezier(.22,1,.36,1); }
@@ -32,23 +33,97 @@
 /* Tooltip */
 .chart-tooltip {
     position: absolute;
-    background: rgba(6,21,37,0.96);
-    border: 1px solid rgba(5,191,219,0.3);
+    background: rgba(255,255,255,0.97);
+    border: 1px solid #dce6ef;
     border-radius: 10px;
     padding: 8px 12px;
     font-size: 11px;
-    color: #f0fdff;
+    color: #152b42;
     pointer-events: none;
     white-space: nowrap;
     z-index: 99;
     backdrop-filter: blur(12px);
     transform: translateX(-50%);
+    box-shadow: 0 8px 24px rgba(16,42,67,.12);
+}
+[data-theme="dark"] .chart-tooltip {
+    background: rgba(15,23,42,0.96);
+    border-color: rgba(8,145,178,.3);
+    color: #f0fdff;
     box-shadow: 0 8px 24px rgba(0,0,0,.4);
 }
+
+/* Analytics cards light overrides */
+.analytics-wrap .glass {
+    background: #fff;
+    border: 1px solid #dce6ef;
+    box-shadow: 0 2px 12px rgba(16,42,67,.05);
+}
+.analytics-wrap .glass:hover { box-shadow: 0 6px 20px rgba(16,42,67,.09); }
+[data-theme="dark"] .analytics-wrap .glass {
+    background: var(--bg-card, #1e293b);
+    border-color: var(--border, #334155);
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+/* text inside cards */
+.analytics-wrap h1,
+.analytics-wrap h2 { color: #152b42; }
+[data-theme="dark"] .analytics-wrap h1,
+[data-theme="dark"] .analytics-wrap h2 { color: #f1f5f9; }
+.analytics-wrap .text-white  { color: #152b42 !important; }
+.analytics-wrap .text-cyan-100\/50 { color: #52677d !important; }
+.analytics-wrap .text-cyan-100\/60 { color: #52677d !important; }
+.analytics-wrap .text-cyan-100\/40 { color: #718397 !important; }
+.analytics-wrap .text-cyan-100\/30 { color: #94a3b8 !important; }
+.analytics-wrap .text-cyan-100\/70 { color: #334155 !important; }
+.analytics-wrap .text-cyan-300  { color: #0891b2 !important; }
+.analytics-wrap .text-teal-300  { color: #0d9488 !important; }
+.analytics-wrap .text-teal-400  { color: #0d9488 !important; }
+.analytics-wrap .text-red-300   { color: #dc2626 !important; }
+.analytics-wrap .text-red-400   { color: #dc2626 !important; }
+.analytics-wrap .text-amber-300 { color: #d97706 !important; }
+.analytics-wrap .text-amber-400 { color: #d97706 !important; }
+.analytics-wrap .text-blue-300  { color: #2563eb !important; }
+[data-theme="dark"] .analytics-wrap .text-white      { color: #f1f5f9 !important; }
+[data-theme="dark"] .analytics-wrap .text-cyan-100\/50 { color: #64748b !important; }
+[data-theme="dark"] .analytics-wrap .text-cyan-100\/60 { color: #94a3b8 !important; }
+[data-theme="dark"] .analytics-wrap .text-cyan-100\/40 { color: #64748b !important; }
+[data-theme="dark"] .analytics-wrap .text-cyan-100\/30 { color: #475569 !important; }
+[data-theme="dark"] .analytics-wrap .text-cyan-100\/70 { color: #cbd5e1 !important; }
+[data-theme="dark"] .analytics-wrap .text-cyan-300 { color: #67e8f9 !important; }
+[data-theme="dark"] .analytics-wrap .text-teal-300 { color: #5eead4 !important; }
+[data-theme="dark"] .analytics-wrap .text-teal-400 { color: #2dd4bf !important; }
+/* Table */
+.analytics-wrap table { color: #152b42; }
+.analytics-wrap thead tr { border-bottom-color: #dce6ef; }
+.analytics-wrap tbody tr { border-bottom-color: #f0f4f8; }
+.analytics-wrap tbody tr:hover { background: #f4f9fb; }
+.analytics-wrap tfoot tr { border-top-color: #dce6ef; }
+[data-theme="dark"] .analytics-wrap table { color: #cbd5e1; }
+[data-theme="dark"] .analytics-wrap thead tr { border-bottom-color: #334155; }
+[data-theme="dark"] .analytics-wrap tbody tr { border-bottom-color: #1e293b; }
+[data-theme="dark"] .analytics-wrap tbody tr:hover { background: rgba(255,255,255,.03); }
+/* Header select & button */
+.analytics-wrap select {
+    background: #fff;
+    border: 1px solid #cbd8e4;
+    color: #152b42;
+    border-radius: .625rem;
+    padding: .375rem .75rem;
+    font-size: .875rem;
+}
+[data-theme="dark"] .analytics-wrap select {
+    background: var(--bg-card,#1e293b);
+    border-color: var(--border,#334155);
+    color: #f1f5f9;
+}
+.analytics-wrap .hover-lift { transition: transform .15s, box-shadow .15s; }
+.analytics-wrap .hover-lift:hover { transform: translateY(-2px); }
 </style>
 @endpush
 
-@section('content')
+@section('manager-content')
+<div class="aqua-manager-standalone analytics-wrap w-full">
 <div class="container mx-auto px-4 sm:px-6 py-8 max-w-7xl">
 
     {{-- ══ HEADER ══════════════════════════════════════════════════════════ --}}
@@ -400,6 +475,7 @@
         <div id="pressure-labels" class="flex justify-between mt-2 px-1"></div>
     </div>
 
+</div>
 </div>
 @endsection
 

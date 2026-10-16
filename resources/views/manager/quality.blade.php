@@ -141,6 +141,155 @@
 .compliance-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
 .compliance-ring-label .val { font-size: 1.25rem; font-weight: 800; color: #152b42; line-height: 1; }
 .compliance-ring-label .sub { font-size: .6rem; color: #52677d; font-weight: 600; }
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE OVERRIDES
+   ══════════════════════════════════════════════════════ */
+[data-theme="dark"] .aq-stat-card {
+    background: var(--bg-card, #1e293b);
+    border-color: var(--border, #334155);
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+[data-theme="dark"] .aq-stat-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,.35);
+}
+[data-theme="dark"] .aq-stat-value { color: #f1f5f9; }
+[data-theme="dark"] .aq-stat-label { color: #94a3b8; }
+[data-theme="dark"] .aq-stat-sub   { color: #64748b; }
+
+[data-theme="dark"] .aq-stat-icon.bg-cyan-50    { background: rgba(8,145,178,.15); }
+[data-theme="dark"] .aq-stat-icon.bg-blue-50    { background: rgba(59,130,246,.15); }
+[data-theme="dark"] .aq-stat-icon.bg-emerald-50 { background: rgba(16,185,129,.15); }
+[data-theme="dark"] .aq-stat-icon.bg-red-50     { background: rgba(239,68,68,.15); }
+[data-theme="dark"] .aq-stat-icon.bg-slate-50   { background: rgba(100,116,139,.15); }
+
+[data-theme="dark"] .aq-param-card {
+    background: var(--bg-card, #1e293b);
+    border-color: var(--border, #334155);
+    box-shadow: 0 2px 10px rgba(0,0,0,.20);
+}
+[data-theme="dark"] .aq-param-card .param-name  { color: #94a3b8; }
+[data-theme="dark"] .aq-param-card .param-value { color: #f1f5f9; }
+[data-theme="dark"] .aq-param-card .param-unit  { color: #64748b; }
+[data-theme="dark"] .aq-progress               { background: #334155; }
+[data-theme="dark"] .aq-param-badge.bg-cyan-50   { background: rgba(8,145,178,.2);  color: #67e8f9; border-color: rgba(8,145,178,.3); }
+[data-theme="dark"] .aq-param-badge.bg-blue-50   { background: rgba(59,130,246,.2); color: #93c5fd; border-color: rgba(59,130,246,.3); }
+[data-theme="dark"] .aq-param-badge.bg-indigo-50 { background: rgba(99,102,241,.2); color: #a5b4fc; border-color: rgba(99,102,241,.3); }
+[data-theme="dark"] .aq-param-badge.bg-amber-50  { background: rgba(245,158,11,.2); color: #fcd34d; border-color: rgba(245,158,11,.3); }
+[data-theme="dark"] .aq-param-badge.bg-violet-50 { background: rgba(139,92,246,.2); color: #c4b5fd; border-color: rgba(139,92,246,.3); }
+[data-theme="dark"] .aq-param-badge.bg-slate-50  { background: rgba(100,116,139,.2);color: #94a3b8; border-color: rgba(100,116,139,.3); }
+
+/* text colours in param cards under dark */
+[data-theme="dark"] .aq-param-card p { color: #94a3b8; }
+
+[data-theme="dark"] .aq-card {
+    background: var(--bg-card, #1e293b);
+    border-color: var(--border, #334155);
+    box-shadow: 0 2px 12px rgba(0,0,0,.25);
+}
+[data-theme="dark"] .aq-card-header {
+    background: var(--bg-muted, #0f172a);
+    border-bottom-color: var(--border, #334155);
+}
+[data-theme="dark"] .aq-card-title { color: #f1f5f9; }
+
+[data-theme="dark"] .aq-banner {
+    background: linear-gradient(135deg, rgba(8,145,178,.18) 0%, rgba(14,116,144,.15) 40%, rgba(30,64,175,.12) 100%);
+    border-color: rgba(8,145,178,.3);
+}
+[data-theme="dark"] .aq-banner p.text-cyan-900  { color: #e0f2fe; }
+[data-theme="dark"] .aq-banner p.text-cyan-700  { color: #a5f3fc; }
+[data-theme="dark"] .aq-banner .text-emerald-700 { color: #6ee7b7; }
+[data-theme="dark"] .aq-banner .text-amber-700   { color: #fcd34d; }
+[data-theme="dark"] .aq-banner .text-red-700     { color: #fca5a5; }
+[data-theme="dark"] .aq-banner .bg-emerald-100   { background: rgba(16,185,129,.2); color: #6ee7b7; border-color: rgba(16,185,129,.3); }
+[data-theme="dark"] .aq-banner .bg-amber-100     { background: rgba(245,158,11,.2);  color: #fcd34d; border-color: rgba(245,158,11,.3); }
+[data-theme="dark"] .aq-banner .bg-red-100       { background: rgba(239,68,68,.2);   color: #fca5a5; border-color: rgba(239,68,68,.3); }
+
+[data-theme="dark"] .aq-table { color: #cbd5e1; }
+[data-theme="dark"] .aq-table thead th {
+    background: var(--bg-muted, #0f172a);
+    color: #64748b;
+    border-bottom-color: var(--border, #334155);
+}
+[data-theme="dark"] .aq-table tbody td { border-bottom-color: #1e293b; }
+[data-theme="dark"] .aq-table tbody tr:hover td { background: rgba(255,255,255,.04); }
+[data-theme="dark"] .aq-table .text-slate-600 { color: #94a3b8; }
+[data-theme="dark"] .aq-table .text-slate-500 { color: #64748b; }
+[data-theme="dark"] .aq-table .text-slate-700 { color: #cbd5e1; }
+[data-theme="dark"] .aq-table .text-slate-400 { color: #475569; }
+[data-theme="dark"] .aq-table .text-cyan-700  { color: #67e8f9; }
+[data-theme="dark"] .aq-table .text-red-600   { color: #fca5a5; }
+[data-theme="dark"] .aq-table .text-amber-600 { color: #fcd34d; }
+
+[data-theme="dark"] .badge-green  { background: rgba(16,185,129,.15);  color: #6ee7b7; border-color: rgba(16,185,129,.3); }
+[data-theme="dark"] .badge-amber  { background: rgba(245,158,11,.15);   color: #fcd34d; border-color: rgba(245,158,11,.3); }
+[data-theme="dark"] .badge-red    { background: rgba(239,68,68,.15);    color: #fca5a5; border-color: rgba(239,68,68,.3); }
+[data-theme="dark"] .badge-blue   { background: rgba(59,130,246,.15);   color: #93c5fd; border-color: rgba(59,130,246,.3); }
+[data-theme="dark"] .badge-slate  { background: rgba(100,116,139,.15);  color: #94a3b8; border-color: rgba(100,116,139,.3); }
+[data-theme="dark"] .badge-violet { background: rgba(139,92,246,.15);   color: #c4b5fd; border-color: rgba(139,92,246,.3); }
+
+[data-theme="dark"] .aq-filter-bar {
+    background: var(--bg-muted, #0f172a);
+    border-bottom-color: var(--border, #334155);
+}
+[data-theme="dark"] .aq-filter-bar label { color: #64748b; }
+[data-theme="dark"] .aq-filter-bar input,
+[data-theme="dark"] .aq-filter-bar select {
+    background: var(--bg-input, #1e293b);
+    border-color: var(--border, #334155);
+    color: #f1f5f9;
+}
+[data-theme="dark"] .aq-filter-bar input::placeholder { color: #475569; }
+[data-theme="dark"] .aq-filter-bar input:focus,
+[data-theme="dark"] .aq-filter-bar select:focus {
+    border-color: #0891b2;
+    box-shadow: 0 0 0 3px rgba(8,145,178,.2);
+}
+
+/* Leaflet dark */
+[data-theme="dark"] .leaflet-control-zoom a {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #67e8f9 !important;
+}
+[data-theme="dark"] .leaflet-popup-content-wrapper {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+[data-theme="dark"] .leaflet-popup-tip { background: #1e293b !important; }
+
+/* Threshold modal dark */
+[data-theme="dark"] #threshold-modal > div {
+    background: var(--bg-card, #1e293b);
+    border-color: var(--border, #334155);
+}
+[data-theme="dark"] #threshold-modal h3 { color: #f1f5f9; }
+[data-theme="dark"] #threshold-modal .text-slate-900 { color: #f1f5f9; }
+[data-theme="dark"] #threshold-modal .text-slate-600 { color: #94a3b8; }
+[data-theme="dark"] #threshold-modal .text-slate-500 { color: #64748b; }
+[data-theme="dark"] #threshold-modal .text-slate-800 { color: #e2e8f0; }
+[data-theme="dark"] #threshold-modal .bg-cyan-50   { background: rgba(8,145,178,.15); border-color: rgba(8,145,178,.25); color: #a5f3fc; }
+[data-theme="dark"] #threshold-modal .bg-amber-50  { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.3); color: #fcd34d; }
+[data-theme="dark"] #threshold-modal .bg-amber-100 { background: rgba(245,158,11,.2); }
+[data-theme="dark"] #threshold-modal .border-slate-100 { border-color: #334155; }
+[data-theme="dark"] #threshold-modal .bg-slate-100 { background: #334155; color: #cbd5e1; }
+[data-theme="dark"] #threshold-modal .bg-slate-100:hover { background: #475569; }
+
+/* compliance-ring dark */
+[data-theme="dark"] .compliance-ring-label .val { color: #f1f5f9; }
+[data-theme="dark"] .compliance-ring-label .sub { color: #64748b; }
+
+/* header action buttons dark */
+[data-theme="dark"] .aqua-manager-standalone .border-slate-300.bg-white {
+    background: var(--bg-card, #1e293b) !important;
+    border-color: var(--border, #334155) !important;
+    color: #cbd5e1 !important;
+}
+[data-theme="dark"] .aqua-manager-standalone .border-slate-300.bg-white:hover {
+    background: var(--bg-hover, #334155) !important;
+}
 </style>
 @endpush
 
