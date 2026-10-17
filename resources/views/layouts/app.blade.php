@@ -30,19 +30,6 @@
 
     <!-- Additional Styles -->
     @stack('styles')
-</head>
-<body class="antialiased bg-[#04121b] text-white min-h-screen">
-    <div id="app" class="min-h-screen flex flex-col">
-        @yield('content')
-    </div>
-
-    <!-- AI Assistant (Global) -->
-    <x-ai-assistant />
-
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 max-w-sm"></div>
-
-    @stack('styles')
 
     {{-- Apply saved theme BEFORE paint to avoid flash --}}
     <script>
@@ -53,10 +40,10 @@
         })();
     </script>
 </head>
-<body>
+<body class="antialiased bg-[#04121b] text-white min-h-screen">
 
 <div id="app" class="min-h-screen flex flex-col">
-@yield('content')
+    @yield('content')
 </div>
 
 {{-- ── Demo-mode banner ── --}}
@@ -87,7 +74,6 @@ window.toggleTheme = function () {
     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('aq-theme', next);
-    // Update chart / map colours if needed (dispatch custom event)
     window.dispatchEvent(new CustomEvent('aq:themechange', { detail: { theme: next } }));
 };
 
