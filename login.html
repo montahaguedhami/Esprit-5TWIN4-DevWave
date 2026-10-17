@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="2e4rKG9iBU7mZ1WHYfbRZh9GB0RkKBHl4gqgQMA4">
+
+    <title>AquaSecure - Gestion du réseau d'eau potable</title>
+
+    <!-- Fonts: Inter & Inter Tight (Liquid Glass UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="preload" as="style" href="http://127.0.0.1:8000/build/assets/app-Bt9zOSLz.css" /><link rel="modulepreload" as="script" href="http://127.0.0.1:8000/build/assets/app-BscUKr2r.js" /><link rel="stylesheet" href="http://127.0.0.1:8000/build/assets/app-Bt9zOSLz.css" /><script type="module" src="http://127.0.0.1:8000/build/assets/app-BscUKr2r.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Additional Styles -->
+    </head>
+<body class="antialiased bg-[#04121b] text-white min-h-screen">
+    <div id="app" class="min-h-screen flex flex-col">
+        <div class="min-h-screen bg-[#04121b] text-white relative overflow-hidden flex flex-col justify-center">
+    <!-- Atmospheric Rain & Vignette Overlay -->
+    <div class="rain-container">
+                    <div 
+            class="raindrop" 
+            style="left: 10%; height: 57px; animation-duration: 0.67s; animation-delay: 1.9s; opacity: 0.59;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 74%; height: 46px; animation-duration: 1.15s; animation-delay: 0.23s; opacity: 0.69;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 31%; height: 25px; animation-duration: 0.63s; animation-delay: 2.42s; opacity: 0.66;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 12%; height: 26px; animation-duration: 0.93s; animation-delay: 2.92s; opacity: 0.3;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 62%; height: 42px; animation-duration: 1.2s; animation-delay: 0.75s; opacity: 0.37;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 36%; height: 34px; animation-duration: 0.93s; animation-delay: 0.48s; opacity: 0.56;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 0%; height: 59px; animation-duration: 1.16s; animation-delay: 2.21s; opacity: 0.52;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 96%; height: 44px; animation-duration: 0.61s; animation-delay: 1.65s; opacity: 0.41;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 3%; height: 50px; animation-duration: 1.33s; animation-delay: 0.56s; opacity: 0.31;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 53%; height: 22px; animation-duration: 0.88s; animation-delay: 1.7s; opacity: 0.66;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 46%; height: 56px; animation-duration: 0.87s; animation-delay: 1.38s; opacity: 0.38;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 99%; height: 52px; animation-duration: 0.69s; animation-delay: 1.16s; opacity: 0.34;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 43%; height: 37px; animation-duration: 0.72s; animation-delay: 2.48s; opacity: 0.43;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 87%; height: 41px; animation-duration: 1.22s; animation-delay: 1.76s; opacity: 0.67;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 45%; height: 52px; animation-duration: 0.8s; animation-delay: 0.53s; opacity: 0.39;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 70%; height: 41px; animation-duration: 1.25s; animation-delay: 0.73s; opacity: 0.65;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 14%; height: 46px; animation-duration: 0.94s; animation-delay: 0.04s; opacity: 0.37;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 44%; height: 53px; animation-duration: 0.94s; animation-delay: 2.58s; opacity: 0.32;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 27%; height: 32px; animation-duration: 1.35s; animation-delay: 0.78s; opacity: 0.33;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 89%; height: 59px; animation-duration: 1.24s; animation-delay: 0.42s; opacity: 0.43;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 3%; height: 51px; animation-duration: 0.86s; animation-delay: 1.37s; opacity: 0.59;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 37%; height: 51px; animation-duration: 1.2s; animation-delay: 2.52s; opacity: 0.32;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 2%; height: 48px; animation-duration: 1.27s; animation-delay: 2.16s; opacity: 0.42;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 35%; height: 51px; animation-duration: 1.1s; animation-delay: 2.38s; opacity: 0.33;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 75%; height: 49px; animation-duration: 0.8s; animation-delay: 2.03s; opacity: 0.43;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 8%; height: 41px; animation-duration: 0.69s; animation-delay: 1.45s; opacity: 0.5;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 67%; height: 34px; animation-duration: 0.65s; animation-delay: 2.39s; opacity: 0.51;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 67%; height: 39px; animation-duration: 1.14s; animation-delay: 1.32s; opacity: 0.44;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 3%; height: 33px; animation-duration: 0.99s; animation-delay: 1.99s; opacity: 0.69;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 26%; height: 48px; animation-duration: 1.33s; animation-delay: 2.27s; opacity: 0.48;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 80%; height: 20px; animation-duration: 1.22s; animation-delay: 2.52s; opacity: 0.51;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 7%; height: 50px; animation-duration: 0.98s; animation-delay: 0.23s; opacity: 0.65;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 76%; height: 37px; animation-duration: 1.33s; animation-delay: 2.88s; opacity: 0.34;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 31%; height: 36px; animation-duration: 1.24s; animation-delay: 1.2s; opacity: 0.31;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 62%; height: 41px; animation-duration: 0.86s; animation-delay: 2.02s; opacity: 0.64;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 34%; height: 21px; animation-duration: 0.63s; animation-delay: 2.9s; opacity: 0.3;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 21%; height: 34px; animation-duration: 0.73s; animation-delay: 2.43s; opacity: 0.49;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 79%; height: 54px; animation-duration: 1.04s; animation-delay: 0.22s; opacity: 0.4;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 66%; height: 24px; animation-duration: 1.35s; animation-delay: 0.15s; opacity: 0.38;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 23%; height: 50px; animation-duration: 1.27s; animation-delay: 0.5s; opacity: 0.68;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 2%; height: 28px; animation-duration: 0.85s; animation-delay: 1.97s; opacity: 0.7;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 100%; height: 58px; animation-duration: 0.67s; animation-delay: 2.33s; opacity: 0.48;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 3%; height: 51px; animation-duration: 0.64s; animation-delay: 2.58s; opacity: 0.33;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 53%; height: 35px; animation-duration: 1.02s; animation-delay: 1.94s; opacity: 0.51;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 40%; height: 20px; animation-duration: 1.34s; animation-delay: 2.86s; opacity: 0.53;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 86%; height: 20px; animation-duration: 0.79s; animation-delay: 1.31s; opacity: 0.4;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 43%; height: 21px; animation-duration: 0.68s; animation-delay: 0.25s; opacity: 0.33;"
+        ></div>
+                    <div 
+            class="raindrop" 
+            style="left: 46%; height: 44px; animation-duration: 1.05s; animation-delay: 1.3s; opacity: 0.58;"
+        ></div>
+    </div>
+    <div class="absolute inset-0 bg-gradient-to-b from-[#04121b]/80 via-transparent to-[#04121b]/90 pointer-events-none"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
+        <a href="http://127.0.0.1:8000" class="flex items-center gap-3 group">
+            <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
+                <i data-lucide="droplet" class="w-6 h-6 text-white"></i>
+            </span>
+            <span class="font-display text-xl font-semibold text-white tracking-tight">AquaSecure</span>
+        </a>
+        <a href="http://127.0.0.1:8000" class="liquid-tool text-white/80 hover:text-white" aria-label="Retour à l'accueil">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </a>
+    </nav>
+
+    <!-- Main Content Shell -->
+    <main class="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-8 py-12 w-full max-w-[1500px] mx-auto">
+        <div class="w-full max-w-6xl xl:max-w-7xl grid lg:grid-cols-[1.1fr_1fr] gap-10 items-stretch my-auto">
+    <!-- Left Section - Info (Desktop only) -->
+    <section class="hidden lg:flex flex-col justify-between glass p-10 xl:p-14 animate-fade-in-up">
+        <div>
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-400/10 border border-cyan-400/25 text-cyan-200 text-xs font-semibold mb-8">
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-400 pulse-glow"></span>
+                Plateforme Nationale de Surveillance
+            </div>
+            <h1 class="text-4xl xl:text-6xl font-display font-extrabold text-white leading-tight mb-6">
+                Chaque goutte compte.
+                <span class="block text-gradient">Chaque intervention aussi.</span>
+            </h1>
+            <p class="text-cyan-100/75 text-base xl:text-lg leading-relaxed max-w-xl font-medium">
+                AquaSecure relie les citoyens, techniciens et gestionnaires autour d'un réseau d'eau potable plus sûr, plus transparent et plus résilient.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mt-12">
+                        <div class="glass-strong p-5 rounded-2xl">
+                <div class="text-cyan-300 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="text-2xl font-display font-bold text-white">14</div>
+                <div class="text-xs text-cyan-100/60 mt-1 font-medium">zones suivies</div>
+            </div>
+                        <div class="glass-strong p-5 rounded-2xl">
+                <div class="text-cyan-300 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                </div>
+                <div class="text-2xl font-display font-bold text-white">24/7</div>
+                <div class="text-xs text-cyan-100/60 mt-1 font-medium">surveillance</div>
+            </div>
+                        <div class="glass-strong p-5 rounded-2xl">
+                <div class="text-cyan-300 mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="text-2xl font-display font-bold text-white">100%</div>
+                <div class="text-xs text-cyan-100/60 mt-1 font-medium">transparent</div>
+            </div>
+                    </div>
+    </section>
+
+    <!-- Right Section - Login Form -->
+    <section class="glass-strong p-8 sm:p-10 xl:p-12 animate-fade-in-up flex flex-col justify-between" style="animation-delay: 0.12s">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <p class="text-xs font-bold tracking-wider text-cyan-400 uppercase">Accès Sécurisé</p>
+                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white mt-1">Heureux de vous revoir</h2>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/30 flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-950/30 border border-white/5 mb-7">
+            <a href="http://127.0.0.1:8000/login" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                <span class="hidden sm:inline">Connexion</span>
+            </a>
+            <a href="http://127.0.0.1:8000/register" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all text-cyan-100/45 hover:text-cyan-100/80">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+                <span class="hidden sm:inline">Inscription</span>
+            </a>
+            <a href="http://127.0.0.1:8000/forgot-password" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all text-cyan-100/45 hover:text-cyan-100/80">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <span class="hidden sm:inline">Mot de passe</span>
+            </a>
+        </div>
+
+        <!-- Login Form -->
+        <form method="POST" action="http://127.0.0.1:8000/login" class="space-y-4">
+            <input type="hidden" name="_token" value="2e4rKG9iBU7mZ1WHYfbRZh9GB0RkKBHl4gqgQMA4" autocomplete="off">
+            
+                        
+            <div>
+                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
+                <div class="relative">
+                    <input type="email" name="email" value="" required placeholder="admin@aquasecure.tn" autocomplete="email" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
+                <div class="relative">
+                    <input type="password" name="password" id="password" required placeholder="password" autocomplete="current-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <button type="button" onclick="togglePasswordVisibility()" class="text-cyan-100/35 hover:text-cyan-300 absolute right-4 top-1/2 -translate-y-1/2" aria-label="Afficher le mot de passe">
+                        <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <svg class="w-4 h-4 eye-off-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" onclick="window.location.href='http://127.0.0.1:8000/forgot-password'" class="text-right text-xs text-cyan-300/80 hover:text-cyan-200 transition-colors block w-full">
+                Mot de passe oublié ?
+            </button>
+
+            <button 
+    type="submit"
+    class="ripple-btn rounded-xl font-semibold transition-all duration-300 cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 px-8 py-4 text-lg w-full flex items-center justify-center gap-2"
+    onclick="handleRipple(event, this)"
+>
+    Se connecter
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+</button>
+
+        </form>
+
+        <p class="mt-6 text-center text-xs text-cyan-100/55">
+            Pas encore de compte ?
+            <a href="http://127.0.0.1:8000/register" class="text-cyan-300 hover:text-cyan-200 font-semibold">Créer un compte</a>
+        </p>
+    </section>
+</div>
+
+    </main>
+
+    <!-- Toast Notifications -->
+    <!-- Toast Container -->
+<div id="toast-container" class="fixed top-6 right-6 z-[100] space-y-3 max-w-md">
+    <!-- Toasts will be dynamically inserted here -->
+</div>
+
+</div>
+
+    </div>
+
+    <div class="fixed bottom-20 left-3 z-[60] max-w-[calc(100vw-1.5rem)] rounded-2xl border border-cyan-300/20 bg-slate-950/90 px-3 py-2 text-xs text-cyan-50 shadow-xl shadow-black/20 backdrop-blur-md sm:bottom-5 sm:left-5 sm:px-4 sm:py-2.5" role="status" aria-label="Mode démonstration">
+        <span class="inline-flex items-center gap-2">
+            <i data-lucide="flask-conical" class="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true"></i>
+            <span><strong class="font-semibold text-cyan-200">Mode démonstration</strong><span class="hidden sm:inline"> · Données fictives, actions simulées</span></span>
+        </span>
+    </div>
+
+    <!-- AI Assistant (Global) -->
+    <!-- AI Assistant Floating Button & Chat Panel -->
+<div class="ai-assistant-wrapper">
+    <!-- Floating Button -->
+    <button 
+        id="ai-assistant-toggle" 
+        onclick="toggleAIAssistant()"
+        class="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-110 flex items-center justify-center group"
+        aria-label="Ouvrir l'assistant IA"
+    >
+        <!-- AI Icon -->
+        <div id="ai-icon" class="transition-transform duration-300">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+        </div>
+        <!-- Close Icon (hidden by default) -->
+        <div id="ai-close-icon" class="hidden transition-transform duration-300">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </div>
+        
+        <!-- Pulse Animation -->
+        <span class="absolute -inset-1 rounded-full bg-purple-500/30 animate-ping"></span>
+    </button>
+
+    <!-- Chat Panel -->
+    <div 
+        id="ai-chat-panel" 
+        class="fixed bottom-24 right-6 z-50 w-96 h-[600px] glass-strong rounded-2xl shadow-2xl border border-purple-500/20 hidden flex-col overflow-hidden"
+        style="animation: slideUp 0.3s ease-out;"
+    >
+        <!-- Header -->
+        <div class="p-4 border-b border-white/10 bg-gradient-to-r from-purple-500/20 to-pink-600/20">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">AquaSecure AI</h3>
+                        <div class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-xs text-emerald-400">En ligne</span>
+                        </div>
+                    </div>
+                </div>
+                <button 
+                    onclick="toggleAIAssistant()" 
+                    class="p-2 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
+                >
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div id="ai-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Welcome Message -->
+            <div class="flex items-start gap-3 animate-fadeIn">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <div class="glass p-3 rounded-2xl rounded-tl-none">
+                        <p class="text-sm text-white mb-2">👋 Bonjour ! Je suis votre assistant IA AquaSecure.</p>
+                        <p class="text-sm text-slate-300">Comment puis-je vous aider aujourd'hui ?</p>
+                    </div>
+                    <span class="text-xs text-slate-500 mt-1 block">À l'instant</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="flex flex-wrap gap-2">
+                <button 
+                    onclick="sendQuickMessage('Quelle est la qualité de l\'eau dans ma zone ?')"
+                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-400 hover:text-cyan-300"
+                >
+                    💧 Qualité de l'eau
+                </button>
+                <button 
+                    onclick="sendQuickMessage('Comment signaler un problème ?')"
+                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-400 hover:text-cyan-300"
+                >
+                    🔧 Signaler un problème
+                </button>
+                <button 
+                    onclick="sendQuickMessage('Consulter ma facture')"
+                    class="text-xs px-3 py-2 rounded-lg glass hover:glass-strong transition-all text-cyan-400 hover:text-cyan-300"
+                >
+                    📄 Ma facture
+                </button>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 border-t border-white/10 bg-slate-900/50">
+            <form id="ai-chat-form" onsubmit="sendAIMessage(event)" class="flex items-end gap-2">
+                <div class="flex-1">
+                    <textarea 
+                        id="ai-input"
+                        placeholder="Posez votre question..."
+                        rows="1"
+                        class="w-full px-4 py-3 rounded-xl glass text-white placeholder-slate-500 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                        onkeydown="handleAIInputKeydown(event)"
+                    ></textarea>
+                </div>
+                <button 
+                    type="submit"
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 transition-all flex items-center justify-center flex-shrink-0"
+                >
+                    <i data-lucide="send" class="w-5 h-5 text-white"></i>
+                </button>
+            </form>
+            <p class="text-xs text-slate-500 mt-2 text-center">
+                IA peut faire des erreurs. Vérifiez les informations importantes.
+            </p>
+        </div>
+    </div>
+</div>
+
+
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 max-w-sm"></div>
+
+    <!-- Route Sweep Effect -->
+    <div class="route-sweep" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+    function handleRipple(event, button) {
+        const rect = button.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const circle = document.createElement('span');
+        circle.className = 'ripple-circle';
+        circle.style.left = `${x - 10}px`;
+        circle.style.top = `${y - 10}px`;
+        circle.style.width = '20px';
+        circle.style.height = '20px';
+        button.appendChild(circle);
+
+        setTimeout(() => circle.remove(), 600);
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
+<script>
+    function togglePasswordVisibility() {
+        const input = document.getElementById('password');
+        const eyeIcon = document.querySelector('.eye-icon');
+        const eyeOffIcon = document.querySelector('.eye-off-icon');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeIcon.classList.add('hidden');
+            eyeOffIcon.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeIcon.classList.remove('hidden');
+            eyeOffIcon.classList.add('hidden');
+        }
+    }
+</script>
+<script>
+function showToast(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const config = {
+        success: {
+            bg: 'bg-emerald-500/10',
+            border: 'border-emerald-400/30',
+            text: 'text-emerald-400',
+            icon: 'check-circle',
+        },
+        error: {
+            bg: 'bg-rose-500/10',
+            border: 'border-rose-400/30',
+            text: 'text-rose-400',
+            icon: 'x-circle',
+        },
+        warning: {
+            bg: 'bg-amber-500/10',
+            border: 'border-amber-400/30',
+            text: 'text-amber-400',
+            icon: 'alert-triangle',
+        },
+        info: {
+            bg: 'bg-cyan-500/10',
+            border: 'border-cyan-400/30',
+            text: 'text-cyan-400',
+            icon: 'info',
+        },
+    };
+    
+    const cfg = config[type] || config.info;
+    const toastId = 'toast-' + Date.now();
+    
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `glass-strong ${cfg.bg} border ${cfg.border} rounded-xl p-4 flex items-start gap-3 shadow-2xl animate-slide-in-right`;
+    toast.innerHTML = `
+        <i data-lucide="${cfg.icon}" class="w-5 h-5 ${cfg.text} flex-shrink-0 mt-0.5"></i>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm text-white font-medium">${message}</p>
+        </div>
+        <button 
+            onclick="removeToast('${toastId}')"
+            class="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors flex-shrink-0"
+        >
+            <i data-lucide="x" class="w-4 h-4 text-cyan-100/60"></i>
+        </button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Initialize Lucide icons for new toast
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
+    // Auto remove after duration
+    if (duration > 0) {
+        setTimeout(() => {
+            removeToast(toastId);
+        }, duration);
+    }
+}
+
+function removeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.classList.add('animate-slide-out-right');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+}
+
+// Auto-show toasts from Laravel session
+document.addEventListener('DOMContentLoaded', function() {
+        
+        
+        
+    });
+</script>
+
+<style>
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-slide-out-right {
+    animation: slideOutRight 0.3s ease-in forwards;
+}
+</style>
+<script>
+    // AI Assistant Data
+    const aiResponses = {
+        'qualité': {
+            response: "D'après les dernières analyses, la qualité de l'eau dans votre zone (Tunis Nord) est **excellente** avec un score de 98/100. 💧\n\n✅ Taux de chlore: Normal\n✅ pH: 7.2 (optimal)\n✅ Turbidité: Faible\n\nDernière analyse: Il y a 2 heures",
+            delay: 1500
+        },
+        'problème': {
+            response: "Pour signaler un problème, c'est très simple ! 🔧\n\n1. Cliquez sur **Nouvelle Déclaration** dans votre dashboard\n2. Décrivez le problème (fuite, pression, qualité)\n3. Ajoutez une photo si possible\n4. Validez votre signalement\n\nUn technicien sera notifié immédiatement et vous recevrez un numéro de suivi.",
+            delay: 2000
+        },
+        'facture': {
+            response: "Voici vos informations de facturation 📄\n\n**Dernière facture:** Septembre 2026\n💰 Montant: 87.50 TND\n📊 Consommation: 18.5 m³\n📅 Échéance: 05/10/2026\n\nStatut: ⏳ En attente de paiement\n\n[Voir la facture détaillée](#)",
+            delay: 1800
+        },
+        'maintenance': {
+            response: "Les prochaines maintenances programmées dans votre zone 🛠️\n\n📅 **28 septembre 2026**\n⏰ 9h00 - 12h00\n📍 Zone: Tunis Nord\n\nImpact: Interruption possible du service\n\nVous recevrez une notification 24h avant l'intervention.",
+            delay: 1600
+        },
+        'aide': {
+            response: "Je peux vous aider avec:\n\n💧 Qualité de l'eau et analyses\n🔧 Signalement de problèmes\n📄 Factures et consommation\n🛠️ Interventions et maintenance\n📊 Statistiques et rapports\n⚙️ Utilisation de la plateforme\n\nPosez-moi votre question ou choisissez un sujet ci-dessus!",
+            delay: 1400
+        },
+        'default': {
+            response: "Je comprends votre question. Laissez-moi vous orienter vers les bonnes ressources.\n\nVous pouvez:\n• Consulter la **documentation** dans le centre d'aide\n• Contacter le **support technique** au +216 71 123 456\n• Explorer votre **tableau de bord** pour plus d'informations\n\nSouhaitez-vous que je vous aide avec autre chose ?",
+            delay: 1700
+        }
+    };
+
+    function toggleAIAssistant() {
+        const panel = document.getElementById('ai-chat-panel');
+        const button = document.getElementById('ai-assistant-toggle');
+        const aiIcon = document.getElementById('ai-icon');
+        const closeIcon = document.getElementById('ai-close-icon');
+        
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            panel.classList.add('flex');
+            aiIcon.classList.add('hidden');
+            closeIcon.classList.remove('hidden');
+            button.classList.add('rotate-90');
+            
+            // Auto-scroll to bottom
+            setTimeout(() => {
+                const messages = document.getElementById('ai-messages');
+                messages.scrollTop = messages.scrollHeight;
+            }, 100);
+        } else {
+            panel.classList.add('hidden');
+            panel.classList.remove('flex');
+            aiIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+            button.classList.remove('rotate-90');
+        }
+        
+        // Reinitialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    function sendAIMessage(event) {
+        event.preventDefault();
+        const input = document.getElementById('ai-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Add user message
+        addUserMessage(message);
+        input.value = '';
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        // Get AI response
+        const responseData = getAIResponse(message);
+        
+        // Simulate AI thinking
+        setTimeout(() => {
+            hideTypingIndicator();
+            addAIMessage(responseData.response);
+        }, responseData.delay);
+    }
+
+    function sendQuickMessage(message) {
+        document.getElementById('ai-input').value = message;
+        document.getElementById('ai-chat-form').dispatchEvent(new Event('submit'));
+    }
+
+    function addUserMessage(message) {
+        const messagesContainer = document.getElementById('ai-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex items-start gap-3 justify-end animate-fadeIn';
+        messageDiv.innerHTML = `
+            <div class="flex-1 flex flex-col items-end">
+                <div class="glass-strong p-3 rounded-2xl rounded-tr-none bg-gradient-to-br from-cyan-500/20 to-blue-600/20">
+                    <p class="text-sm text-white">${escapeHtml(message)}</p>
+                </div>
+                <span class="text-xs text-slate-500 mt-1">À l'instant</span>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="user" class="w-4 h-4 text-white"></i>
+            </div>
+        `;
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+        
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    function addAIMessage(message) {
+        const messagesContainer = document.getElementById('ai-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex items-start gap-3 animate-fadeIn';
+        
+        // Convert markdown-style bold to HTML
+        const formattedMessage = message
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-purple-400">$1</strong>')
+            .replace(/\n/g, '<br>');
+        
+        messageDiv.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <div class="glass p-3 rounded-2xl rounded-tl-none">
+                    <p class="text-sm text-white">${formattedMessage}</p>
+                </div>
+                <span class="text-xs text-slate-500 mt-1 block">À l'instant</span>
+            </div>
+        `;
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+
+    function showTypingIndicator() {
+        const messagesContainer = document.getElementById('ai-messages');
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'typing-indicator';
+        typingDiv.className = 'flex items-start gap-3';
+        typingDiv.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+            </div>
+            <div class="glass p-3 rounded-2xl rounded-tl-none">
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        `;
+        messagesContainer.appendChild(typingDiv);
+        scrollToBottom();
+    }
+
+    function hideTypingIndicator() {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+
+    function getAIResponse(message) {
+        const lowerMessage = message.toLowerCase();
+        
+        if (lowerMessage.includes('qualité') || lowerMessage.includes('eau') || lowerMessage.includes('analyse')) {
+            return aiResponses.qualité;
+        } else if (lowerMessage.includes('problème') || lowerMessage.includes('signaler') || lowerMessage.includes('fuite') || lowerMessage.includes('panne')) {
+            return aiResponses.problème;
+        } else if (lowerMessage.includes('facture') || lowerMessage.includes('payer') || lowerMessage.includes('consommation')) {
+            return aiResponses.facture;
+        } else if (lowerMessage.includes('maintenance') || lowerMessage.includes('intervention') || lowerMessage.includes('travaux')) {
+            return aiResponses.maintenance;
+        } else if (lowerMessage.includes('aide') || lowerMessage.includes('help') || lowerMessage.includes('comment')) {
+            return aiResponses.aide;
+        } else {
+            return aiResponses.default;
+        }
+    }
+
+    function scrollToBottom() {
+        const messages = document.getElementById('ai-messages');
+        setTimeout(() => {
+            messages.scrollTop = messages.scrollHeight;
+        }, 100);
+    }
+
+    function handleAIInputKeydown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            document.getElementById('ai-chat-form').dispatchEvent(new Event('submit'));
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>
+
+    <script>
+        // Theme management
+        const theme = localStorage.getItem('aquasecure-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('aquasecure-theme', newTheme);
+        }
+
+        // Toast notification system
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const id = 'toast-' + Date.now();
+            
+            const icons = {
+                success: `<svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
+                error: `<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`,
+                info: `<svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+            };
+            
+            const borders = {
+                success: 'border-teal-400/40',
+                error: 'border-red-400/40',
+                info: 'border-cyan-400/40'
+            };
+            
+            const toast = document.createElement('div');
+            toast.id = id;
+            toast.className = `toast-drop glass-strong px-5 py-4 flex items-center gap-3 border ${borders[type]} rounded-2xl`;
+            toast.innerHTML = `
+                ${icons[type]}
+                <p class="text-sm text-white/90 flex-1">${message}</p>
+                <button onclick="document.getElementById('${id}').remove()" class="text-white/40 hover:text-white/80 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        };
+
+        // Initialize Lucide icons
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>

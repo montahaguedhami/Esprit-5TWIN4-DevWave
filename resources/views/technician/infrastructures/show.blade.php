@@ -1,8 +1,8 @@
-@extends('layouts.manager')
+@extends('layouts.technician')
 
 @section('title', $infrastructure->nom . ' — Fiche Technique Terrain')
 
-@section('manager-content')
+@section('technician-content')
 <div class="max-w-5xl mx-auto space-y-6">
 
     {{-- En-tête mobile avec bouton retour et actions --}}

@@ -86,36 +86,7 @@
 
             <!-- Divider -->
             <div class="my-2 border-t border-white/10"></div>
-            @if (app()->environment(['local', 'testing']))
-            <div class="px-4 py-1 text-[11px] font-bold text-cyan-800 uppercase tracking-wider">Changer de rôle (Demo 120Water)</div>
-            <a href="{{ route('switch.role', 'admin') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
-                <i data-lucide="shield" class="w-4 h-4 text-purple-400"></i>
-                <span class="text-xs text-slate-700">System Administrator</span>
-            </a>
-            <a href="{{ route('switch.role', 'manager') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
-                <i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i>
-                <span class="text-xs text-slate-700">Utility Manager</span>
-            </a>
-            <a href="{{ route('switch.role', 'quality') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
-                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i>
-                <span class="text-xs text-slate-700">Water Quality Specialist</span>
-            </a>
-            <a href="{{ route('switch.role', 'technician') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
-                <i data-lucide="wrench" class="w-4 h-4 text-cyan-400"></i>
-                <span class="text-xs text-slate-700">Field Technician</span>
-            </a>
-            <a href="{{ route('switch.role', 'finance') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
-                <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
-                <span class="text-xs text-slate-700">Finance Manager</span>
-            </a>
-            <a href="{{ route('switch.role', 'citizen') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
-                <i data-lucide="user" class="w-4 h-4 text-amber-400"></i>
-                <span class="text-xs text-slate-700">Citizen Portal</span>
-            </a>
 
-            <!-- Divider -->
-            <div class="my-2 border-t border-slate-100"></div>
-            @endif
 
             <!-- Help -->
             <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group">

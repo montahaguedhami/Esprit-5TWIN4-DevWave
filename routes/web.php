@@ -1,6 +1,8 @@
 
 <?php
 
+use Illuminate\Contracts\Auth\PasswordBroker;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
@@ -116,9 +118,61 @@ Route::post('/register', function (Request $request) {
         ->with('success', 'Compte créé avec succès. Connectez-vous avec votre email et mot de passe.');
 })->name('register.post');
 
+// Forgot password — always answers the same way, whether or not the
+// account exists, so the endpoint cannot be used to enumerate emails.
 Route::post('/forgot-password', function (Request $request) {
+    $request->validate([
+        'email' => ['required', 'email'],
+    ]);
+
+    Password::broker()->sendResetLink($request->only('email'));
+
     return back()->with('success', 'Si ce compte existe, un email a été envoyé.');
 })->name('forgot-password.post');
+
+// Reset password — the email is carried over from the link that was sent.
+// NOTE: this route must keep the conventional `password.reset` name expected
+// by Illuminate\Auth\Notifications\ResetPassword when building the email link.
+Route::get('/reset-password/{token}', function (Request $request, $token) {
+    return view('auth.reset-password', [
+        'token' => $token,
+        'email' => $request->query('email'),
+    ]);
+})->name('password.reset');
+
+Route::post('/reset-password', function (Request $request) {
+    $validated = $request->validate([
+        'token'    => ['required', 'string'],
+        'email'    => ['required', 'email'],
+        'password' => ['required', 'string', 'min:6', 'confirmed'],
+    ]);
+
+    $status = Password::broker()->reset(
+        $validated,
+        function ($user, $password) {
+            // The "hashed" cast takes care of hashing the plain password.
+            $user->forceFill([
+                'password' => $password,
+            ])->save();
+        }
+    );
+
+    if ($status !== PasswordBroker::PASSWORD_RESET) {
+        return back()
+            ->withInput($request->only('email', 'token'))
+            ->with('error', 'Ce lien de réinitialisation n’est plus valide ou a expiré.');
+    }
+
+    $user = \App\Models\User::where('email', $validated['email'])->first();
+
+    \App\Models\AuditLog::record('user_password_reset', 'User', $user?->id, [
+        'ip' => $request->ip(),
+    ], $user);
+
+    return redirect()
+        ->route('auth.login')
+        ->with('success', 'Votre mot de passe a été réinitialisé. Connectez-vous avec votre email et votre nouveau mot de passe.');
+})->name('reset-password.post');
 
 // Logout
 Route::post('/logout', function (Request $request) {
@@ -261,14 +315,17 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
 });
 
 Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('budget', [\App\Http\Controllers\Admin\ConsultationController::class, 'budget'])->name('budget');
+    Route::get('projets', [\App\Http\Controllers\Admin\ConsultationController::class, 'projets'])->name('projets.index');
+    Route::get('qualite', [\App\Http\Controllers\Admin\ConsultationController::class, 'qualite'])->name('qualite');
+    Route::get('incidents', [\App\Http\Controllers\Admin\ConsultationController::class, 'incidents'])->name('incidents');
+    Route::get('interventions', [\App\Http\Controllers\Admin\ConsultationController::class, 'interventions'])->name('interventions');
     Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
     Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
     Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
-    Route::resource('zones', ZoneController::class);
-    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
-    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
-    Route::resource('infrastructures', InfrastructureController::class);
+    Route::resource('zones', ZoneController::class)->only(['index', 'show']);
+    Route::resource('infrastructures', InfrastructureController::class)->only(['index', 'show']);
 });
 
 Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
@@ -324,8 +381,6 @@ Route::middleware('role:administrateur')->group(function () {
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
     Route::patch('/admin/users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
-    Route::get('/admin/roles',       [\App\Http\Controllers\Admin\RoleController::class, 'index'])->name('admin.roles');
-    Route::put('/admin/roles/{role}/permissions', [\App\Http\Controllers\Admin\RoleController::class, 'updatePermissions'])->name('admin.roles.update-permissions');
     Route::get('/admin/logs',        [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.logs');
     Route::get('/admin/system',      fn () => view('admin.system'))->name('admin.system');
     Route::get('/admin/security',    fn () => view('admin.security'))->name('admin.security');
@@ -381,4 +436,12 @@ Route::middleware('role:manager')->prefix('manager/financements')->name('manager
     Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
     Route::put('/{financement}',   [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
     Route::delete('/{financement}',[App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});
+
+Route::middleware('role:manager')->group(function () {
+    Route::post('/manager/data-collection/trigger',    [\App\Http\Controllers\Manager\DataCollectionController::class, 'trigger'])->name('manager.data-collection.trigger');
+    Route::post('/manager/data-collection/import-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
+    Route::get('/manager/data-collection/status',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
+    Route::get('/manager/data-collection/history',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
+    Route::get('/manager/quality/{point}/analyse',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
 });

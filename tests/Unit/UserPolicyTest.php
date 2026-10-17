@@ -80,6 +80,11 @@ class UserPolicyTest extends TestCase
 
     public function test_admin_can_assign_roles_except_demoting_last_admin(): void
     {
+        $adminRole = Role::where('slug', Role::ADMINISTRATEUR)->firstOrFail();
+        foreach (User::whereHas('roles', fn ($q) => $q->where('slug', Role::ADMINISTRATEUR))->get() as $existingAdmin) {
+            $existingAdmin->roles()->detach($adminRole->id);
+        }
+
         $admin = $this->createUserWithRole(Role::ADMINISTRATEUR, ['email' => 'a1@test.com']);
         $otherAdmin = $this->createUserWithRole(Role::ADMINISTRATEUR, ['email' => 'a2@test.com']);
         $citizen = $this->createUserWithRole(Role::CITOYEN, ['email' => 'c@test.com']);
@@ -87,7 +92,6 @@ class UserPolicyTest extends TestCase
         $this->assertTrue($this->policy->assignRoles($admin, $citizen, [Role::TECHNICIEN])->allowed());
         $this->assertTrue($this->policy->assignRoles($admin, $otherAdmin, [Role::ADMINISTRATEUR])->allowed());
 
-        $adminRole = Role::where('slug', Role::ADMINISTRATEUR)->firstOrFail();
         $otherAdmin->roles()->detach($adminRole->id);
         $this->assertTrue($this->policy->assignRoles($admin->fresh()->load('roles'), $admin, [Role::CITOYEN])->denied());
     }
