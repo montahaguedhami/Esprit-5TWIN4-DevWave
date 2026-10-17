@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\ActionCorrectiveController;
 use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\InterventionIaController;
 use App\Http\Controllers\MaintenanceDashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PlanningController;
@@ -369,6 +370,7 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::resource('techniciens',   TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
     Route::get('interventions/{intervention}/pdf', [InterventionController::class, 'pdf'])->name('interventions.pdf');
+    Route::post('interventions/recommandation-ia', [InterventionIaController::class, 'recommander'])->name('interventions.recommandation');
 
     // Statistiques et rapport mensuel du module Maintenance
     Route::get('maintenance/statistiques',    [MaintenanceDashboardController::class, 'index'])->name('maintenance.statistiques');

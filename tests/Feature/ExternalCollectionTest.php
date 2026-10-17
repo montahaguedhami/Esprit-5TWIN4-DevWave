@@ -187,6 +187,9 @@ class ExternalCollectionTest extends TestCase
             'overall_compliance' => 100,
         ]);
 
+        // Ollama simulé injoignable : le test ne dépend pas d'une installation locale d'Ollama
+        Http::fake(fn () => throw new \Illuminate\Http\Client\ConnectionException('Ollama indisponible'));
+
         $analysis = app(RagAnalysisService::class)->analysePoint($point, 30);
 
         $this->assertSame('deterministic_only', $analysis['method']);

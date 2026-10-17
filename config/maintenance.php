@@ -40,6 +40,18 @@ return [
         'Vanne' => 'Canalisations',
     ],
 
+    // Sans infrastructure, la spécialité attendue est déduite de la description (mots-clés en minuscules)
+    'mots_cles_specialite' => [
+        'Pompage' => ['pompe', 'pompage', 'forage', 'relevage', 'surpresseur', 'débit'],
+        'Électricité' => ['électrique', 'electrique', 'tableau', 'armoire', 'moteur', 'câble', 'disjoncteur'],
+        'Traitement de l\'eau' => ['chlore', 'traitement', 'turbidité', 'qualité', 'désinfection', 'réservoir', 'filtre'],
+        'Compteurs' => ['compteur', 'relève', 'consommation'],
+        'Canalisations' => ['fuite', 'canalisation', 'conduite', 'vanne', 'tuyau', 'rupture', 'branchement'],
+    ],
+
+    // Délai maximal (secondes) laissé au modèle pour une recommandation interactive
+    'ia_timeout' => (int) env('MAINTENANCE_IA_TIMEOUT', 30),
+
     // Horizon (jours) : maintenances dues d'ici N jours sont planifiées
     'horizon_jours' => (int) env('MAINTENANCE_HORIZON_JOURS', 7),
 
