@@ -1,0 +1,11 @@
+@extends('layouts.admin')
+@section('title', 'Projets consultables')
+@section('page-title', 'Projets')
+@section('admin-content')
+<div class="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+    <header><p class="text-sm font-semibold text-violet-600">Consultation en lecture seule</p><h1 class="mt-1 text-2xl font-bold text-slate-900">Projets</h1><p class="mt-1 text-sm text-slate-500">Projets, budgets et financements enregistrés.</p></header>
+    <form method="GET" action="{{ route('admin.projets.index') }}" class="flex gap-2"><input name="q" value="{{ request('q') }}" placeholder="Rechercher un projet…" class="min-w-60 rounded-xl border border-slate-200 px-3 py-2 text-sm"><button class="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white">Rechercher</button></form>
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">@forelse($projets as $projet)<article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="flex items-start justify-between gap-3"><h2 class="font-bold text-slate-900">{{ $projet->nom }}</h2><span class="rounded-full bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700">{{ $projet->statut }}</span></div><p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ $projet->description ?: 'Aucune description.' }}</p><dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt class="text-xs text-slate-500">Budget prévu</dt><dd class="mt-1 font-semibold text-slate-900">{{ number_format((float) $projet->budget, 2, ',', ' ') }} DT</dd></div><div><dt class="text-xs text-slate-500">Financements</dt><dd class="mt-1 font-semibold text-slate-900">{{ number_format((float) $projet->financements->sum('montant'), 2, ',', ' ') }} DT</dd></div></dl><div class="mt-4 border-t border-slate-100 pt-3">@forelse($projet->financements as $financement)<p class="py-1 text-xs text-slate-600">{{ $financement->source }} · {{ $financement->date_financement?->format('d/m/Y') ?? 'Date inconnue' }} · {{ number_format((float) $financement->montant, 2, ',', ' ') }} DT</p>@empty<p class="text-xs text-slate-500">Aucun financement enregistré.</p>@endforelse</div></article>@empty<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500 sm:col-span-2 xl:col-span-3">Aucun projet trouvé.</div>@endforelse</div>
+    {{ $projets->links() }}
+</div>
+@endsection
