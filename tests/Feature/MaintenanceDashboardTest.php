@@ -102,16 +102,31 @@ class MaintenanceDashboardTest extends TestCase
         $this->assertSame(2, $pannes->first()['pannes']);
     }
 
-    public function test_teams_page_shows_real_data_instead_of_placeholders(): void
+    public function test_statistics_page_shows_real_data(): void
     {
-        $this->get(route('manager.teams'))
+        $this->get(route('manager.maintenance.statistiques'))
             ->assertOk()
-            ->assertSee('Équipes &amp; performance', false)
+            ->assertSee('Statistiques maintenance')
             ->assertSee('67 %')
             ->assertSee('1 500,00 DT')
             ->assertSee('Sami Gharbi')
-            ->assertSee('Station El Alia')
-            ->assertDontSee('Mohamed Ali'); // ancien technicien factice
+            ->assertSee('Station El Alia');
+    }
+
+    public function test_interventions_page_offers_monthly_report_and_statistics(): void
+    {
+        $this->get(route('manager.interventions.index'))
+            ->assertOk()
+            ->assertSee('Rapport mensuel')
+            ->assertSee(route('manager.maintenance.rapport-mensuel'))
+            ->assertSee(route('manager.maintenance.statistiques'));
+    }
+
+    public function test_teams_page_is_left_to_its_original_module(): void
+    {
+        $this->get(route('manager.teams'))
+            ->assertOk()
+            ->assertDontSee('Statistiques maintenance');
     }
 
     public function test_intervention_pdf_is_downloadable(): void
@@ -128,7 +143,7 @@ class MaintenanceDashboardTest extends TestCase
 
     public function test_monthly_report_pdf_and_month_validation(): void
     {
-        $response = $this->get(route('manager.teams.rapport', ['mois' => today()->format('Y-m')]))
+        $response = $this->get(route('manager.maintenance.rapport-mensuel', ['mois' => today()->format('Y-m')]))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
         $this->assertStringStartsWith('%PDF', $response->getContent());
@@ -136,7 +151,7 @@ class MaintenanceDashboardTest extends TestCase
         $rapport = app(MaintenanceStatsService::class)->rapportMensuel(today()->subDays(2)->startOfMonth());
         $this->assertGreaterThanOrEqual(1, $rapport['interventions']->count());
 
-        $this->get(route('manager.teams.rapport', ['mois' => 'octobre']))
+        $this->get(route('manager.maintenance.rapport-mensuel', ['mois' => 'octobre']))
             ->assertSessionHasErrors('mois');
     }
 
@@ -145,8 +160,8 @@ class MaintenanceDashboardTest extends TestCase
         $intervention = Intervention::first();
         $this->withSession(['user' => ['name' => 'Amira', 'role' => 'technicien']]);
 
-        $this->get(route('manager.teams'))->assertForbidden();
-        $this->get(route('manager.teams.rapport'))->assertForbidden();
+        $this->get(route('manager.maintenance.statistiques'))->assertForbidden();
+        $this->get(route('manager.maintenance.rapport-mensuel'))->assertForbidden();
         $this->get(route('manager.interventions.pdf', $intervention))->assertForbidden();
     }
 }

@@ -262,8 +262,7 @@ Route::middleware('role:manager')->group(function () {
     Route::post('/manager/quality/mesures/{mesure}/validate', [WaterQualityController::class, 'validateMeasurement'])
         ->name('manager.quality.mesures.validate');
 
-    Route::get('/manager/teams', [MaintenanceDashboardController::class, 'index'])->name('manager.teams');
-    Route::get('/manager/teams/rapport', [MaintenanceDashboardController::class, 'rapportMensuel'])->name('manager.teams.rapport');
+    Route::get('/manager/teams', fn () => view('manager.teams'))->name('manager.teams');
     Route::get('/manager/reports', fn () => view('manager.reports'))->name('manager.reports');
 });
 
@@ -370,6 +369,10 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::resource('techniciens',   TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
     Route::get('interventions/{intervention}/pdf', [InterventionController::class, 'pdf'])->name('interventions.pdf');
+
+    // Statistiques et rapport mensuel du module Maintenance
+    Route::get('maintenance/statistiques',    [MaintenanceDashboardController::class, 'index'])->name('maintenance.statistiques');
+    Route::get('maintenance/rapport-mensuel', [MaintenanceDashboardController::class, 'rapportMensuel'])->name('maintenance.rapport-mensuel');
 
     // Planning des interventions (calendrier + détection de conflits)
     Route::get('planning',                              [PlanningController::class, 'index'])->name('planning.index');

@@ -6,6 +6,7 @@
 <div class="max-w-6xl mx-auto">
     <x-maintenance.page-header title="Interventions" subtitle="Suivi des interventions de maintenance sur le réseau" icon="clipboard-list">
         <x-maintenance.link-button :href="route('manager.techniciens.index')" variant="secondary" icon="hard-hat">Techniciens</x-maintenance.link-button>
+        <x-maintenance.link-button :href="route('manager.maintenance.statistiques')" variant="secondary" icon="bar-chart-3">Statistiques</x-maintenance.link-button>
         <x-maintenance.link-button :href="route('manager.interventions.create', request()->only('technicien_id'))" icon="plus">Nouvelle intervention</x-maintenance.link-button>
     </x-maintenance.page-header>
 
@@ -93,6 +94,23 @@
             </div>
             <x-maintenance.pagination :paginator="$interventions" />
         @endif
+    </x-ui.card>
+
+    {{-- Rapport mensuel PDF --}}
+    <x-ui.card padding="sm" class="mt-6">
+        <form method="GET" action="{{ route('manager.maintenance.rapport-mensuel') }}" class="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div class="flex-1">
+                <h2 class="font-display font-semibold text-white flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5 text-cyan-300"></i>Rapport mensuel</h2>
+                <p class="text-xs text-cyan-100/60 mt-1">Liste des interventions du mois, répartition par statut et par type, coûts par technicien.</p>
+            </div>
+            <div>
+                <label for="mois" class="text-xs font-semibold text-cyan-100/60 mb-1 block">Mois</label>
+                <input type="month" id="mois" name="mois" value="{{ now()->format('Y-m') }}" max="{{ now()->format('Y-m') }}"
+                       class="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-cyan-600">
+            </div>
+            <x-ui.button type="submit" icon="download">Télécharger le PDF</x-ui.button>
+        </form>
+        @error('mois')<p class="text-xs text-rose-400 mt-2">{{ $message }}</p>@enderror
     </x-ui.card>
 </div>
 @endsection
