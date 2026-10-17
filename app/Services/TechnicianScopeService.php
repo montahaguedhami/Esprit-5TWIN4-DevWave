@@ -6,6 +6,7 @@ use App\Models\Infrastructure;
 use App\Models\Intervention;
 use App\Models\Technicien;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class TechnicianScopeService
 {
@@ -14,40 +15,23 @@ class TechnicianScopeService
      */
     public static function currentTechnicien(): ?Technicien
     {
-        $user = session('user');
-        if (! $user) {
-            return null;
-        }
-
-        // 1. Si l'ID du technicien est explicitement en session
-        if (! empty($user['technicien_id'])) {
-            $tech = Technicien::find($user['technicien_id']);
+        // 1. Compte connecté : la fiche est retrouvée par sa clé étrangère user_id (jamais par le nom)
+        $userId = Auth::id() ?? session('user.id');
+        if ($userId) {
+            $tech = Technicien::where('user_id', $userId)->first();
             if ($tech) {
                 return $tech;
             }
         }
 
-        // 2. Recherche par nom (nettoyé de libellés additionnels comme "(Field Technician)")
-        $name = $user['name'] ?? null;
-        if ($name) {
-            $cleanName = trim(explode('(', $name)[0]);
-            $tech = Technicien::where('nom', $cleanName)
-                ->orWhere('nom', 'like', "%{$cleanName}%")
-                ->first();
-            if ($tech) {
-                return $tech;
-            }
+        // 2. Identifiant de fiche placé en session côté serveur (tests de fonctionnalités)
+        $technicienId = session('user.technicien_id');
+        if ($technicienId) {
+            return Technicien::find($technicienId);
         }
 
-        // 3. Fallback automatique pour environnement démo ou tests
-        return Technicien::firstOrCreate(
-            ['nom' => $cleanName ?? 'Amira Ben Ali'],
-            [
-                'specialite' => 'Canalisations',
-                'telephone' => '+216 22 123 456',
-                'disponibilite' => 'Disponible',
-            ]
-        );
+        // Aucun rattachement : les contrôleurs répondent 403
+        return null;
     }
 
     /**

@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Artisan;
@@ -16,3 +15,6 @@ Schedule::command('water:sync --provider=simulation')->daily()->withoutOverlappi
 // Run external providers (data.gov.tn, etc.) weekly — reduce API load.
 // Comment out if DATA_GOV_TN_DATASET_ID is not configured.
 Schedule::command('water:sync --provider=data_gov_tn --no-simulation')->weekly()->withoutOverlapping(30);
+
+// Maintenance préventive : crée chaque matin les interventions des équipements arrivant à échéance.
+Schedule::command('maintenance:planifier-preventive')->dailyAt('06:15')->withoutOverlapping(10);

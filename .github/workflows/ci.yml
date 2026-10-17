@@ -63,6 +63,18 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      # Les vues rendues pendant les tests appellent @vite : le manifest doit exister
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build Vite assets for tests
+        run: |
+          npm ci
+          npm run build
+
       - name: Prepare Laravel environment
         run: |
           cp .env.example .env

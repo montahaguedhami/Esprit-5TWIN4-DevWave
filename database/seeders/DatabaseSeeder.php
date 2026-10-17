@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\MesureQualite;
+use App\Models\PointMesure;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -125,8 +127,8 @@ class DatabaseSeeder extends Seeder
         foreach ($syntheticMeasurements as [$pointCode, $reference, $date, $ph, $turbidite, $chloreResiduel, $plomb, $nitrates, $status]) {
             $point = PointMesure::where('code', $pointCode)->firstOrFail();
 
-            MesureQualite::create([
-                'reference'          => $reference,
+            // firstOrCreate : le seeder peut être relancé sans dupliquer les mesures
+            MesureQualite::firstOrCreate(['reference' => $reference], [
                 'point_mesure_id'   => $point->id,
                 'date_mesure'       => $date,
                 'ph'                => $ph,

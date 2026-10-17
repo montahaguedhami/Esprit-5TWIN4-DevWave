@@ -168,6 +168,8 @@ class InfrastructureController extends Controller
     public function scan()
     {
         $technicien = TechnicianScopeService::currentTechnicien();
+        abort_unless($technicien, 403, 'Compte technicien introuvable.');
+
         $myInfras = TechnicianScopeService::infrastructuresQuery($technicien)->orderBy('nom')->get(['id', 'nom', 'reference']);
 
         return view('technician.scan', compact('technicien', 'myInfras'));
