@@ -76,6 +76,17 @@ jobs:
           DB_USERNAME: aquasecure
           DB_PASSWORD: test_password
 
+      - name: Generate JWT secret for tests
+        run: php artisan jwt:secret --force
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: aquasecure_test
+          DB_USERNAME: aquasecure
+          DB_PASSWORD: test_password
+
       - name: Clear Laravel configuration cache
         run: php artisan config:clear
         env:
