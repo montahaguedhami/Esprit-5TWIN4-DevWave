@@ -13,6 +13,56 @@
     @if(session('success'))
         <div role="status" class="mb-4 p-3 bg-green-600 rounded">{{ session('success') }}</div>
     @endif
+
+    <div class="mb-6 rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+        <form method="GET" action="{{ route('manager.actions.index', $incident) }}" class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+            <div class="xl:col-span-2">
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Recherche</label>
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Titre, description, responsable" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Statut</label>
+                <select name="status" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                    <option value="">Tous</option>
+                    @foreach(['a_faire' => 'À faire', 'en_cours' => 'En cours', 'terminee' => 'Terminée'] as $value => $label)
+                        <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Responsable</label>
+                <input type="text" name="responsable" value="{{ request('responsable') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Tri</label>
+                <select name="sort_by" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                    <option value="created_at" @selected(request('sort_by', 'created_at') === 'created_at')>Date de création</option>
+                    <option value="date_prevue" @selected(request('sort_by') === 'date_prevue')>Échéance</option>
+                    <option value="statut" @selected(request('sort_by') === 'statut')>Statut</option>
+                    <option value="titre" @selected(request('sort_by') === 'titre')>Titre</option>
+                </select>
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Ordre</label>
+                <select name="sort_dir" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                    <option value="desc" @selected(request('sort_dir', 'desc') === 'desc')>Décroissant</option>
+                    <option value="asc" @selected(request('sort_dir') === 'asc')>Croissant</option>
+                </select>
+            </div>
+            <div class="md:col-span-2 xl:col-span-2">
+                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Échéance</label>
+                <div class="flex gap-2">
+                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+                </div>
+            </div>
+            <div class="md:col-span-2 xl:col-span-2 flex items-end gap-2">
+                <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-400">Filtrer</button>
+                <a href="{{ route('manager.actions.index', $incident) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+
     <div class="overflow-x-auto">
         <table class="w-full min-w-160 text-left">
             <thead>
@@ -44,7 +94,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="py-6 text-slate-300">Aucune action corrective enregistr&eacute;e pour cet incident.</td></tr>
+                    <tr><td colspan="5" class="py-6 text-slate-300">Aucune action corrective ne correspond aux critères choisis.</td></tr>
                 @endforelse
             </tbody>
         </table>

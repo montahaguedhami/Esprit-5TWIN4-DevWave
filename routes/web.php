@@ -135,7 +135,44 @@ Route::middleware('role:citoyen')->group(function () {
     Route::get('/citizen/reports/create',   fn () => view('citizen.reports.create'))->name('citizen.reports.create');
     Route::post('/citizen/reports',         fn () => redirect()->route('citizen.dashboard')->with('success', 'Déclaration envoyée avec succès'))->name('citizen.reports.store');
     Route::get('/citizen/reports/{id}',     fn ($id) => view('citizen.reports.show', ['id' => $id]))->name('citizen.reports.show');
-    Route::get('/citizen/notifications',    fn () => view('citizen.notifications'))->name('citizen.notifications');
+    Route::get('/citizen/notifications', function () {
+        $incidentNotifications = auth()->user()
+            ? auth()->user()->notifications()
+                ->where('type', \App\Notifications\ActionCorrectiveCreated::class)
+                ->latest()
+                ->limit(20)
+                ->get()
+            : collect();
+
+        return view('citizen.notifications', compact('incidentNotifications'));
+    })->name('citizen.notifications');
+    Route::get('/citizen/alerts/poll', function () {
+        $user = auth()->user();
+
+        if (! $user) {
+            return response()->json(['unread_count' => 0, 'notifications' => []]);
+        }
+
+        $notifications = $user->notifications()->latest()->limit(8)->get();
+
+        return response()->json([
+            'unread_count' => $user->notifications()->whereNull('read_at')->count(),
+            'notifications' => $notifications->map(function ($notification) {
+                $data = $notification->data ?? [];
+
+                return [
+                    'id' => (string) $notification->id,
+                    'title' => isset($data['action_title'])
+                        ? 'Nouvelle action corrective : ' . $data['action_title']
+                        : ($data['incident_title'] ?? 'Nouvelle notification'),
+                    'message' => $data['message'] ?? 'Une mise à jour est disponible.',
+                    'read' => $notification->read_at !== null,
+                    'time' => $notification->created_at?->diffForHumans() ?? 'Récemment',
+                    'url' => isset($data['incident_id']) ? route('incidents.show', $data['incident_id']) : null,
+                ];
+            })->values(),
+        ]);
+    })->name('citizen.alerts.poll');
     Route::get('/citizen/invoices',         fn () => view('citizen.invoices.index'))->name('citizen.invoices.index');
     Route::get('/citizen/invoices/{id}',    fn ($id) => view('citizen.invoices.show', ['id' => $id]))->name('citizen.invoices.show');
 });
@@ -159,12 +196,14 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(
     Route::get('/incidents/{incident}/edit',  [IncidentController::class, 'edit'])->name('incidents.edit');
     Route::put('/incidents/{incident}',       [IncidentController::class, 'update'])->name('incidents.update');
     Route::delete('/incidents/{incident}',    [IncidentController::class, 'destroy'])->name('incidents.destroy');
+    Route::get('/incidents/{incident}/attachment', [IncidentController::class, 'attachment'])->name('incidents.attachment');
     Route::get('/incidents/{incident}',       [IncidentController::class, 'show'])->name('incidents.show');
 });
 
 Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
     Route::get('/manager/incidents',                          [IncidentController::class, 'managerIndex'])->name('manager.incidents');
     Route::get('/manager/incidents/{incident}',               [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
+    Route::get('/manager/incidents/{incident}/attachment',     [IncidentController::class, 'attachment'])->name('manager.incidents.attachment');
     Route::get('/manager/incidents/{incident}/actions',       [ActionCorrectiveController::class, 'index'])->name('manager.actions.index');
     Route::get('/manager/incidents/{incident}/actions/create',[ActionCorrectiveController::class, 'create'])->name('manager.actions.create');
     Route::post('/manager/incidents/{incident}/actions',      [ActionCorrectiveController::class, 'store'])->name('incidents.actions.store');
