@@ -6,12 +6,12 @@
 @endphp
 
 @section('public-content')
-<div class="landing-shell min-h-screen bg-white text-slate-800 font-sans selection:bg-cyan-500 selection:text-white">
+<div class="landing-shell min-h-screen font-sans selection:bg-cyan-500 selection:text-white">
 
     {{-- ════════════════════════════════════════════════════════
          1. NAVBAR — Height: var(--navbar-height), ~72–84px
     ════════════════════════════════════════════════════════ --}}
-    <header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all"
+    <header class="landing-header sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all"
             style="height: var(--navbar-height);">
         <div class="fo-container h-full flex items-center justify-between gap-8">
 
@@ -20,7 +20,7 @@
                 <div class="navbar-logo rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
                     <i data-lucide="droplet" style="width:52%; height:52%;" class="text-white fill-white"></i>
                 </div>
-                <span class="font-display font-extrabold tracking-tight" style="font-size: clamp(1.3rem, 1.7vw, 1.75rem);">
+                <span class="landing-logo-text font-display font-extrabold tracking-tight" style="font-size: clamp(1.3rem, 1.7vw, 1.75rem);">
                     <span class="text-cyan-500">Aqua</span><span class="text-[#0c2a4a]">Secure</span>
                 </span>
             </a>
@@ -35,11 +35,15 @@
             </nav>
 
             {{-- Right CTA --}}
-            <div class="flex items-center gap-4">
+            <div class="landing-header-actions flex items-center gap-4">
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+                    <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </button>
                 <a href="{{ route('auth.login') }}"
-                   class="btn-primary-md bg-gradient-to-r from-[#0c2a4a] to-[#0e3460] hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg shadow-slate-900/15 hover:shadow-xl hover:-translate-y-0.5"
+                   class="landing-login-button btn-primary-md bg-gradient-to-r from-[#0c2a4a] to-[#0e3460] hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg shadow-slate-900/15 hover:shadow-xl hover:-translate-y-0.5"
                    style="border-radius: 999px;">
-                    <i data-lucide="user" style="width:var(--icon-sm); height:var(--icon-sm);" class="text-cyan-300"></i>
+                    <i data-lucide="user" style="width:var(--icon-sm); height:var(--icon-sm);" class="text-cyan-300" aria-hidden="true"></i>
                     <span>Se connecter</span>
                 </a>
                 <button onclick="toggleMobileNav()" class="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors" aria-label="Menu">
@@ -63,7 +67,7 @@
          2. HERO — min-height 680px, full 2-column grid
     ════════════════════════════════════════════════════════ --}}
     <section id="accueil" class="relative flex items-center overflow-hidden bg-gradient-to-b from-cyan-50/40 to-white"
-             style="min-height: clamp(640px, 85vh, 900px); padding-top: var(--navbar-height);">
+             style="min-height: clamp(560px, 76vh, 760px); padding-top: var(--navbar-height);">
 
         <div class="absolute inset-0 z-0">
             <img src="./assets/water-background.jpg" alt="AquaSecure Infrastructure" class="w-full h-full object-cover object-center opacity-70">
@@ -84,8 +88,8 @@
                     </div>
 
                     <div>
-                        <span class="block font-display font-bold text-cyan-600 mb-3" style="font-size: clamp(1.1rem,1.5vw,1.4rem);">AquaSecure</span>
-                        <h1 class="hero-title text-slate-900 font-display">
+                                    <h1 class="hero-title text-slate-900 font-display">
+                                        <span class="hero-title-brand">AquaSecure</span>
                             Centralisez le suivi de<br class="hidden xl:block">
                             <span class="text-cyan-500">votre réseau d'eau</span>
                         </h1>
@@ -202,7 +206,7 @@
                 <p class="section-body text-slate-500">Consultez les informations du réseau, gérez les signalements et préparez les interventions depuis un même espace.</p>
             </div>
 
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4" style="gap: var(--card-gap);">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3" style="gap: var(--card-gap);">
                 @php
                 $features = [
                     ['icon'=>'droplet',     'bg'=>'bg-cyan-50',   'text'=>'text-cyan-500',   'title'=>'Suivi du réseau',            'desc'=>'Consultez les informations sur les conduites et les zones depuis un tableau de bord centralisé.'],

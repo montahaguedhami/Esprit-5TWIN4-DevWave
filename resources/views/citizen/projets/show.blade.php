@@ -1,5 +1,15 @@
 @extends('layouts.frontoffice')
 
+@push('styles')
+@if($projet->hasGeolocation())
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #projet-map { height: 300px; }
+    .leaflet-container { border-radius: 0.75rem; }
+</style>
+@endif
+@endpush
+
 @php
     $title = $projet->nom . ' — AquaSecure';
     
@@ -249,8 +259,8 @@
             </div>
         </div>
 
-        <!-- Map Placeholder (will be implemented in Phase 10) -->
-        <div id="projet-map" class="h-64 rounded-xl bg-white/5 border border-white/10"></div>
+        <!-- Map Container -->
+        <div id="projet-map" class="h-64 rounded-xl border border-white/10"></div>
     </div>
     @endif
 
@@ -258,6 +268,9 @@
 @endsection
 
 @push('scripts')
+@if($projet->hasGeolocation())
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endif
 <script>
     // Refresh Lucide icons
     if (typeof lucide !== 'undefined') {
@@ -265,16 +278,17 @@
     }
 
     @if($projet->hasGeolocation())
-    // Initialize project map for citizen view
     document.addEventListener('DOMContentLoaded', function() {
-        if (typeof initProjectShowMap === 'function') {
-            initProjectShowMap(
-                'projet-map',
-                {{ $projet->latitude }},
-                {{ $projet->longitude }},
-                '{{ addslashes($projet->nom) }}'
-            );
-        }
+        // Initialiser Leaflet directement (sans dépendre de maps.js)
+        var map = L.map('projet-map').setView([{{ $projet->latitude }}, {{ $projet->longitude }}], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+        }).addTo(map);
+
+        var marker = L.marker([{{ $projet->latitude }}, {{ $projet->longitude }}]).addTo(map);
+        marker.bindPopup('<strong>{{ addslashes($projet->nom) }}</strong><br>{{ addslashes($projet->adresse ?? '') }}').openPopup();
     });
     @endif
 </script>

@@ -143,6 +143,13 @@ class MaintenanceCrudTest extends TestCase
         $enCours = Intervention::factory()->for($technicien)->create(['statut' => 'En cours', 'description' => 'Réparation rue de Marseille']);
         Intervention::factory()->for($technicien)->create(['statut' => 'Annulée', 'description' => 'Travaux annulés']);
 
+        $this->withSession([
+            'user' => [
+                'name' => 'Yassine Hamdi',
+                'email' => 'citoyen@aquasecure.tn',
+                'role' => 'citoyen',
+            ],
+        ]);
         $this->get(route('citizen.travaux.index'))
             ->assertOk()
             ->assertSee('Réparation rue de Marseille')
@@ -159,7 +166,25 @@ class MaintenanceCrudTest extends TestCase
     {
         $annulee = Intervention::factory()->create(['statut' => 'Annulée']);
 
+        $this->withSession([
+            'user' => [
+                'name' => 'Yassine Hamdi',
+                'email' => 'citoyen@aquasecure.tn',
+                'role' => 'citoyen',
+            ],
+        ]);
         $this->get(route('citizen.travaux.show', $annulee))->assertNotFound();
+    }
+
+    public function test_back_office_is_reserved_to_managers(): void
+    {
+        $this->withSession(['user' => ['name' => 'Yassine Hamdi', 'email' => 'citoyen@aquasecure.tn', 'role' => 'citizen']])
+            ->get(route('manager.techniciens.index'))
+            ->assertForbidden();
+
+        $this->flushSession();
+        $this->get(route('manager.interventions.index'))->assertRedirect(route('auth.login'));
+        $this->get(route('citizen.travaux.index'))->assertOk();
     }
 
     public function test_interventions_can_be_filtered_by_technicien(): void

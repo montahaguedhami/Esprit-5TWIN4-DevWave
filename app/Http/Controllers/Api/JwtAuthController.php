@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\JwtRefreshToken;
 use App\Models\User;
-use App\Services\LoginRateLimiter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,8 +14,6 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class JwtAuthController extends Controller
 {
-    public function __construct(private readonly LoginRateLimiter $rateLimiter) {}
-
     /**
      * Issue a new access + refresh token pair for the given user.
      */
@@ -81,36 +78,19 @@ class JwtAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $identifier = (string) $credentials['email'];
-        $ip = (string) $request->ip();
-
-        // Locked out: refuse before the password is even looked at, so that a
-        // correct password cannot be used to slip through the window.
-        if ($this->rateLimiter->isBlocked($identifier, $ip)) {
-            return response()->json([
-                'message'     => $this->rateLimiter->message($identifier, $ip),
-                'error'       => 'too_many_attempts',
-                'retry_after' => $this->rateLimiter->secondsRemaining($identifier, $ip),
-            ], 429);
-        }
-
         $user = User::where('email', $credentials['email'])->first();
 
         if (!$user) {
-            return $this->rejectCredentials($identifier, $ip);
+            return response()->json(['message' => 'Identifiants invalides.'], 401);
         }
 
         if (!$user->is_active) {
-            $this->rateLimiter->hit($identifier, $ip);
-
             return response()->json(['message' => 'Compte désactivé.'], 403);
         }
 
         if (!Hash::check($credentials['password'], $user->password)) {
-            return $this->rejectCredentials($identifier, $ip);
+            return response()->json(['message' => 'Identifiants invalides.'], 401);
         }
-
-        $this->rateLimiter->clear($identifier, $ip);
 
         $tokenData = $this->issueTokenPair($user, $request);
 
@@ -130,20 +110,6 @@ class JwtAuthController extends Controller
         }
 
         return $response;
-    }
-
-    /**
-     * Count a failed authentication attempt and answer with what the caller
-     * needs to back off: how many tries are left before the lockout kicks in.
-     */
-    private function rejectCredentials(string $identifier, string $ip): JsonResponse
-    {
-        $this->rateLimiter->hit($identifier, $ip);
-
-        return response()->json([
-            'message'            => 'Identifiants invalides.',
-            'attempts_remaining' => $this->rateLimiter->remainingAttempts($identifier, $ip),
-        ], 401);
     }
 
     /**

@@ -5,7 +5,7 @@
 @section('manager-content')
 <div class="max-w-6xl mx-auto">
     <x-maintenance.page-header title="Techniciens" subtitle="Équipe de maintenance du réseau d'eau" icon="hard-hat">
-        <x-maintenance.link-button :href="route('manager.interventions.index')" variant="secondary" icon="clipboard-list">Interventions</x-maintenance.link-button>
+        <x-maintenance.link-button :href="route('manager.interventions.index')" variant="secondary" icon="clipboard-list" class="manager-interventions-link">Interventions</x-maintenance.link-button>
         <x-maintenance.link-button :href="route('manager.techniciens.create')" icon="plus">Nouveau technicien</x-maintenance.link-button>
     </x-maintenance.page-header>
 

@@ -1,6 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.manager')
 
-@section('title', 'AquaSecure — Tableau de bord des infrastructures hydrauliques')
+@section('title', 'Tableau de bord — Gestionnaire')
 
 @php
     use App\Data\PlaceholderData;
@@ -11,7 +11,6 @@
     $reclamations = PlaceholderData::adminAllReclamations();
     $monthly      = PlaceholderData::analyticsMonthly();
     $projects     = PlaceholderData::projects();
-    $qualityData  = PlaceholderData::waterQualityRecords();
     $funding      = PlaceholderData::fundingData();
 
     $firstName    = explode(' ', $user['name'])[0];
@@ -37,162 +36,53 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-#mgr-map { height: 380px; border-radius: 1rem; }
-.leaflet-tile-pane { filter: brightness(.88) contrast(1.1) saturate(0.8); }
-.leaflet-control-zoom a { background: #0f172a !important; border-color: rgba(255,255,255,0.1) !important; color: #38bdf8 !important; }
-.leaflet-popup-content-wrapper { background: #0f172a !important; border: 1px solid rgba(56,189,248,0.3) !important; border-radius: 12px !important; color: #f8fafc !important; }
-.leaflet-popup-tip { background: #0f172a !important; }
+#mgr-map { height: 320px; border-radius: var(--radius-lg); }
+.leaflet-tile-pane { filter: brightness(.98) contrast(1.02) saturate(.9); }
+.leaflet-control-zoom a { background: var(--bg-card) !important; border-color: var(--border) !important; color: var(--role-accent) !important; }
+.leaflet-popup-content-wrapper { background: var(--bg-card) !important; border: 1px solid var(--border) !important; border-radius: var(--radius-md) !important; color: var(--text-primary) !important; }
+.leaflet-popup-tip { background: var(--bg-card) !important; }
 </style>
 @endpush
 
-@section('content')
-<div class="min-h-screen bg-[#070e17] text-slate-100 flex flex-col font-sans">
+@section('manager-content')
+<div class="space-y-6 manager-dashboard">
 
-    {{-- ══ AQUASECURE LIQUID GLASS HEADER & TOPNAV ════════════════════════════ --}}
-    <header class="sticky top-0 z-50 glass-strong border-b border-white/20 px-4 sm:px-6 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            
-            {{-- Back Arrow & Brand Logo --}}
-            <div class="flex items-center gap-3">
-                <x-back-button :fallback="route('landing')" />
-                <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-2.5 group">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 group-hover:scale-105 transition-transform">
-                        <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <div>
-                        <span class="font-display text-lg font-semibold tracking-tight text-white flex items-center gap-2">
-                            AquaSecure <span class="liquid-chip text-[11px] py-0 px-2 font-medium">Gestionnaire</span>
-                        </span>
-                    </div>
-                </a>
-
-                {{-- Scope Utility Selector --}}
-                <div class="hidden md:flex items-center gap-2 glass px-3 py-1.5 rounded-xl text-xs">
-                    <i data-lucide="building-2" class="w-4 h-4 text-cyan-300"></i>
-                    <span class="text-white/70 font-medium">Secteur:</span>
-                    <select id="utility-selector" onchange="switchUtility(this.value)" class="bg-transparent text-white font-semibold outline-none cursor-pointer pr-1">
-                        @foreach($municipalities as $muni)
-                            <option value="{{ $muni['id'] }}" class="bg-[#04121b] text-white" {{ $muni['active'] ? 'selected' : '' }}>
-                                {{ $muni['name'] }} ({{ $muni['assets'] }} actifs)
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+    {{-- Welcome & Subtitle --}}
+    <div class="glass rounded-xl p-5 border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-800 text-[11px] font-semibold mb-1.5">
+                <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-600"></i>
+                Supervision Réseau & Patrimoine
             </div>
-
-            {{-- Global Search Bar --}}
-            <div class="hidden lg:flex flex-1 max-w-md mx-4">
-                <div class="relative w-full">
-                    <i data-lucide="search" class="w-4 h-4 text-white/50 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-                    <input type="text" placeholder="Rechercher canalisations, réservoirs, incidents... (Ctrl+K)" 
-                           class="w-full glass rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-white/40 focus:outline-none focus:border-cyan-300 transition-all">
-                </div>
-            </div>
-
-            {{-- Right Controls: Notifications & User Menu --}}
-            <div class="flex items-center gap-3">
-                <details class="relative lg:hidden">
-                    <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300" aria-label="Ouvrir la navigation">
-                        <i data-lucide="menu" class="h-5 w-5" aria-hidden="true"></i>
-                    </summary>
-                    <nav class="absolute right-0 top-12 z-[70] w-64 rounded-2xl border border-white/15 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl" aria-label="Navigation gestionnaire">
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.dashboard') }}">Tableau de bord</a>
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.map') }}">Carte du réseau</a>
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.quality') }}">Qualité de l’eau</a>
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.incidents') }}">Incidents</a>
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.teams') }}">Équipes</a>
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.projets.index') }}">Projets</a>
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.budget') }}">Budget</a>
-                        <a class="block rounded-xl px-3 py-2.5 text-sm text-white/85 hover:bg-white/10" href="{{ route('manager.analytics') }}">Analyses et rapports</a>
-                    </nav>
-                </details>
-                <x-notification-center />
-                <x-user-menu />
-            </div>
+            <h1 class="text-xl sm:text-2xl font-display font-bold text-slate-900 tracking-tight">
+                Tableau de bord des infrastructures
+            </h1>
+            <p class="text-slate-500 text-xs mt-0.5">
+                Suivi opérationnel du réseau et des budgets pour <span id="current-utility-title" class="text-cyan-700 font-semibold">Régie des eaux du Grand Tunis</span>.
+            </p>
+            <label for="utility-selector" class="sr-only">Secteur</label>
+            <select id="utility-selector" onchange="switchUtility(this.value)" class="mt-3 max-w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
+                @foreach($municipalities as $muni)
+                    <option value="{{ $muni['id'] }}" {{ $muni['active'] ? 'selected' : '' }}>
+                        {{ $muni['name'] }} ({{ $muni['assets'] }} actifs)
+                    </option>
+                @endforeach
+            </select>
         </div>
-    </header>
-
-    {{-- ══ MAIN BODY WITH SIDEBAR ═════════════════════════════════════ --}}
-    <div class="flex-1 flex max-w-7xl w-full mx-auto">
-        
-        {{-- Sidebar Navigation --}}
-        <aside class="w-64 hidden lg:block bg-[#09121f] border-r border-slate-800/80 p-4 space-y-6 shrink-0">
-            <div>
-                <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Navigation principale</p>
-                <nav class="space-y-1">
-                    <a href="{{ route('manager.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-cyan-400"></i> Tableau de bord
-                    </a>
-                    <a href="{{ route('manager.map') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="map-pin" class="w-4 h-4 text-blue-400"></i> Carte du réseau
-                    </a>
-                    <a href="{{ route('manager.quality') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i> Qualité de l’eau
-                    </a>
-                    <a href="{{ route('manager.incidents') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="alert-triangle" class="w-4 h-4 text-red-400"></i> Gestion des incidents
-                    </a>
-                    <a href="{{ route('manager.projets.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="briefcase" class="w-4 h-4 text-amber-400"></i> Maintenance et projets
-                    </a>
-                    <a href="{{ route('manager.techniciens.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="wrench" class="w-4 h-4 text-orange-400"></i> Techniciens et interventions
-                    </a>
-                    <a href="{{ route('manager.budget') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i> Financement et budget
-                    </a>
-                    <a href="{{ route('manager.analytics') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="line-chart" class="w-4 h-4 text-purple-400"></i> Analyses et rapports
-                    </a>
-                </nav>
-            </div>
-
-            <div>
-                <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Espace public et administration</p>
-                <nav class="space-y-1">
-                    <a href="{{ route('citizen.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="users" class="w-4 h-4 text-sky-400"></i> Portail de signalement citoyen
-                    </a>
-                    <a href="{{ route('admin.roles') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all">
-                        <i data-lucide="shield-check" class="w-4 h-4 text-indigo-400"></i> Rôles et autorisations
-                    </a>
-                </nav>
-            </div>
-
-            {{-- 120Water Compliance Badge --}}
-            <div class="bg-gradient-to-br from-cyan-950/40 to-blue-950/40 border border-cyan-500/20 rounded-2xl p-4 text-xs space-y-2">
-                <div class="flex items-center gap-2 text-cyan-300 font-bold">
-                    <i data-lucide="shield" class="w-4 h-4"></i> EPA / INNORPI Standard
-                </div>
-                <p class="text-slate-400 text-[11px]">Suivi de la qualité de l'eau selon les seuils EPA et INNORPI.</p>
-            </div>
-        </aside>
-
-        {{-- Main Dashboard Content --}}
-        <main class="flex-1 p-4 sm:p-6 space-y-6 overflow-x-hidden">
-            
-            {{-- Welcome & Subtitle --}}
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">
-                        Tableau de bord des infrastructures hydrauliques
-                    </h1>
-                    <p class="text-slate-400 text-sm mt-1">
-                        Suivi du réseau, des incidents et du budget pour <span id="current-utility-title" class="text-cyan-300 font-semibold">Régie des eaux du Grand Tunis</span>.
-                    </p>
-                </div>
-                <div class="flex items-center gap-2.5">
-                    <button onclick="showToast('Exporting executive PDF summary report...', 'info')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-2 transition-all">
-                        <i data-lucide="download" class="w-4 h-4"></i> Exporter le rapport
-                    </button>
-                    <a href="{{ route('manager.map') }}" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-semibold shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition-all">
-                        <i data-lucide="map" class="w-4 h-4"></i> Carte du réseau
-                    </a>
-                </div>
-            </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('manager.map') }}" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold shadow-sm flex items-center gap-1.5 transition-all">
+                <i data-lucide="map" class="w-4 h-4"></i>
+                <span>Carte réseau</span>
+            </a>
+            <a href="{{ route('manager.infrastructures.index') }}" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-semibold shadow-sm flex items-center gap-1.5 transition-all">
+                <i data-lucide="layers" class="w-4 h-4 text-slate-500"></i>
+                <span>Infrastructures</span>
+            </a>
+        </div>
+    </div>
 
             {{-- ══ 6 DASHBOARD SUMMARY CARDS (Requirement 3) ═════════════════════ --}}
-            <div class="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4 dashboard-kpis">
                 
                 {{-- 1. Registered Assets --}}
                 <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 relative overflow-hidden group hover:border-slate-700 transition-all">
@@ -308,22 +198,6 @@
                         <canvas id="incidentTrendsChart"></canvas>
                     </div>
                 </div>
-
-                {{-- Chart 2: Historique de la qualité de l'eau (pH, Turbidité, Chlore) --}}
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i> Indicateurs de qualité de l’eau
-                            </h3>
-                            <p class="text-xs text-slate-400">Résultats de qualité de l'eau et seuils EPA / INNORPI</p>
-                        </div>
-                        <span class="text-xs font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg">Plage optimale</span>
-                    </div>
-                    <div style="height: 220px;">
-                        <canvas id="qualityHistoryChart"></canvas>
-                    </div>
-                </div>
             </div>
 
             {{-- ══ RECENT INCIDENTS TABLE & BUDGET ALLOCATION ════════════════════ --}}
@@ -418,8 +292,6 @@
 
             </div>
 
-        </main>
-    </div>
 </div>
 @endsection
 
@@ -499,43 +371,6 @@ function switchUtility(id) {
                     backgroundColor: 'rgba(45, 212, 191, 0.1)',
                     fill: true,
                     tension: 0.4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
-            scales: {
-                x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-            }
-        }
-    });
-})();
-
-/* ── Chart 2: Water Quality History ──────────────────────── */
-(function() {
-    const ctx = document.getElementById('qualityHistoryChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Tunis Nord', 'Ariana', 'Ben Arous', 'Sousse', 'Sfax'],
-            datasets: [
-                {
-                    label: 'pH Level (Optimal 6.5-8.5)',
-                    data: [7.42, 7.82, 8.45, 7.20, 7.30],
-                    backgroundColor: '#0284c7'
-                },
-                {
-                    label: 'Turbidity (NTU <1.0)',
-                    data: [0.45, 1.25, 2.45, 0.22, 0.41],
-                    backgroundColor: '#0d9488'
-                },
-                {
-                    label: 'Chlore résiduel (mg/L)',
-                    data: [0.85, 0.35, 0.12, 1.10, 0.95],
-                    backgroundColor: '#3b82f6'
                 }
             ]
         },

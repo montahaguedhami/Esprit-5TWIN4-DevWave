@@ -1,137 +1,145 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-[#04121b] text-white flex font-sans relative" id="admin-shell">
+<div class="app-shell has-sidebar admin-dashboard" data-role="admin" id="admin-shell">
 
-    {{-- ═══════════════════════════════════════════
-         SIDEBAR (Liquid Glass)
-    ═══════════════════════════════════════════ --}}
-    <aside id="admin-sidebar"
-           class="fixed inset-y-0 left-0 z-40 flex flex-col w-64 glass-strong border-r border-white/20
-                  transition-transform duration-300 lg:translate-x-0 -translate-x-full"
-           aria-label="Sidebar administration">
+    {{-- ══ SIDEBAR ══════════════════════════════════════════════════════════ --}}
+    <aside class="app-sidebar" id="admin-sidebar" aria-label="Navigation administration">
 
         {{-- Brand --}}
-        <div class="flex items-center gap-3 px-5 py-4 border-b border-white/10 shrink-0">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 shrink-0">
-                <i data-lucide="droplet" class="w-5 h-5 text-white"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="font-display font-semibold text-white text-base leading-tight">AquaSecure</p>
-                <div class="liquid-chip mt-0.5 py-0 px-2 h-5">
-                    <span class="text-[9px] text-cyan-300 font-semibold uppercase tracking-wider">Control Center</span>
+        <div class="sidebar-header">
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
+                <div class="sidebar-logo">
+                    <i data-lucide="shield"></i>
                 </div>
-            </div>
-            {{-- Close (mobile) --}}
-            <button onclick="closeSidebar()"
-                    class="lg:hidden text-white/70 hover:text-white transition-colors"
-                    aria-label="Fermer menu">
-                <i data-lucide="x" class="w-5 h-5"></i>
+                <div class="sidebar-title">
+                    <span>AquaSecure</span>
+                    <span>Control Center</span>
+                </div>
+            </a>
+            <button onclick="closeSidebar('admin')"
+                    class="icon-btn" style="border:none;background:none;color:#94a3b8"
+                    aria-label="Fermer le menu" id="admin-sidebar-close">
+                <i data-lucide="x"></i>
             </button>
         </div>
 
-        {{-- Nav --}}
-        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1.5" aria-label="Navigation admin">
+        {{-- Navigation --}}
+        <nav class="sidebar-nav" aria-label="Menu admin">
 
-            <x-admin-nav-item route="admin.dashboard" icon="layout-dashboard" label="Tableau de bord" />
+            <div class="sidebar-section">
+                <p class="sidebar-section-label">Tableau de bord</p>
+                <x-admin-nav-item route="admin.dashboard"   icon="layout-dashboard" label="Vue d'ensemble" />
+            </div>
 
-            <p class="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-white/40">Gestion System</p>
-            <x-admin-nav-item route="admin.users.index" icon="users"     label="Utilisateurs" />
-            <x-admin-nav-item route="admin.roles"       icon="shield"    label="Rôles & permissions" />
-            <x-admin-nav-item route="manager.map"       icon="map-pin"   label="Carte réseau" />
-            <x-admin-nav-item route="admin.logs"        icon="file-text" label="Historique Logs" />
+            <div class="sidebar-section">
+                <p class="sidebar-section-label">Gestion système</p>
+                <x-admin-nav-item route="admin.users.index" icon="users"            label="Utilisateurs" />
+                <x-admin-nav-item route="admin.zones.index" active-route="admin.zones.*" icon="map-pinned" label="Zones" />
+                <x-admin-nav-item route="admin.infrastructures.index" active-route="admin.infrastructures.*" icon="construction" label="Infrastructures" />
+                <x-admin-nav-item route="admin.projets.index" active-route="admin.projets.*" icon="folder-kanban" label="Projets" />
+                <x-admin-nav-item route="admin.budget" icon="wallet" label="Budgets" />
+                <x-admin-nav-item route="admin.qualite" icon="flask-conical" label="Qualité de l’eau" />
+                <x-admin-nav-item route="admin.incidents" icon="alert-triangle" label="Incidents" />
+                <x-admin-nav-item route="admin.interventions" icon="wrench" label="Interventions" />
+                <x-admin-nav-item route="admin.logs"        icon="file-text"        label="Historique Logs" />
+            </div>
 
-            <p class="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-widest text-white/40">Compte & Config</p>
-            <x-admin-nav-item route="profile.show"        icon="user-circle" label="Mon profil" />
-            <x-admin-nav-item route="settings.index"      icon="settings"    label="Paramètres" />
-            <x-admin-nav-item route="notifications.index" icon="bell"        label="Notifications" />
+            <div class="sidebar-section">
+                <p class="sidebar-section-label">Mon compte</p>
+                <x-admin-nav-item route="profile.show"         icon="user-circle"  label="Mon profil" />
+            </div>
         </nav>
 
-        {{-- Footer: user card --}}
-        <div class="px-3 py-3 border-t border-white/10 shrink-0">
-            <a href="{{ route('profile.show') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-2xl glass hover:bg-white/15 transition-colors group">
-                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500/40 to-blue-600/40 border border-cyan-400/30
-                             flex items-center justify-center text-xs font-bold text-cyan-300 shrink-0">
-                    AK
+        {{-- Footer user --}}
+        @php
+            $u = session('user', ['name' => 'Admin', 'role' => 'admin']);
+            $initials = collect(explode(' ', $u['name']))->map(fn($w)=>strtoupper(substr($w,0,1)))->take(2)->join('');
+        @endphp
+        <div class="sidebar-footer">
+            <a href="{{ route('profile.show') }}" class="sidebar-user">
+                <div class="sidebar-avatar">{{ $initials ?: 'AK' }}</div>
+                <div class="sidebar-user-info">
+                    <p>{{ $u['name'] }}</p>
+                    <p>Administrateur</p>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-white text-xs font-semibold truncate">Amina Kacem</p>
-                    <p class="text-cyan-300 text-[10px] truncate">Admin Principal</p>
-                </div>
-                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-white/40 group-hover:text-cyan-300 transition-colors shrink-0"></i>
+                <i data-lucide="chevron-right" style="width:14px;height:14px;color:#64748b;margin-left:auto;flex-shrink:0"></i>
             </a>
         </div>
     </aside>
 
-    {{-- Sidebar overlay (mobile) --}}
-    <div id="sidebar-overlay"
-         class="fixed inset-0 z-30 bg-black/60 backdrop-blur-md hidden lg:hidden"
-         onclick="closeSidebar()"></div>
+    {{-- Mobile overlay --}}
+    <div class="sidebar-overlay" id="admin-overlay" onclick="closeSidebar('admin')"></div>
 
-    {{-- ═══════════════════════════════════════════
-         MAIN COLUMN
-    ═══════════════════════════════════════════ --}}
-    <div class="flex-1 flex flex-col min-w-0 lg:ml-64">
+    {{-- ══ MAIN COLUMN ════════════════════════════════════════════════════ --}}
+    <div class="main-col">
 
-        {{-- ── TOPBAR (Liquid Glass) ── --}}
-        <header class="sticky top-0 z-30 glass-strong border-b border-white/20 px-4 sm:px-6 py-3
-                        flex items-center gap-3">
+        {{-- Topbar --}}
+        <header class="app-topbar">
+            <div class="topbar-left">
+                <button class="icon-btn" id="admin-menu-btn" onclick="openSidebar('admin')"
+                        aria-label="Ouvrir la navigation" aria-expanded="false">
+                    <i data-lucide="menu"></i>
+                </button>
 
-            {{-- Back Arrow & Mobile Hamburger --}}
-            <x-back-button :fallback="route('admin.dashboard')" />
+                <x-back-button :fallback="route('admin.dashboard')" class="icon-btn" />
 
-            <button onclick="openSidebar()"
-                    class="lg:hidden liquid-tool text-cyan-300 hover:text-white"
-                    aria-label="Ouvrir le menu">
-                <i data-lucide="menu" class="w-5 h-5"></i>
-            </button>
-
-            {{-- Page title slot --}}
-            <div class="flex-1 min-w-0">
-                <h1 class="text-white font-display font-semibold text-base sm:text-lg leading-tight truncate">
-                    @yield('page-title', 'Administration')
+                <h1 class="topbar-page-title hide-mobile">
+                    @yield('page-title', request()->routeIs('admin.zones.*') ? 'Zones' : (request()->routeIs('admin.infrastructures.*') ? 'Infrastructures' : 'Administration'))
                 </h1>
-                <p class="text-white/60 text-xs truncate hidden sm:block">
-                    @yield('page-subtitle', 'Vue globale de la plateforme AquaSecure')
-                </p>
             </div>
 
-            {{-- Notifications --}}
-            <x-notification-center />
-
-            {{-- Admin user menu --}}
-            <x-user-menu />
+            <div class="topbar-right">
+                {{-- Theme toggle --}}
+                <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
+                    <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                    <svg class="icon-sun"  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </button>
+                <x-notification-center />
+                <x-user-menu />
+            </div>
         </header>
 
-        {{-- ── PAGE CONTENT ── --}}
-        <main class="flex-1 overflow-x-hidden p-4 sm:p-6 pb-12">
+        {{-- Page content --}}
+        <main class="page-content" id="main-content">
             @yield('admin-content')
         </main>
+
+        <x-ui.confirm-modal />
     </div>
 </div>
 
 @push('scripts')
 <script>
-/* ── Sidebar toggle ── */
-function openSidebar() {
-    document.getElementById('admin-sidebar').classList.remove('-translate-x-full');
-    document.getElementById('sidebar-overlay').classList.remove('hidden');
+function openSidebar(role) {
+    document.getElementById(role + '-sidebar').classList.add('is-open');
+    document.getElementById(role + '-overlay').classList.add('is-open');
+    document.getElementById(role + '-menu-btn').setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
 }
-function closeSidebar() {
-    document.getElementById('admin-sidebar').classList.add('-translate-x-full');
-    document.getElementById('sidebar-overlay').classList.add('hidden');
+function closeSidebar(role) {
+    document.getElementById(role + '-sidebar').classList.remove('is-open');
+    document.getElementById(role + '-overlay').classList.remove('is-open');
+    var btn = document.getElementById(role + '-menu-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeSidebar('admin');
+});
+// Hide close button on desktop (sidebar always visible)
+(function() {
+    var closeBtn = document.getElementById('admin-sidebar-close');
+    function checkDesktop() {
+        if (closeBtn) closeBtn.style.display = window.innerWidth >= 1024 ? 'none' : '';
     }
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+})();
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 });
 </script>
 @endpush
 @endsection
-
-

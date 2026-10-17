@@ -25,6 +25,7 @@ class InterventionRequest extends FormRequest
     {
         return [
             'technicien_id' => ['required', 'exists:techniciens,id'],
+            'infrastructure_id' => ['nullable', 'exists:infrastructures,id'],
             // Une intervention terminée ne peut pas avoir une date dans le futur
             'date' => ['required', 'date', Rule::when($this->input('statut') === 'Terminée', 'before_or_equal:today')],
             'description' => ['required', 'string', 'min:5', 'max:1000'],
@@ -37,6 +38,7 @@ class InterventionRequest extends FormRequest
     {
         return [
             'technicien_id' => 'technicien',
+            'infrastructure_id' => 'infrastructure concernée',
             'date' => 'date',
             'description' => 'description',
             'statut' => 'statut',

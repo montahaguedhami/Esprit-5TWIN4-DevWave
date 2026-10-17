@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.manager')
 
 @section('title', 'AquaSecure — Budget et transparence financière')
 
@@ -8,43 +8,11 @@
 
 @push('styles')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@include('manager.shared.light-shell')
 @endpush
 
-@section('content')
-<div class="min-h-screen bg-[#070e17] text-slate-100 flex flex-col font-sans">
-
-    {{-- Top Header --}}
-    <header class="sticky top-0 z-50 bg-[#0c1624]/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <a href="{{ route('manager.dashboard') }}" class="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                </a>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                        <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
-                    </div>
-                    <span class="font-display font-bold text-white text-base">Finances et transparence budgétaire</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                
-                {{-- Public View vs Internal Audit Toggle --}}
-                <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1 text-xs">
-                    <span class="text-slate-400">Mode de vue :</span>
-                    <button id="view-toggle-btn" onclick="togglePublicMode()" class="font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
-                        <i data-lucide="eye" class="w-3.5 h-3.5"></i> <span id="view-mode-label">Vue de gestion</span>
-                    </button>
-                </div>
-
-                <x-notification-center />
-                <x-user-menu />
-            </div>
-        </div>
-    </header>
-
-    {{-- Content Body --}}
-    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+@section('manager-content')
+<div class="aqua-manager-standalone w-full space-y-6">
         
         {{-- Section Header --}}
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -53,6 +21,13 @@
                 <p class="text-slate-400 text-xs mt-1">Ensures financial accountability for public water infrastructure bonds, eco-grants, and decontamination funds.</p>
             </div>
             <div class="flex items-center gap-2">
+                {{-- Public View vs Internal Audit Toggle --}}
+                <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1 text-xs">
+                    <span class="text-slate-400">Mode de vue :</span>
+                    <button id="view-toggle-btn" onclick="togglePublicMode()" class="font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                        <i data-lucide="eye" class="w-3.5 h-3.5"></i> <span id="view-mode-label">Vue de gestion</span>
+                    </button>
+                </div>
                 <button onclick="showToast('Export du rapport financier PDF...', 'success')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20">
                     <i data-lucide="download" class="w-4 h-4"></i> Exporter le rapport (PDF / CSV)
                 </button>
@@ -284,11 +259,11 @@ function togglePublicMode() {
             $cumulative += $montant;
             return $cumulative;
         });
+        // Préparé ici : @json() ne sait pas analyser une closure sur plusieurs lignes
+        $chartLabels = $financementsByMonth->keys()->map(fn ($date) => \Carbon\Carbon::parse($date)->format('M Y'));
     @endphp
-    
-    const labels = @json($financementsByMonth->keys()->map(function($date) {
-        return \Carbon\Carbon::parse($date)->format('M Y');
-    }));
+
+    const labels = @json($chartLabels);
     const cumulativeFinancing = @json($cumulativeData->values());
     const totalBudget = {{ $totalBudget }};
     

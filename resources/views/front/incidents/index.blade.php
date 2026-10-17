@@ -1,29 +1,81 @@
 @extends('layouts.frontoffice')
 
 @section('frontoffice-content')
-<div class="max-w-4xl mx-auto py-12">
-    <div class="flex flex-wrap gap-3 items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold">Mes incidents</h1>
-        <a href="{{ route('incidents.create') }}" class="px-4 py-2 rounded bg-cyan-500 text-white">Signaler un incident</a>
-    </div>
+<div class="citizen-incidents-page">
+    <header class="citizen-incidents-heading">
+        <div class="citizen-incidents-title">
+            <span class="citizen-incidents-icon"><i data-lucide="clipboard-list"></i></span>
+            <div>
+                <p class="citizen-incidents-eyebrow">Portail citoyen <span>•</span> Suivi de vos demandes</p>
+                <h1>Mes incidents</h1>
+                <p class="citizen-incidents-description">Consultez l’avancement de vos signalements et les interventions associées.</p>
+            </div>
+        </div>
+        <a href="{{ route('incidents.create') }}" class="citizen-incidents-action">
+            <i data-lucide="plus"></i><span>Signaler un incident</span>
+        </a>
+    </header>
 
     @if(session('success'))
-        <div class="mb-4 p-3 bg-green-600 text-white rounded">{{ session('success') }}</div>
+        <div role="status" class="citizen-incidents-success">
+            <i data-lucide="circle-check"></i><span>{{ session('success') }}</span>
+        </div>
     @endif
 
-    <div class="space-y-4">
+    <div class="citizen-incident-list">
         @forelse($incidents as $incident)
-            <div class="p-4 bg-white/5 rounded">
-                <a href="{{ route('incidents.show', $incident) }}" class="text-lg font-semibold wrap-break-word">{{ $incident->titre }}</a>
-                <div class="text-sm text-slate-300">{{ $incident->type }} · Gravité: {{ $incident->gravite }} · Statut: {{ $incident->statut }}</div>
-                <div class="text-xs text-slate-400 mt-2">Signalé: {{ optional($incident->date_signalement)->format('Y-m-d H:i') }}</div>
-            </div>
+            @php
+                $incidentStatusKey = strtolower((string) $incident->statut);
+                $incidentStatus = str_replace('_', '-', $incidentStatusKey);
+                $incidentSeverity = strtolower((string) $incident->gravite);
+                $incidentStatusLabel = ['resolu' => 'Résolu', 'en_cours' => 'En cours', 'en_attente' => 'En attente'][$incidentStatusKey] ?? ucfirst(str_replace('_', ' ', (string) $incident->statut));
+                $incidentSeverityLabel = ['elevee' => 'Élevée', 'faible' => 'Faible', 'moyenne' => 'Moyenne'][$incidentSeverity] ?? ucfirst(str_replace('_', ' ', (string) $incident->gravite));
+            @endphp
+            <article class="citizen-incident-card" data-status="{{ $incidentStatus }}" data-severity="{{ $incidentSeverity }}">
+                <span class="citizen-incident-type-icon"><i data-lucide="{{ strtolower((string) $incident->type) === 'contamination' ? 'flask-conical' : 'droplets' }}"></i></span>
+                <div class="citizen-incident-content">
+                    <div class="citizen-incident-card-top">
+                        <div class="citizen-incident-name">
+                            <span class="citizen-incident-type">{{ ucfirst((string) $incident->type) }}</span>
+                            <a href="{{ route('incidents.show', $incident) }}" class="citizen-incident-title">{{ $incident->titre }}</a>
+                        </div>
+                        <time class="citizen-incident-date">
+                            <i data-lucide="calendar-days"></i>
+                            <span>Signalé le {{ optional($incident->date_signalement)->format('d/m/Y à H:i') }}</span>
+                        </time>
+                    </div>
+                    <div class="citizen-incident-meta">
+                        <span class="citizen-incident-badge citizen-incident-severity">
+                            <i data-lucide="triangle-alert"></i>Gravité {{ $incidentSeverityLabel }}
+                        </span>
+                        <span class="citizen-incident-badge citizen-incident-status">
+                            <span class="citizen-incident-status-dot"></span>{{ $incidentStatusLabel }}
+                        </span>
+                    </div>
+                    <p class="mt-2 text-xs text-slate-600">
+                        <i data-lucide="map-pin" class="mr-1 inline h-3.5 w-3.5"></i>{{ $incident->localisation }}
+                        @if($incident->infrastructure)
+                            <span class="mx-1">·</span>{{ $incident->infrastructure->nom }}
+                        @endif
+                    </p>
+                </div>
+                <a href="{{ route('incidents.show', $incident) }}" class="citizen-incident-open" aria-label="Consulter l’incident : {{ $incident->titre }}">
+                    <i data-lucide="arrow-up-right"></i>
+                </a>
+            </article>
         @empty
-            <p class="text-slate-300">Vous n'avez pas encore signal&eacute; d'incident.</p>
+            <div class="citizen-incidents-empty">
+                <span class="citizen-incidents-empty-icon"><i data-lucide="clipboard-check"></i></span>
+                <h2>Aucun incident signalé</h2>
+                <p>Vos signalements apparaîtront ici pour vous permettre de suivre leur avancement.</p>
+                <a href="{{ route('incidents.create') }}" class="citizen-incidents-action">
+                    <i data-lucide="plus"></i><span>Signaler un incident</span>
+                </a>
+            </div>
         @endforelse
     </div>
 
-    <div class="mt-6">
+    <div class="citizen-incidents-pagination">
         {{ $incidents->links() }}
     </div>
 </div>

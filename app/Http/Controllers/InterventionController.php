@@ -15,7 +15,7 @@ class InterventionController extends Controller
     public function index(Request $request)
     {
         $interventions = Intervention::query()
-            ->with('technicien')
+            ->with(['technicien', 'infrastructure.zone'])
             ->when($request->filled('technicien_id'), fn ($query) => $query->where('technicien_id', $request->technicien_id))
             ->when($request->filled('statut'), fn ($query) => $query->where('statut', $request->statut))
             ->latest('date')
@@ -32,11 +32,15 @@ class InterventionController extends Controller
      */
     public function create(Request $request)
     {
-        // Permet de pré-sélectionner le technicien depuis sa fiche
-        $intervention = new Intervention(['technicien_id' => $request->query('technicien_id')]);
+        // Permet de pré-sélectionner le technicien ou l'infrastructure depuis sa fiche
+        $intervention = new Intervention([
+            'technicien_id' => $request->query('technicien_id'),
+            'infrastructure_id' => $request->query('infrastructure_id'),
+        ]);
         $techniciens = Technicien::orderBy('nom')->get(['id', 'nom', 'specialite']);
+        $infrastructures = \App\Models\Infrastructure::with('zone')->orderBy('nom')->get(['id', 'nom', 'zone_id']);
 
-        return view('manager.interventions.create', compact('intervention', 'techniciens'));
+        return view('manager.interventions.create', compact('intervention', 'techniciens', 'infrastructures'));
     }
 
     /**
@@ -56,7 +60,7 @@ class InterventionController extends Controller
      */
     public function show(Intervention $intervention)
     {
-        $intervention->load('technicien');
+        $intervention->load(['technicien', 'infrastructure.zone']);
 
         return view('manager.interventions.show', compact('intervention'));
     }
@@ -67,8 +71,9 @@ class InterventionController extends Controller
     public function edit(Intervention $intervention)
     {
         $techniciens = Technicien::orderBy('nom')->get(['id', 'nom', 'specialite']);
+        $infrastructures = \App\Models\Infrastructure::with('zone')->orderBy('nom')->get(['id', 'nom', 'zone_id']);
 
-        return view('manager.interventions.edit', compact('intervention', 'techniciens'));
+        return view('manager.interventions.edit', compact('intervention', 'techniciens', 'infrastructures'));
     }
 
     /**

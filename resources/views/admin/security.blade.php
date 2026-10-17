@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('admin-content')
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-900">
+<div class="aqua-admin-page min-h-screen bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-900">
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">

@@ -59,28 +59,28 @@
 
 /* Map */
 #admin-map { height: 400px; }
-.leaflet-tile-pane { filter: brightness(.68) saturate(.6) hue-rotate(185deg); }
-.leaflet-control-zoom a { background:rgba(6,21,37,.92)!important; border-color:rgba(5,191,219,.25)!important; color:#7ce8f7!important; }
+.leaflet-tile-pane { filter: brightness(1.02) saturate(.75); }
+.leaflet-control-zoom a { background:rgba(255,255,255,.96)!important; border-color:rgba(14,116,144,.18)!important; color:#0e7490!important; }
 .leaflet-control-attribution { display:none!important; }
 .leaflet-popup-content-wrapper {
-    background:rgba(6,21,37,.97)!important; border:1px solid rgba(5,191,219,.3)!important;
-    border-radius:14px!important; color:#f0fdff!important; padding:0!important;
-    box-shadow:0 16px 48px rgba(0,0,0,.5)!important; backdrop-filter:blur(20px);
+    background:rgba(255,255,255,.98)!important; border:1px solid rgba(14,116,144,.2)!important;
+    border-radius:14px!important; color:#102a43!important; padding:0!important;
+    box-shadow:0 16px 48px rgba(15,42,67,.16)!important; backdrop-filter:blur(20px);
 }
-.leaflet-popup-tip { background:rgba(6,21,37,.97)!important; }
+.leaflet-popup-tip { background:rgba(255,255,255,.98)!important; }
 .leaflet-popup-content { margin:0!important; padding:0!important; min-width:220px; }
-.leaflet-popup-close-button { color:rgba(156,200,216,.6)!important; font-size:18px!important; padding:8px 10px!important; }
-.leaflet-popup-close-button:hover { color:#fff!important; }
+.leaflet-popup-close-button { color:#64748b!important; font-size:18px!important; padding:8px 10px!important; }
+.leaflet-popup-close-button:hover { color:#102a43!important; }
 
 /* Tab filter */
-.tab-active  { background:rgba(5,191,219,.12); color:#5ee5f7; border-color:rgba(94,221,247,.35); }
-.tab-inactive{ color:rgba(156,200,216,.5); border-color:transparent; }
-.tab-inactive:hover { color:rgba(156,200,216,.8); background:rgba(255,255,255,.03); }
+.tab-active  { background:rgba(14,116,144,.1); color:#0e7490; border-color:rgba(14,116,144,.25); }
+.tab-inactive{ color:#64748b; border-color:transparent; }
+.tab-inactive:hover { color:#0e7490; background:rgba(14,116,144,.05); }
 
 /* Spark tip */
 .spark-tip {
-    position:absolute; background:rgba(6,21,37,.96); border:1px solid rgba(5,191,219,.3);
-    border-radius:8px; padding:5px 10px; font-size:11px; color:#f0fdff;
+    position:absolute; background:rgba(255,255,255,.98); border:1px solid rgba(14,116,144,.2);
+    border-radius:8px; padding:5px 10px; font-size:11px; color:#102a43;
     pointer-events:none; white-space:nowrap; z-index:20;
     transform:translateX(-50%) translateY(-130%); backdrop-filter:blur(12px);
 }
@@ -146,7 +146,7 @@
                 <span class="text-xs font-semibold {{ $leg['t'] }}">{{ $leg['n'] }} {{ $leg['l'] }}</span>
             </div>
             @endforeach
-            <a href="{{ route('manager.map') }}"
+            <a href="#admin-map"
                class="glass px-3 py-1.5 rounded-lg text-xs text-cyan-300 hover:text-white font-semibold flex items-center gap-1 transition-all">
                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
                 <span class="hidden sm:inline">Plein écran</span>
@@ -358,9 +358,9 @@
                 @php $dOff += $dDash; @endphp
                 @endforeach
                 <text x="65" y="60" text-anchor="middle" font-size="20" font-weight="700"
-                      fill="#f0fdff" font-family="Space Grotesk">{{ $dTotal }}</text>
+                      fill="#102a43" font-family="Space Grotesk">{{ $dTotal }}</text>
                 <text x="65" y="74" text-anchor="middle" font-size="9"
-                      fill="rgba(156,200,216,.5)" font-family="Plus Jakarta Sans">utilisateurs</text>
+                      fill="#64748b" font-family="Plus Jakarta Sans">utilisateurs</text>
             </svg>
             {{-- Barres --}}
             <div class="flex-1 space-y-3">
@@ -786,7 +786,7 @@
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLI=" crossorigin=""></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 /* ── Data ────────────────────────────────────────────────── */
 const MAP_ZONES    = @json($mapZones);
@@ -813,7 +813,7 @@ const INC7D        = @json($inc7d);
             icon: L.divIcon({ html:svg, iconSize:[size,size], iconAnchor:[half,half], className:'' }),
             zIndexOffset:-100
         }).addTo(map)
-         .bindTooltip(`<b style="color:#f0fdff;font-size:11px">${z.emoji} ${z.name}</b><br>
+         .bindTooltip(`<b style="color:#102a43;font-size:11px">${z.emoji} ${z.name}</b><br>
                        <span style="color:${c};font-size:10px">${z.quality}% · ${z.incidents} incident(s)</span>`,
                       { sticky:true });
     });
@@ -947,18 +947,18 @@ function openRecDetail(idx) {
     document.getElementById('inc-modal-title').textContent=r.id+' — '+r.type;
     document.getElementById('inc-modal-body').innerHTML=`
         <div style="background:rgba(255,255,255,.03);border-radius:12px;padding:12px 14px;margin-bottom:12px">
-            <p style="color:rgba(156,200,216,.6);font-size:11px;margin:0 0 4px">Description</p>
-            <p style="color:#f0fdff;font-size:13px;margin:0;line-height:1.5">${r.description}</p>
+            <p style="color:#64748b;font-size:11px;margin:0 0 4px">Description</p>
+            <p style="color:#102a43;font-size:13px;margin:0;line-height:1.5">${r.description}</p>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             ${ib('Zone',         r.zone,                            '#38bdf8')}
-            ${ib('Adresse',      r.address,                         'rgba(156,200,216,.7)')}
+            ${ib('Adresse',      r.address,                         '#64748b')}
             ${ib('Citoyen',      r.citizen,                         '#2dd4bf')}
             ${ib('Priorité',     pl[r.priority]??r.priority,        pc[r.priority]??'#9ca3af')}
             ${ib('Statut',       sl[r.status]??r.status,            sc[r.status]??'#9ca3af')}
-            ${ib('Technicien',   r.technician??'Non assigné',       r.technician?'#5ee5f7':'rgba(156,200,216,.4)')}
+            ${ib('Technicien',   r.technician??'Non assigné',       r.technician?'#0e7490':'#64748b')}
             ${ib('Gestionnaire', r.manager??'Non assigné',          r.manager?'#818cf8':'rgba(156,200,216,.4)')}
-            ${ib('Signalé le',   r.created_at,                      'rgba(156,200,216,.6)')}
+            ${ib('Signalé le',   r.created_at,                      '#64748b')}
         </div>`;
     document.getElementById('inc-modal').classList.remove('hidden');
     document.body.style.overflow='hidden';
@@ -966,7 +966,7 @@ function openRecDetail(idx) {
 }
 function ib(label,value,color) {
     return `<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px 12px">
-        <p style="color:rgba(156,200,216,.5);font-size:10px;margin:0 0 3px">${label}</p>
+        <p style="color:#64748b;font-size:10px;margin:0 0 3px">${label}</p>
         <p style="color:${color};font-size:12px;font-weight:600;margin:0">${value}</p>
     </div>`;
 }

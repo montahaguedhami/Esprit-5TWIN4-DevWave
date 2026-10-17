@@ -14,6 +14,19 @@
     .leaflet-container {
         border-radius: 0.75rem;
     }
+    .leaflet-popup-content-wrapper,
+    .leaflet-popup-tip {
+        background: #fff;
+        color: #152b42;
+    }
+    .leaflet-control-zoom a {
+        background: #fff;
+        border-color: #dce6ef;
+        color: #087e9b;
+    }
+    @media (max-width: 640px) {
+        #projets-map { height: 380px; }
+    }
 </style>
 @endif
 @endpush
@@ -121,21 +134,23 @@
     }
 
     @if($projets->count() > 0)
+    @php
+        // Préparé ici : @json() ne sait pas analyser une closure sur plusieurs lignes
+        $mapProjects = $projets->map(fn ($projet) => [
+            'id' => $projet->id,
+            'lat' => $projet->latitude,
+            'lng' => $projet->longitude,
+            'nom' => $projet->nom,
+            'statut' => $projet->statut,
+            'budget' => $projet->budget,
+            'finance' => $projet->total_finance,
+            'url' => route('manager.projets.show', $projet),
+        ])->values();
+    @endphp
     // Initialize map with all projects
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof initProjectsMap === 'function') {
-            const projects = @json($projets->map(function($projet) {
-                return [
-                    'id' => $projet->id,
-                    'lat' => $projet->latitude,
-                    'lng' => $projet->longitude,
-                    'nom' => $projet->nom,
-                    'statut' => $projet->statut,
-                    'budget' => $projet->budget,
-                    'finance' => $projet->total_finance,
-                    'url' => route('manager.projets.show', $projet),
-                ];
-            })->values());
+            const projects = @json($mapProjects);
 
             initProjectsMap('projets-map', projects);
         }
