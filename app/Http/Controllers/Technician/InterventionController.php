@@ -6,6 +6,7 @@ use App\Enums\InfrastructureEtat;
 use App\Http\Controllers\Controller;
 use App\Models\InfrastructureAlerte;
 use App\Models\Intervention;
+use App\Services\ReportAssistantService;
 use App\Services\TechnicianScopeService;
 use Illuminate\Http\Request;
 
@@ -120,6 +121,27 @@ class InterventionController extends Controller
      * 2. Infrastructure : mise à jour de l'état, de la date de dernière maintenance, et consignation dans l'historique.
      * 3. Clôture automatique de toutes les alertes opérationnelles actives de l'ouvrage.
      */
+    /**
+     * Rédaction assistée par IA : propose un rapport à partir des notes rapides (rien n'est enregistré).
+     */
+    public function assistantRapport(Request $request, ReportAssistantService $assistant, $id)
+    {
+        $technicien = TechnicianScopeService::currentTechnicien();
+        abort_unless($technicien, 403, 'Compte technicien introuvable.');
+
+        $intervention = Intervention::with(['infrastructure'])->findOrFail($id);
+        abort_unless($intervention->technicien_id === $technicien->id, 403);
+
+        $validated = $request->validate([
+            'notes' => 'required|string|min:5|max:2000',
+        ], [
+            'notes.required' => 'Écrivez d\'abord quelques notes sur ce que vous avez fait.',
+            'notes.min' => 'Les notes doivent comporter au moins :min caractères.',
+        ]);
+
+        return response()->json($assistant->rediger($intervention, $validated['notes']));
+    }
+
     public function storeReport(Request $request, $id)
     {
         $technicien = TechnicianScopeService::currentTechnicien();

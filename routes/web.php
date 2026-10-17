@@ -205,6 +205,7 @@ Route::middleware('role:technicien')->group(function () {
     Route::post('/technician/interventions/{id}/start', [\App\Http\Controllers\Technician\InterventionController::class, 'start'])->name('technician.interventions.start');
     Route::get('/technician/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'report'])->name('technician.interventions.report');
     Route::post('/technician/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'storeReport'])->name('technician.interventions.report.store');
+    Route::post('/technician/interventions/{id}/report/ia', [\App\Http\Controllers\Technician\InterventionController::class, 'assistantRapport'])->name('technician.interventions.report.ia');
     Route::get('/technician/equipment',              fn () => view('technician.equipment'))->name('technician.equipment');
 });
 

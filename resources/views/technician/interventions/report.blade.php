@@ -42,6 +42,27 @@
         </div>
         @endif
 
+        {{-- Assistant IA de rédaction (Ollama) : propose un rapport à partir de notes rapides --}}
+        <div id="ia-rapport" data-url="{{ route('technician.interventions.report.ia', $intervention->id) }}"
+             class="p-4 rounded-2xl border border-violet-500/30 bg-violet-500/5 space-y-3">
+            <div class="flex items-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4 text-violet-300"></i>
+                <span class="text-xs font-bold text-white">Assistant de rédaction IA</span>
+                <span class="text-[11px] text-cyan-100/50">— notez en vrac ce que vous avez fait, l'IA pré-remplit le rapport</span>
+            </div>
+            <textarea id="ia-notes" rows="3" maxlength="2000"
+                      placeholder="ex. joint pompe 2 HS changé, 2 joints DN100, fuite stoppée, pression OK 4 bar, revoir dans 1 semaine"
+                      class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-white/20 text-white text-xs placeholder-cyan-100/40 focus:ring-2 focus:ring-violet-400"></textarea>
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="button" id="ia-rediger"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-violet-600 to-cyan-600 hover:opacity-90 transition disabled:opacity-60 disabled:cursor-wait">
+                    <i data-lucide="wand-sparkles" class="w-4 h-4"></i>
+                    <span>Rédiger avec l'IA</span>
+                </button>
+                <span id="ia-statut" class="text-[11px]" aria-live="polite"></span>
+            </div>
+        </div>
+
         {{-- Résultat de l'intervention --}}
         <div>
             <label class="block text-xs font-semibold text-cyan-100/80 mb-2.5">
@@ -184,5 +205,87 @@ function addPartRow() {
     partIndex++;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
+
+// Assistant IA : remplit le formulaire avec la proposition (valeurs posées via .value, jamais en HTML)
+(function () {
+    const bloc = document.getElementById('ia-rapport');
+    const bouton = document.getElementById('ia-rediger');
+    const statut = document.getElementById('ia-statut');
+    const libelle = bouton.querySelector('span');
+
+    function message(texte, classe) {
+        statut.textContent = texte;
+        statut.className = 'text-[11px] ' + classe;
+    }
+
+    function remplir(champ, valeur) {
+        const el = document.getElementById(champ);
+        el.value = valeur || '';
+        el.dispatchEvent(new Event('input'));
+    }
+
+    function pieces(liste) {
+        const container = document.getElementById('parts-container');
+        if (! liste.length) { return; }
+        container.replaceChildren();
+        partIndex = 0;
+        liste.forEach(function (p) {
+            addPartRow();
+            const ligne = container.lastElementChild;
+            ligne.querySelector('input[type="text"]').value = p.name;
+            ligne.querySelector('input[type="number"]').value = p.qty;
+        });
+    }
+
+    bouton.addEventListener('click', function () {
+        const notes = document.getElementById('ia-notes').value.trim();
+        if (notes.length < 5) {
+            message('Écrivez d\'abord quelques notes sur ce que vous avez fait.', 'text-amber-300');
+            return;
+        }
+
+        bouton.disabled = true;
+        libelle.textContent = 'Rédaction en cours…';
+        message('', '');
+
+        fetch(bloc.dataset.url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ notes: notes })
+        })
+        .then(function (response) {
+            return response.json().then(function (data) { return { ok: response.ok, data: data }; });
+        })
+        .then(function (r) {
+            if (! r.ok) {
+                message(r.data.message || 'La rédaction a échoué.', 'text-rose-300');
+                return;
+            }
+
+            const d = r.data;
+            const radio = document.querySelector('input[name="status"][value="' + d.status + '"]');
+            if (radio) { radio.checked = true; }
+            document.getElementById('nouvel_etat').value = d.nouvel_etat || '';
+            remplir('work_performed', d.work_performed);
+            remplir('cause', d.cause);
+            remplir('observations', d.observations);
+            pieces(d.parts || []);
+
+            message(d.source === 'ia'
+                ? '✓ Rapport pré-rempli par l\'IA (Ollama) — relisez et corrigez avant de valider.'
+                : '✓ Brouillon pré-rempli (IA indisponible, calcul de secours) — complétez avant de valider.',
+                d.source === 'ia' ? 'text-violet-200' : 'text-amber-300');
+        })
+        .catch(function () { message('Erreur réseau : réessayez.', 'text-rose-300'); })
+        .finally(function () {
+            bouton.disabled = false;
+            libelle.textContent = 'Rédiger avec l\'IA';
+        });
+    });
+})();
 </script>
 @endsection
