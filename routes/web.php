@@ -1,5 +1,8 @@
+
 <?php
 
+use Illuminate\Contracts\Auth\PasswordBroker;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
@@ -7,406 +10,487 @@ use App\Http\Controllers\ActionCorrectiveController;
 use App\Http\Controllers\InterventionController;
 use App\Http\Controllers\TechnicienController;
 use App\Http\Controllers\TravauxController;
+use App\Http\Controllers\Manager\MapController;
+use App\Http\Controllers\Manager\PointMesureController;
+use App\Http\Controllers\Manager\WaterQualityController;
+use App\Http\Controllers\InfrastructureController;
+use App\Http\Controllers\Manager\InventaireExportController;
+use App\Http\Controllers\ZoneController;
 
 // Landing Page (Public)
 Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
-// Auth routes GET
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('auth.login');
+// Auth routes — GET
+Route::get('/login',           fn () => view('auth.login'))->name('auth.login');
+Route::get('/register',        fn () => view('auth.register'))->name('auth.register');
+Route::get('/forgot-password', fn () => view('auth.forgot-password'))->name('auth.forgot-password');
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('auth.register');
-
-Route::get('/forgot-password', function () {
-    return view('auth.forgot-password');
-})->name('auth.forgot-password');
-
-// Auth routes POST (DEMO - connexion simulée)
+// Login
 Route::post('/login', function (Request $request) {
-    $email = $request->input('email');
-    
-    // Comptes démo
-    $demoAccounts = [
-        'citoyen@aquasecure.tn' => ['role' => 'citizen', 'name' => 'Yassine Hamdi'],
-        'amira@aquasecure.tn' => ['role' => 'technician', 'name' => 'Amira Ben Ali'],
-        'gestionnaire@aquasecure.tn' => ['role' => 'manager', 'name' => 'Ines Mansouri'],
-        'admin@aquasecure.tn' => ['role' => 'admin', 'name' => 'Amina Kacem'],
-    ];
-    
-    if (isset($demoAccounts[$email])) {
-        $user = $demoAccounts[$email];
-        session([
-            'user' => [
-                'name' => $user['name'],
-                'email' => $email,
-                'role' => $user['role'],
-            ]
-        ]);
-        
-        // Rediriger selon le rôle
-        switch ($user['role']) {
-            case 'citizen':
-                return redirect()->route('citizen.dashboard');
-            case 'technician':
-                return redirect()->route('technician.dashboard');
-            case 'manager':
-                return redirect()->route('manager.dashboard');
-            case 'admin':
-                return redirect()->route('admin.dashboard');
-            default:
-                return redirect()->route('landing');
-        }
+    // Brute-force guard, checked before validation and before any credential
+    // check: a locked identifier must keep being refused whether the password
+    // it sends is right or wrong. 5 failures -> 30 s lockout, server side.
+    $limiter = app(\App\Services\LoginRateLimiter::class);
+    $identifier = (string) $request->input('email');
+    $ip = (string) $request->ip();
+
+    if ($limiter->isBlocked($identifier, $ip)) {
+        return back()
+            ->withInput($request->only('email'))
+            ->with('error', $limiter->message($identifier, $ip))
+            ->with('retry_after', $limiter->secondsRemaining($identifier, $ip));
     }
-    
-    return back()->with('error', 'Email ou mot de passe incorrect');
+
+    $credentials = $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required', 'string'],
+    ]);
+
+    if (! \Illuminate\Support\Facades\Auth::attempt($credentials, false)) {
+        // Counted against this account and against the source IP: the second
+        // counter absorbs a spray of many addresses tried from one host.
+        $limiter->hit($identifier, $ip);
+
+        return back()
+            ->withInput($request->only('email'))
+            ->with('error', 'Email ou mot de passe incorrect.');
+    }
+
+    /** @var \App\Models\User $user */
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+    if ($user->is_active === false) {
+        \Illuminate\Support\Facades\Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return back()
+            ->withInput($request->only('email'))
+            ->with('error', 'Votre compte a été désactivé par un administrateur.');
+    }
+
+    $user->load('roles');
+    $roleSlugs = $user->getRoleSlugs();
+
+    if (empty($roleSlugs)) {
+        \Illuminate\Support\Facades\Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return back()
+            ->withInput($request->only('email'))
+            ->with('error', 'Aucun rôle assigné à ce compte. Contactez l\'administrateur.');
+    }
+
+    $request->session()->regenerate();
+    $primaryRole = $user->primary_role;
+
+    session([
+        'user' => [
+            'id'       => $user->id,
+            'name'     => $user->name,
+            'email'    => $user->email,
+            'role'     => $primaryRole,
+            'role_key' => $primaryRole,
+            'roles'    => $roleSlugs,
+        ],
+    ]);
+
+    \App\Models\AuditLog::record('user_login', 'User', $user->id, [
+        'role' => $primaryRole,
+        'ip'   => $request->ip(),
+    ], $user);
+
+    // The credentials were right: the failure counter must not follow the
+    // account into the next session, otherwise one success still leaves the
+    // user one attempt away from a lockout.
+    $limiter->clear($identifier, $ip);
+
+    return redirect()->intended(route(\App\Models\Role::homeRoute($primaryRole)));
 })->name('login.post');
 
-Route::post('/register', function (Request $request) {
-    // Simuler une inscription réussie
-    return redirect()->route('auth.login')->with('success', 'Compte créé avec succès ! Connectez-vous.');
+// Passwords that are rejected outright, whatever else they contain. The last
+// entries satisfy every mechanical rule (length, case, digit, symbol) and are
+// still refused because they are among the most used passwords in the wild:
+// that is exactly what a common-password check is for.
+$commonPasswords = [
+    'password', 'password1', 'password123', '123456', '12345678', '123456789',
+    'qwerty', 'azerty', 'iloveyou', 'admin', 'welcome', 'letmein', 'monkey',
+    'dragon', 'sunshine', 'princess', 'football', 'abc123', 'motdepasse',
+    'motdepasse123', 'azertyuiop', 'qwertyuiop', 'aquasecure', 'citoyen',
+    'password123!', 'password1234!', 'welcome12345!', 'qwerty12345!',
+    'azerty12345!', 'admin12345!', 'letmein12345!', 'motdepasse1234!',
+];
+
+// Register (citoyen only — other roles are created by admin)
+Route::post('/register', function (Request $request) use ($commonPasswords) {
+    // Phone is collected by the form but not persisted yet (no users.phone
+    // column), so it is only checked for format to reject obvious garbage.
+    $request->validate([
+        'name'     => [
+            'required', 'string', 'min:3', 'max:255',
+            // Letters (any alphabet), apostrophes, hyphens, dots and spaces:
+            // "Yassine Hamdi", "O'Brien", "Jean-Pierre", "Ben Salah".
+            "regex:/^[\\p{L}\\p{M}\\s'\\-\\.]+$/u",
+        ],
+        'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
+        'phone'    => ['nullable', 'string', 'max:20', 'regex:/^\\+?[0-9\\s\\-\\(\\)]{8,20}$/'],
+        'password' => [
+            'required', 'string', 'confirmed',
+            \Illuminate\Validation\Rules\Password::min(12)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols(),
+            // Mirrors the "common" rule shown live in the registration form.
+            function ($attribute, $value, $fail) use ($commonPasswords) {
+                if (in_array(strtolower((string) $value), $commonPasswords, true)) {
+                    $fail('Ce mot de passe est trop courant. Choisissez-en un d\'original.');
+                }
+            },
+        ],
+        'terms'    => ['accepted'],
+    ]);
+
+    $citoyenRole = \App\Models\Role::where('slug', \App\Models\Role::CITOYEN)->first();
+
+    if (! $citoyenRole) {
+        return back()
+            ->withInput($request->only('name', 'email'))
+            ->with('error', 'Le système n\'est pas encore configuré. Contactez l\'administrateur.');
+    }
+
+    $user = \App\Models\User::create([
+        'name'      => trim($request->string('name')),
+        'email'     => strtolower(trim($request->string('email'))),
+        'password'  => $request->string('password'),
+        'is_active' => true,
+    ]);
+
+    $user->assignRole($citoyenRole);
+
+    // Les deux emails partent ensemble. Un dysfonctionnement SMTP ne doit
+    // JAMAIS faire échouer l'inscription : le compte est déjà créé et actif,
+    // on signale l'incident à la place (même discipline que
+    // PasswordResetController qui enveloppe déjà son envoi d'OTP).
+    try {
+        // Email de bienvenue — notification déclarée mais jamais appelée.
+        $user->notify(new \App\Notifications\WelcomeNotification());
+
+        // Email d'activation du compte.
+        $user->sendEmailVerificationNotification();
+    } catch (\Throwable $e) {
+        report($e);
+    }
+
+    return redirect()->route('auth.login')
+        ->with('success', 'Compte créé avec succès. Vérifiez votre email pour activer votre compte.');
 })->name('register.post');
 
-Route::post('/forgot-password', function (Request $request) {
-    return back()->with('success', 'Si ce compte existe, un email a été envoyé.');
-})->name('forgot-password.post');
+// Google OAuth
+Route::get('/auth/google',          [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+// ── Password recovery (OTP par email) ────────────────────────────────────────
+Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'create'])
+    ->middleware('throttle:10,1')
+    ->name('forgot-password.post');
+
+Route::get('/password/otp',  [\App\Http\Controllers\Auth\PasswordResetController::class, 'showOtpForm'])
+    ->name('password.verify.otp');
+
+Route::post('/password/otp', [\App\Http\Controllers\Auth\PasswordResetController::class, 'verifyOtp'])
+    ->middleware('throttle:10,1')
+    ->name('password.verify.otp.post');
+
+Route::post('/password/otp/resend', [\App\Http\Controllers\Auth\PasswordResetController::class, 'resend'])
+    ->middleware('throttle:10,1')
+    ->name('password.resend.otp');
+
+Route::get('/password/reset',  [\App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])
+    ->name('password.reset.form');
+
+Route::post('/password/reset', [\App\Http\Controllers\Auth\PasswordResetController::class, 'reset'])
+    ->middleware('throttle:10,1')
+    ->name('password.reset.post');
+
+// ── Email Verification ────────────────────────────────────────────────────────
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::get('/email/verify/{id}/{hash}', function (Request $request) {
+    $user = \App\Models\User::findOrFail($request->route('id'));
+
+    if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+        abort(403, 'Lien de vérification invalide.');
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return redirect()->route('profile.show')->with('info', 'Email déjà vérifié.');
+    }
+
+    $user->markEmailAsVerified();
+
+    return redirect()->route('profile.show')->with('success', 'Votre adresse email a été vérifiée avec succès !');
+})->middleware(['auth', 'signed'])->name('verification.verify');
+
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
+
+    return back()->with('status', 'verification-link-sent');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+// ── Profile & 2FA ─────────────────────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    Route::patch('/profile/avatar', [\App\Http\Controllers\ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::delete('/profile/avatar', [\App\Http\Controllers\ProfileController::class, 'deleteAvatar'])->name('profile.avatar.delete');
+    Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Two-Factor Authentication
+    Route::get('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'show'])->name('profile.two-factor');
+    Route::post('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'enable'])->name('profile.two-factor.enable');
+    Route::get('/profile/two-factor/confirm', [\App\Http\Controllers\TwoFactorController::class, 'showConfirm'])->name('profile.two-factor.confirm');
+    Route::post('/profile/two-factor/confirm', [\App\Http\Controllers\TwoFactorController::class, 'confirm'])->name('profile.two-factor.confirm.post');
+    Route::delete('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'disable'])->name('profile.two-factor.disable');
+    Route::post('/profile/two-factor/recovery', [\App\Http\Controllers\TwoFactorController::class, 'regenerateRecoveryCodes'])->name('profile.two-factor.regenerate');
+    Route::get('/profile/two-factor/recovery', [\App\Http\Controllers\TwoFactorController::class, 'showRecoveryCodes'])->name('profile.two-factor.recovery');
+});
 
 // Logout
-Route::post('/logout', function () {
-    session()->forget('user');
+Route::post('/logout', function (Request $request) {
+    \Illuminate\Support\Facades\Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
     return redirect()->route('landing');
 })->name('logout');
 
-// Citizen Space (FrontOffice) - DEMO
-Route::get('/citizen/dashboard', function () {
-    if (!session('user') || session('user.role') !== 'citizen') {
-        return redirect()->route('auth.login');
-    }
-    return view('citizen.dashboard');
-})->name('citizen.dashboard');
+// ── Citoyen ───────────────────────────────────────────────────────────────────
+Route::middleware('role:citoyen')->group(function () {
+    Route::get('/citizen/dashboard',        fn () => view('citizen.dashboard'))->name('citizen.dashboard');
+    Route::get('/citizen/reports/create',   fn () => view('citizen.reports.create'))->name('citizen.reports.create');
+    Route::post('/citizen/reports',         fn () => redirect()->route('citizen.dashboard')->with('success', 'Déclaration envoyée avec succès'))->name('citizen.reports.store');
+    Route::get('/citizen/reports/{id}',     fn ($id) => view('citizen.reports.show', ['id' => $id]))->name('citizen.reports.show');
+    Route::get('/citizen/notifications',    fn () => view('citizen.notifications'))->name('citizen.notifications');
+    Route::get('/citizen/invoices',         fn () => view('citizen.invoices.index'))->name('citizen.invoices.index');
+    Route::get('/citizen/invoices/{id}',    fn ($id) => view('citizen.invoices.show', ['id' => $id]))->name('citizen.invoices.show');
+});
 
-Route::get('/citizen/reports/create', function () {
-    if (!session('user') || session('user.role') !== 'citizen') {
-        return redirect()->route('auth.login');
-    }
-    return view('citizen.reports.create');
-})->name('citizen.reports.create');
+// ── Technicien ────────────────────────────────────────────────────────────────
+Route::middleware('role:technicien')->group(function () {
+    Route::get('/technician/dashboard',              fn () => view('technician.dashboard'))->name('technician.dashboard');
+    Route::get('/technician/interventions', [\App\Http\Controllers\Technician\InterventionController::class, 'index'])->name('technician.interventions.index');
+    Route::get('/technician/interventions/{id}', [\App\Http\Controllers\Technician\InterventionController::class, 'show'])->name('technician.interventions.show');
+    Route::post('/technician/interventions/{id}/start', [\App\Http\Controllers\Technician\InterventionController::class, 'start'])->name('technician.interventions.start');
+    Route::get('/technician/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'report'])->name('technician.interventions.report');
+    Route::post('/technician/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'storeReport'])->name('technician.interventions.report.store');
+    Route::get('/technician/equipment',              fn () => view('technician.equipment'))->name('technician.equipment');
+});
 
-Route::post('/citizen/reports', function () {
-    return redirect()->route('citizen.dashboard')->with('success', 'Déclaration envoyée avec succès');
-})->name('citizen.reports.store');
+// ── Incidents (citoyen = declare, manager = handle) ───────────────────────────
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(function () {
+    Route::get('/incidents',                  [IncidentController::class, 'index'])->name('incidents.index');
+    Route::get('/incidents/create',           [IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents',                 [IncidentController::class, 'store'])->name('incidents.store');
+    Route::get('/incidents/{incident}/edit',  [IncidentController::class, 'edit'])->name('incidents.edit');
+    Route::put('/incidents/{incident}',       [IncidentController::class, 'update'])->name('incidents.update');
+    Route::delete('/incidents/{incident}',    [IncidentController::class, 'destroy'])->name('incidents.destroy');
+    Route::get('/incidents/{incident}',       [IncidentController::class, 'show'])->name('incidents.show');
+});
 
-Route::get('/citizen/reports/{id}', function ($id) {
-    if (!session('user') || session('user.role') !== 'citizen') {
-        return redirect()->route('auth.login');
-    }
-    return view('citizen.reports.show', ['id' => $id]);
-})->name('citizen.reports.show');
+Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
+    Route::get('/manager/incidents',                          [IncidentController::class, 'managerIndex'])->name('manager.incidents');
+    Route::get('/manager/incidents/{incident}',               [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
+    Route::get('/manager/incidents/{incident}/actions',       [ActionCorrectiveController::class, 'index'])->name('manager.actions.index');
+    Route::get('/manager/incidents/{incident}/actions/create',[ActionCorrectiveController::class, 'create'])->name('manager.actions.create');
+    Route::post('/manager/incidents/{incident}/actions',      [ActionCorrectiveController::class, 'store'])->name('incidents.actions.store');
+    Route::get('/manager/actions/{action}/edit',              [ActionCorrectiveController::class, 'edit'])->name('manager.actions.edit');
+    Route::get('/manager/actions/{action}',                   [ActionCorrectiveController::class, 'show'])->name('manager.actions.show');
+    Route::put('/manager/actions/{action}',                   [ActionCorrectiveController::class, 'update'])->name('manager.actions.update');
+    Route::delete('/manager/actions/{action}',                [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
+});
 
-Route::get('/citizen/notifications', function () {
-    if (!session('user') || session('user.role') !== 'citizen') {
-        return redirect()->route('auth.login');
-    }
-    return view('citizen.notifications');
-})->name('citizen.notifications');
+// ── Manager ───────────────────────────────────────────────────────────────────
+Route::middleware('role:manager')->group(function () {
+    Route::get('/manager/dashboard', fn () => view('manager.dashboard'))->name('manager.dashboard');
 
-Route::get('/citizen/invoices', function () {
-    if (!session('user') || session('user.role') !== 'citizen') {
-        return redirect()->route('auth.login');
-    }
-    return view('citizen.invoices.index');
-})->name('citizen.invoices.index');
+    Route::get('/manager/budget', function () {
+        $projets             = \App\Models\Projet::with('financements')->get();
+        $financements        = \App\Models\Financement::with('projet')->latest()->get();
+        $totalBudget         = $projets->sum('budget');
+        $totalFinance        = $financements->sum('montant');
+        $budgetRestant       = $totalBudget - $totalFinance;
+        $pourcentageUtilise  = $totalBudget > 0 ? ($totalFinance / $totalBudget * 100) : 0;
+        $sourcesUniques      = $financements->pluck('source')->unique()->count();
 
-Route::get('/citizen/invoices/{id}', function ($id) {
-    if (!session('user') || session('user.role') !== 'citizen') {
-        return redirect()->route('auth.login');
-    }
-    return view('citizen.invoices.show', ['id' => $id]);
-})->name('citizen.invoices.show');
+        return view('manager.budget', compact('projets', 'financements', 'totalBudget', 'totalFinance', 'budgetRestant', 'pourcentageUtilise', 'sourcesUniques'));
+    })->name('manager.budget');
 
-// Technician Space (BackOffice) - DEMO
-Route::get('/technician/dashboard', function () {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.dashboard');
-})->name('technician.dashboard');
+    Route::get('/manager/analytics', fn () => view('manager.analytics'))->name('manager.analytics');
+    Route::get('/manager/map', MapController::class)->name('manager.map');
+    Route::get('/manager/quality', [WaterQualityController::class, 'index'])->name('manager.quality');
 
-Route::get('/technician/interventions', function () {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.interventions.index');
-})->name('technician.interventions.index');
+    Route::resource('/manager/points-mesure', PointMesureController::class)
+        ->parameters(['points-mesure' => 'point_mesure'])
+        ->names('manager.points-mesure');
 
-Route::get('/technician/interventions/{id}', function ($id) {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.interventions.show', ['id' => $id]);
-})->name('technician.interventions.show');
+    Route::resource('/manager/quality/mesures', WaterQualityController::class)
+        ->parameters(['mesures' => 'mesure'])
+        ->names('manager.quality.mesures')
+        ->except('index');
 
-Route::get('/technician/interventions/{id}/report', function ($id) {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.interventions.report', ['id' => $id]);
-})->name('technician.interventions.report');
+    Route::post('/manager/quality/mesures/{mesure}/validate', [WaterQualityController::class, 'validateMeasurement'])
+        ->name('manager.quality.mesures.validate');
 
-Route::post('/technician/interventions/{id}/report', function ($id) {
-    return redirect()->route('technician.interventions.index')->with('success', 'Rapport d\'intervention créé avec succès');
-})->name('technician.interventions.report.store');
+    Route::get('/manager/teams', fn () => view('manager.teams'))->name('manager.teams');
+    Route::get('/manager/reports', fn () => view('manager.reports'))->name('manager.reports');
+});
 
-Route::get('/technician/equipment', function () {
-    if (!session('user') || session('user.role') !== 'technician') {
-        return redirect()->route('auth.login');
-    }
-    return view('technician.equipment');
-})->name('technician.equipment');
+Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(function () {
+    Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
+    Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
+    Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
+    Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
+    Route::resource('zones', ZoneController::class);
+    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
+    Route::resource('infrastructures', InfrastructureController::class);
+});
 
-// Role Switcher Route (Instant DEMO role switching)
-Route::get('/switch-role/{role}', function ($role) {
-    $rolesMap = [
-        'admin'      => ['name' => 'Amina Kacem (System Admin)', 'email' => 'admin@aquasecure.tn', 'role' => 'admin', 'route' => 'admin.dashboard'],
-        'manager'    => ['name' => 'Ines Mansouri (Utility Manager)', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.dashboard'],
-        'quality'    => ['name' => 'Dr. Selim Dridi (Water Quality Specialist)', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.quality'],
-        'technician' => ['name' => 'Amira Ben Ali (Field Technician)', 'email' => 'amira@aquasecure.tn', 'role' => 'technician', 'route' => 'technician.dashboard'],
-        'finance'    => ['name' => 'Moncef Triki (Finance Manager)', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.budget'],
-        'citizen'    => ['name' => 'Yassine Hamdi (Resident Citizen)', 'email' => 'citoyen@aquasecure.tn', 'role' => 'citizen', 'route' => 'citizen.dashboard'],
-    ];
+Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('budget', [\App\Http\Controllers\Admin\ConsultationController::class, 'budget'])->name('budget');
+    Route::get('projets', [\App\Http\Controllers\Admin\ConsultationController::class, 'projets'])->name('projets.index');
+    Route::get('qualite', [\App\Http\Controllers\Admin\ConsultationController::class, 'qualite'])->name('qualite');
+    Route::get('incidents', [\App\Http\Controllers\Admin\ConsultationController::class, 'incidents'])->name('incidents');
+    Route::get('interventions', [\App\Http\Controllers\Admin\ConsultationController::class, 'interventions'])->name('interventions');
+    Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
+    Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
+    Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
+    Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
+    Route::resource('zones', ZoneController::class)->only(['index', 'show']);
+    Route::resource('infrastructures', InfrastructureController::class)->only(['index', 'show']);
+});
 
-    if (isset($rolesMap[$role])) {
+Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
+    Route::get('/zones', [\App\Http\Controllers\Citizen\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Citizen\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/infrastructures', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'index'])->name('infrastructures.index');
+    Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'show'])->name('infrastructures.show');
+});
+
+Route::middleware('role:technicien')->prefix('technician')->name('technician.')->group(function () {
+    Route::get('/zones', [\App\Http\Controllers\Technician\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Technician\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/infrastructures', [\App\Http\Controllers\Technician\InfrastructureController::class, 'index'])->name('infrastructures.index');
+    Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Technician\InfrastructureController::class, 'show'])->name('infrastructures.show');
+    Route::patch('/infrastructures/{infrastructure}/etat', [\App\Http\Controllers\Technician\InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::get('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'scan'])->name('scan');
+    Route::post('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'processScan'])->name('scan.process');
+    Route::get('/tournee', [\App\Http\Controllers\Technician\TourneeController::class, 'index'])->name('tournee');
+    Route::get('/incidents/create', [\App\Http\Controllers\Technician\IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [\App\Http\Controllers\Technician\IncidentController::class, 'store'])->name('incidents.store');
+});
+
+if (app()->environment(['local', 'testing'])) {
+    Route::get('/switch-role/{role}', function (string $role) {
+        $rolesMap = [
+            'admin' => ['name' => 'Amina Kacem (System Admin)', 'email' => 'admin@aquasecure.tn', 'role' => 'admin', 'route' => 'admin.dashboard'],
+            'manager' => ['name' => 'Ines Mansouri (Utility Manager)', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.dashboard'],
+            'quality' => ['name' => 'Dr. Selim Dridi (Water Quality Specialist)', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.quality'],
+            'technician' => ['name' => 'Amira Ben Ali (Field Technician)', 'email' => 'amira@aquasecure.tn', 'role' => 'technician', 'route' => 'technician.dashboard'],
+            'finance' => ['name' => 'Moncef Triki (Finance Manager)', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'route' => 'manager.budget'],
+            'citizen' => ['name' => 'Yassine Hamdi (Resident Citizen)', 'email' => 'citoyen@aquasecure.tn', 'role' => 'citizen', 'route' => 'citizen.dashboard'],
+        ];
+
+        abort_unless(isset($rolesMap[$role]), 404);
+
         $user = $rolesMap[$role];
         session(['user' => [
             'name' => $user['name'],
             'email' => $user['email'],
             'role' => $user['role'],
-            'role_key' => $role
+            'role_key' => $role,
         ]]);
+
         return redirect()->route($user['route'])->with('success', 'Passé au rôle : ' . $user['name']);
-    }
-    return redirect()->back();
-})->name('switch.role');
+    })->name('switch.role');
+}
 
-// Manager Space (BackOffice) - DEMO
-Route::get('/manager/dashboard', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.dashboard');
-})->name('manager.dashboard');
-
-Route::get('/manager/map', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.map');
-})->name('manager.map');
-
-Route::get('/manager/quality', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Dr. Selim Dridi', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'role_key' => 'quality']]);
-    }
-    return view('manager.quality');
-})->name('manager.quality');
-
-Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(function () {
-    Route::get('/incidents', [IncidentController::class, 'index'])->name('incidents.index');
-    Route::get('/incidents/create', [IncidentController::class, 'create'])->name('incidents.create');
-    Route::post('/incidents', [IncidentController::class, 'store'])->name('incidents.store');
-    Route::get('/incidents/{incident}/edit', [IncidentController::class, 'edit'])->name('incidents.edit');
-    Route::put('/incidents/{incident}', [IncidentController::class, 'update'])->name('incidents.update');
-    Route::delete('/incidents/{incident}', [IncidentController::class, 'destroy'])->name('incidents.destroy');
-    Route::get('/incidents/{incident}', [IncidentController::class, 'show'])->name('incidents.show');
+// ── Administrateur ────────────────────────────────────────────────────────────
+Route::middleware('role:administrateur')->group(function () {
+    Route::get('/admin/dashboard',   fn () => view('admin.dashboard'))->name('admin.dashboard');
+    Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
+    Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
+    Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
+    Route::patch('/admin/users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
+    Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
+    Route::get('/admin/logs',        [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.logs');
+    Route::get('/admin/system',      fn () => view('admin.system'))->name('admin.system');
+    Route::get('/admin/security',    fn () => view('admin.security'))->name('admin.security');
+    Route::get('/admin/backups',     fn () => view('admin.backups'))->name('admin.backups');
 });
 
-Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
-    Route::get('/manager/incidents', [IncidentController::class, 'managerIndex'])->name('manager.incidents');
-    Route::get('/manager/incidents/{incident}', [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
-    Route::get('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'index'])->name('manager.actions.index');
-    Route::get('/manager/incidents/{incident}/actions/create', [ActionCorrectiveController::class, 'create'])->name('manager.actions.create');
-    Route::post('/manager/incidents/{incident}/actions', [ActionCorrectiveController::class, 'store'])->name('incidents.actions.store');
-    Route::get('/manager/actions/{action}/edit', [ActionCorrectiveController::class, 'edit'])->name('manager.actions.edit');
-    Route::get('/manager/actions/{action}', [ActionCorrectiveController::class, 'show'])->name('manager.actions.show');
-    Route::put('/manager/actions/{action}', [ActionCorrectiveController::class, 'update'])->name('manager.actions.update');
-    Route::delete('/manager/actions/{action}', [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
+// ── All authenticated roles ───────────────────────────────────────────────────
+Route::middleware('role:administrateur,manager,technicien,citoyen')->group(function () {
+    Route::get('/settings',               fn () => view('settings.index'))->name('settings.index');
+    Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
+    Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
 });
 
-// Route démo supprimée - utiliser /manager/projets (module Ghada) à la place
+// ── Public demo pages ─────────────────────────────────────────────────────────
+Route::get('/ai-demo', fn () => view('ai-demo'))->name('ai.demo');
+Route::get('/weather',  fn () => response()->file(public_path('weather.html')))->name('weather');
 
-Route::get('/manager/budget', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Moncef Triki', 'email' => 'finance@aquasecure.tn', 'role' => 'manager', 'role_key' => 'finance']]);
-    }
-    
-    // Récupérer les projets et financements depuis la base de données
-    $projets = \App\Models\Projet::with('financements')->get();
-    $financements = \App\Models\Financement::with('projet')->latest()->get();
-    
-    // Calculer les totaux
-    $totalBudget = $projets->sum('budget');
-    $totalFinance = $financements->sum('montant');
-    $budgetRestant = $totalBudget - $totalFinance;
-    $pourcentageUtilise = $totalBudget > 0 ? ($totalFinance / $totalBudget * 100) : 0;
-    
-    // Compter les sources de financement uniques
-    $sourcesUniques = $financements->pluck('source')->unique()->count();
-    
-    return view('manager.budget', compact('projets', 'financements', 'totalBudget', 'totalFinance', 'budgetRestant', 'pourcentageUtilise', 'sourcesUniques'));
-})->name('manager.budget');
-
-Route::get('/manager/analytics', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.analytics');
-})->name('manager.analytics');
-
-Route::get('/manager/teams', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.teams');
-})->name('manager.teams');
-
-Route::get('/manager/reports', function () {
-    if (!session('user')) {
-        session(['user' => ['name' => 'Ines Mansouri', 'email' => 'gestionnaire@aquasecure.tn', 'role' => 'manager', 'role_key' => 'manager']]);
-    }
-    return view('manager.reports');
-})->name('manager.reports');
-
-// Admin Space (BackOffice) - DEMO
-Route::get('/admin/dashboard', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.dashboard');
-})->name('admin.dashboard');
-
-Route::get('/admin/users', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.users.index');
-})->name('admin.users.index');
-
-Route::get('/admin/roles', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.roles');
-})->name('admin.roles');
-
-Route::get('/admin/system', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.system');
-})->name('admin.system');
-
-Route::get('/admin/logs', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.logs');
-})->name('admin.logs');
-
-Route::get('/admin/security', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.security');
-})->name('admin.security');
-
-Route::get('/admin/backups', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.backups');
-})->name('admin.backups');
-
-// Global Routes (All Roles)
-Route::get('/profile', function () {
-    if (!session('user')) {
-        return redirect()->route('auth.login');
-    }
-    return view('profile.show');
-})->name('profile.show');
-
-Route::get('/settings', function () {
-    if (!session('user')) {
-        return redirect()->route('auth.login');
-    }
-    return view('settings.index');
-})->name('settings.index');
-
-Route::get('/settings/notifications', function () {
-    if (!session('user')) {
-        return redirect()->route('auth.login');
-    }
-    return view('settings.notifications');
-})->name('settings.notifications');
-
-Route::get('/notifications', function () {
-    if (!session('user')) {
-        return redirect()->route('auth.login');
-    }
-    return view('notifications.index');
-})->name('notifications.index');
-
-// AI Assistant Demo (Public)
-Route::get('/ai-demo', function () {
-    return view('ai-demo');
-})->name('ai.demo');
-
-// Aurora Weather Forecast (Liquid Glass UI)
-Route::get('/weather', function () {
-    return response()->file(public_path('weather.html'));
-})->name('weather');
-
-// Module Maintenance (Back Office) : Techniciens & Interventions
-// TODO : ajouter ->middleware('manager') une fois la branche de Sarra mergée
-Route::prefix('manager')->name('manager.')->group(function () {
-    Route::resource('techniciens', TechnicienController::class);
+// ── Maintenance module (techniciens & interventions — manager only) ────────────
+Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(function () {
+    Route::resource('techniciens',   TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
 });
 
-// Module Maintenance (Front Office) : travaux visibles par les citoyens
+// ── Travaux (citizen read-only) ───────────────────────────────────────────────
 Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
 Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
 
-// === MODULE PROJETS/FINANCEMENTS (Ghada) ===
-
-// Citizen - Projets (Lecture seule)
-Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
-    Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
+Route::middleware('role:citoyen')->group(function () {
+    Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
+        Route::get('/',        [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
+        Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
+    });
 });
 
-// Manager - Projets CRUD
-Route::prefix('manager/projets')->name('manager.projets.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Manager\ProjetController::class, 'index'])->name('index');
-    Route::get('/create', [App\Http\Controllers\Manager\ProjetController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Manager\ProjetController::class, 'store'])->name('store');
-    Route::get('/map', [App\Http\Controllers\Manager\ProjetController::class, 'map'])->name('map');
-    Route::get('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'show'])->name('show');
-    Route::get('/{projet}/edit', [App\Http\Controllers\Manager\ProjetController::class, 'edit'])->name('edit');
-    Route::put('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'update'])->name('update');
+// ── Projets & Financements (manager CRUD) ─────────────────────────────────────
+Route::middleware('role:manager')->prefix('manager/projets')->name('manager.projets.')->group(function () {
+    Route::get('/',            [App\Http\Controllers\Manager\ProjetController::class, 'index'])->name('index');
+    Route::get('/create',      [App\Http\Controllers\Manager\ProjetController::class, 'create'])->name('create');
+    Route::post('/',           [App\Http\Controllers\Manager\ProjetController::class, 'store'])->name('store');
+    Route::get('/map',         [App\Http\Controllers\Manager\ProjetController::class, 'map'])->name('map');
+    Route::get('/{projet}',    [App\Http\Controllers\Manager\ProjetController::class, 'show'])->name('show');
+    Route::get('/{projet}/edit',[App\Http\Controllers\Manager\ProjetController::class, 'edit'])->name('edit');
+    Route::put('/{projet}',    [App\Http\Controllers\Manager\ProjetController::class, 'update'])->name('update');
     Route::delete('/{projet}', [App\Http\Controllers\Manager\ProjetController::class, 'destroy'])->name('destroy');
 });
 
-// Manager - Financements CRUD
-Route::prefix('manager/financements')->name('manager.financements.')->group(function () {
-    Route::get('/', [App\Http\Controllers\Manager\FinancementController::class, 'index'])->name('index');
-    Route::get('/create', [App\Http\Controllers\Manager\FinancementController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
-    Route::get('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
+Route::middleware('role:manager')->prefix('manager/financements')->name('manager.financements.')->group(function () {
+    Route::get('/',                [App\Http\Controllers\Manager\FinancementController::class, 'index'])->name('index');
+    Route::get('/create',          [App\Http\Controllers\Manager\FinancementController::class, 'create'])->name('create');
+    Route::post('/',               [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
+    Route::get('/{financement}',   [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
     Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
-    Route::put('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
-    Route::delete('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+    Route::put('/{financement}',   [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
+    Route::delete('/{financement}',[App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});
+
+Route::middleware('role:manager')->group(function () {
+    Route::post('/manager/data-collection/trigger',    [\App\Http\Controllers\Manager\DataCollectionController::class, 'trigger'])->name('manager.data-collection.trigger');
+    Route::post('/manager/data-collection/import-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
+    Route::get('/manager/data-collection/status',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
+    Route::get('/manager/data-collection/history',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
+    Route::get('/manager/quality/{point}/analyse',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
 });

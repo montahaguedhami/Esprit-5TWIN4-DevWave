@@ -35,4 +35,25 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google OAuth (Laravel Socialite)
+    |--------------------------------------------------------------------------
+    |
+    | Create the credentials on https://console.cloud.google.com/apis/credentials
+    | (OAuth 2.0 Client ID, Web application) then set them here via .env.
+    | NEVER commit real values.
+    |
+    | GOOGLE_CLIENT_ID=
+    | GOOGLE_CLIENT_SECRET=
+    | GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
+    |
+    */
+
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
+    ],
+
 ];

@@ -1,129 +1,544 @@
 @extends('layouts.auth')
 
-@php
-    use App\Data\PlaceholderData;
-    $zones = PlaceholderData::zones();
-@endphp
-
 @section('auth-content')
-<div class="w-full max-w-6xl xl:max-w-7xl grid lg:grid-cols-[1.1fr_1fr] gap-10 items-stretch my-auto">
-    <!-- Left Section - Info (Desktop only) -->
-    <section class="hidden lg:flex flex-col justify-between glass p-10 xl:p-14 animate-fade-in-up">
-        <div>
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-400/10 border border-cyan-400/25 text-cyan-200 text-xs font-semibold mb-8">
-                <span class="w-2.5 h-2.5 rounded-full bg-teal-400 pulse-glow"></span>
-                Plateforme Nationale de Surveillance
-            </div>
-            <h1 class="text-4xl xl:text-6xl font-display font-extrabold text-white leading-tight mb-6">
-                Chaque goutte compte.
-                <span class="block text-gradient">Chaque intervention aussi.</span>
-            </h1>
-            <p class="text-cyan-100/75 text-base xl:text-lg leading-relaxed max-w-xl font-medium">
-                AquaSecure relie les citoyens, techniciens et gestionnaires autour d'un réseau d'eau potable plus sûr, plus transparent et plus résilient.
-            </p>
-        </div>
+<div class="auth-login">
+    <div class="auth-login__glow auth-login__glow--top" aria-hidden="true"></div>
+    <div class="auth-login__glow auth-login__glow--bottom" aria-hidden="true"></div>
 
-        <div class="grid grid-cols-3 gap-4 mt-12">
-            @foreach([
-                ['value' => '14', 'label' => 'zones suivies', 'icon' => 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
-                ['value' => '24/7', 'label' => 'surveillance', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
-                ['value' => '100%', 'label' => 'transparent', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-            ] as $stat)
-            <div class="glass-strong p-5 rounded-2xl">
-                <div class="text-cyan-300 mb-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $stat['icon'] }}"></path>
-                    </svg>
+    <div class="auth-login__card">
+        <section class="auth-login__intro">
+            <div class="auth-login__eyebrow">
+                <span class="auth-login__status" aria-hidden="true"></span>
+                Plateforme nationale de surveillance
+            </div>
+
+            <div>
+                <p class="auth-login__brand">AquaSecure</p>
+                <h1>Un réseau mieux suivi,<br><span>une eau plus sûre.</span></h1>
+                <p class="auth-login__description">
+                    Retrouvez votre espace et suivez les informations de votre réseau en toute simplicité.
+                </p>
+            </div>
+
+            <div class="auth-login__stats" aria-label="À propos de la plateforme">
+                <div>
+                    <strong>24/7</strong>
+                    <span>suivi continu</span>
                 </div>
-                <div class="text-2xl font-display font-bold text-white">{{ $stat['value'] }}</div>
-                <div class="text-xs text-cyan-100/60 mt-1 font-medium">{{ $stat['label'] }}</div>
-            </div>
-            @endforeach
-        </div>
-    </section>
-
-    <!-- Right Section - Login Form -->
-    <section class="glass-strong p-8 sm:p-10 xl:p-12 animate-fade-in-up flex flex-col justify-between" style="animation-delay: 0.12s">
-        <div class="flex items-center justify-between mb-8">
-            <div>
-                <p class="text-xs font-bold tracking-wider text-cyan-400 uppercase">Accès Sécurisé</p>
-                <h2 class="text-2xl sm:text-3xl font-display font-bold text-white mt-1">Heureux de vous revoir</h2>
-            </div>
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/30 flex items-center justify-center shrink-0">
-                <svg class="w-6 h-6 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                </svg>
-            </div>
-        </div>
-
-        <!-- Mode Toggle Tabs -->
-        <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-950/30 border border-white/5 mb-7">
-            <a href="{{ route('auth.login') }}" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
-                </svg>
-                <span class="hidden sm:inline">Connexion</span>
-            </a>
-            <a href="{{ route('auth.register') }}" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all text-cyan-100/45 hover:text-cyan-100/80">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                </svg>
-                <span class="hidden sm:inline">Inscription</span>
-            </a>
-            <a href="{{ route('auth.forgot-password') }}" class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-[11px] sm:text-xs font-semibold transition-all text-cyan-100/45 hover:text-cyan-100/80">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
-                <span class="hidden sm:inline">Mot de passe</span>
-            </a>
-        </div>
-
-        <!-- Login Form -->
-        <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
-            @csrf
-            
-            <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
-                <div class="relative">
-                    <input type="email" name="email" required placeholder="vous@exemple.tn" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
-                    <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
+                <div>
+                    <strong>14</strong>
+                    <span>zones suivies</span>
+                </div>
+                <div>
+                    <strong>100%</strong>
+                    <span>transparence</span>
                 </div>
             </div>
+        </section>
 
-            <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
-                <div class="relative">
-                    <input type="password" name="password" id="password" required minlength="6" placeholder="••••••••" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
-                    <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        <section class="auth-login__form-panel">
+            <div class="auth-login__heading">
+                <div>
+                    <p class="auth-login__kicker">Accès sécurisé</p>
+                    <h2>Heureux de vous revoir</h2>
+                    <p>Connectez-vous à votre compte AquaSecure.</p>
+                </div>
+                <span class="auth-login__heading-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M10 17l5-5-5-5M15 12H3m9-8h5a4 4 0 014 4v8a4 4 0 01-4 4h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <button type="button" onclick="togglePasswordVisibility()" class="text-cyan-100/35 hover:text-cyan-300 absolute right-4 top-1/2 -translate-y-1/2" aria-label="Afficher le mot de passe">
-                        <svg class="w-4 h-4 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </span>
+            </div>
+
+            <nav class="auth-login__tabs" aria-label="Options de compte">
+                <a href="{{ route('auth.login') }}" aria-current="page" class="is-active">Connexion</a>
+                <a href="{{ route('auth.register') }}">Inscription</a>
+                <a href="{{ route('auth.forgot-password') }}">Mot de passe</a>
+            </nav>
+
+            <form method="POST" action="{{ route('login.post') }}" class="auth-login__form">
+                @csrf
+
+                @if (session('success'))
+                    <div role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if (session('error') || $errors->any())
+                    <div role="alert" class="auth-login__error">
+                        {{ session('error') ?? $errors->first() }}
+                    </div>
+                @endif
+
+                <div class="auth-login__field">
+                    <label for="email">Adresse email</label>
+                    <div class="auth-login__input-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M3 6.75A1.75 1.75 0 014.75 5h14.5A1.75 1.75 0 0121 6.75v10.5A1.75 1.75 0 0119.25 19H4.75A1.75 1.75 0 013 17.25V6.75z" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="m4 6 8 6 8-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <svg class="w-4 h-4 eye-off-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                        </svg>
-                    </button>
+                        <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="admin@aquasecure.tn" autocomplete="email">
+                    </div>
                 </div>
-            </div>
 
-            <button type="button" onclick="window.location.href='{{ route('auth.forgot-password') }}'" class="text-right text-xs text-cyan-300/80 hover:text-cyan-200 transition-colors block w-full">
-                Mot de passe oublié ?
-            </button>
+                <div class="auth-login__field">
+                    <label for="password">Mot de passe</label>
+                    <div class="auth-login__input-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M8 10V7a4 4 0 118 0v3m-4 5v2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        </svg>
+                        <input id="password" type="password" name="password" required placeholder="Votre mot de passe" autocomplete="current-password">
+                        <button type="button" class="auth-login__password-toggle" onclick="togglePasswordVisibility()" aria-label="Afficher le mot de passe">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6z" stroke="currentColor" stroke-width="1.7"/>
+                                <circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/>
+                            </svg>
+                            <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true" hidden>
+                                <path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0112 6c6.1 0 9.5 6 9.5 6a16 16 0 01-3.1 3.6M6.2 6.7C3.8 8.3 2.5 12 2.5 12s3.4 6 9.5 6c1 0 1.9-.2 2.7-.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M9.9 9.9a3 3 0 004.2 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-            <x-ripple-button type="submit" size="lg" class="w-full flex items-center justify-center gap-2">
-                Se connecter
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </x-ripple-button>
-        </form>
-    </section>
+                {{-- reCAPTCHA sits as a sibling of the fields, not inside one:
+                     the form lays its children out with a flex gap, so being
+                     a direct child is what gives it the same rhythm as every
+                     other block. --}}
+                <x-recaptcha action="login" form=".auth-login__form" />
+
+                <a href="{{ route('auth.forgot-password') }}" class="auth-login__forgot">Mot de passe oublié ?</a>
+
+                <button type="submit" class="auth-login__submit">
+                    Se connecter
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </form>
+
+            @if (\App\Http\Controllers\Auth\GoogleAuthController::configured())
+                <div class="auth-login__divider" aria-hidden="true"><span>ou</span></div>
+
+                <a href="{{ route('auth.google') }}" class="auth-login__google">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                        <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29A11.86 11.86 0 000 12c0 1.94.46 3.77 1.29 5.38l3.98-3.09z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"/>
+                    </svg>
+                    Continuer avec Google
+                </a>
+            @elseif (! app()->environment('production'))
+                <div class="auth-login__google-hint">
+                    Connexion Google non configurée — renseignez <code>GOOGLE_CLIENT_ID</code> et <code>GOOGLE_CLIENT_SECRET</code> dans <code>.env</code>.
+                </div>
+            @endif
+
+            <aside class="auth-login__demo">
+                <strong>Compte de démonstration</strong>
+                <span>Email : <b>admin@aquasecure.tn</b></span>
+                <span>Utilisez le mot de passe associé à ce compte.</span>
+            </aside>
+        </section>
+    </div>
 </div>
+
+@push('styles')
+<style>
+    .auth-login {
+        --login-navy: #0c2a4a;
+        --login-cyan: #06aeca;
+        position: relative;
+        isolation: isolate;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+        overflow: hidden;
+        padding: 7rem 1.5rem 3rem;
+        color: #18334b;
+        background:
+            radial-gradient(ellipse at 12% 12%, rgba(207, 246, 250, .85), transparent 34rem),
+            radial-gradient(ellipse at 92% 86%, rgba(222, 239, 255, .8), transparent 32rem),
+            #f7fcfe;
+        font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .auth-login__glow {
+        position: absolute;
+        z-index: -1;
+        width: 24rem;
+        height: 24rem;
+        border-radius: 50%;
+        background: rgba(14, 165, 198, .08);
+        filter: blur(2px);
+        pointer-events: none;
+    }
+
+    .auth-login__glow--top { top: -15rem; right: 9%; }
+    .auth-login__glow--bottom { bottom: -18rem; left: 12%; width: 30rem; height: 30rem; }
+
+    .auth-login__card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, .92fr);
+        width: min(100%, 68rem);
+        min-height: 39rem;
+        overflow: hidden;
+        border: 1px solid rgba(12, 42, 74, .08);
+        border-radius: 1.75rem;
+        background: #fff;
+        box-shadow: 0 30px 90px rgba(12, 42, 74, .12), 0 4px 16px rgba(12, 42, 74, .04);
+    }
+
+    .auth-login__intro {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: clamp(2.25rem, 5vw, 4rem);
+        color: #fff;
+        background:
+            radial-gradient(ellipse at 0 100%, rgba(40, 202, 216, .26), transparent 50%),
+            linear-gradient(145deg, #0c2a4a 4%, #10436a 60%, #087f9c 125%);
+    }
+
+    .auth-login__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        gap: .65rem;
+        padding: .65rem .9rem;
+        border: 1px solid rgba(189, 244, 249, .24);
+        border-radius: 999px;
+        color: #d8f7fa;
+        background: rgba(255, 255, 255, .08);
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .025em;
+    }
+
+    .auth-login__status {
+        width: .5rem;
+        height: .5rem;
+        border-radius: 50%;
+        background: #52e0c0;
+        box-shadow: 0 0 0 4px rgba(82, 224, 192, .14);
+    }
+
+    .auth-login__brand {
+        margin: 0 0 .75rem;
+        color: #75e2ed;
+        font-size: .95rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .auth-login__intro h1 {
+        margin: 0;
+        color: #fff;
+        font-family: 'Inter Tight', 'Inter', sans-serif;
+        font-size: clamp(2.35rem, 4vw, 3.65rem);
+        font-weight: 800;
+        letter-spacing: -.045em;
+        line-height: 1.08;
+    }
+
+    .auth-login__intro h1 span { color: #77e1e9; }
+
+    .auth-login__description {
+        max-width: 27rem;
+        margin: 1.4rem 0 0;
+        color: rgba(235, 250, 253, .78);
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+
+    .auth-login__stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .75rem;
+        margin-top: 2.5rem;
+    }
+
+    .auth-login__stats div {
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+        padding: 1rem .85rem;
+        border: 1px solid rgba(255, 255, 255, .13);
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, .08);
+    }
+
+    .auth-login__stats strong { color: #fff; font-size: 1.35rem; font-weight: 800; }
+    .auth-login__stats span { color: rgba(230, 249, 251, .7); font-size: .7rem; font-weight: 600; }
+
+    .auth-login__form-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: clamp(2rem, 4.5vw, 3.75rem);
+        background: #fff;
+    }
+
+    .auth-login__heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .auth-login__kicker {
+        margin: 0 0 .4rem;
+        color: #0799b7;
+        font-size: .7rem;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+    }
+
+    .auth-login__heading h2 {
+        margin: 0;
+        color: var(--login-navy);
+        font-family: 'Inter Tight', 'Inter', sans-serif;
+        font-size: clamp(1.6rem, 2.5vw, 2rem);
+        font-weight: 800;
+        letter-spacing: -.035em;
+        line-height: 1.2;
+    }
+
+    .auth-login__heading p:last-child {
+        margin: .55rem 0 0;
+        color: #708397;
+        font-size: .86rem;
+    }
+
+    .auth-login__heading-icon {
+        display: grid;
+        width: 3.1rem;
+        height: 3.1rem;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid #d6f1f5;
+        border-radius: 1rem;
+        color: #078eaa;
+        background: #effbfd;
+    }
+
+    .auth-login__heading-icon svg { width: 1.45rem; height: 1.45rem; }
+
+    .auth-login__tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .25rem;
+        margin: 1.75rem 0 1.5rem;
+        padding: .3rem;
+        border-radius: .9rem;
+        background: #f1f6f8;
+    }
+
+    .auth-login__tabs a {
+        padding: .65rem .3rem;
+        border-radius: .65rem;
+        color: #718497;
+        font-size: .76rem;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+
+    .auth-login__tabs a:hover { color: #087f9c; }
+    .auth-login__tabs a.is-active { color: #087f9c; background: #fff; box-shadow: 0 2px 8px rgba(12, 42, 74, .08); }
+
+    .auth-login__form { display: flex; flex-direction: column; gap: 1.15rem; }
+    .auth-login__field label { display: block; margin-bottom: .5rem; color: #28445b; font-size: .8rem; font-weight: 700; }
+
+    .auth-login__input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .auth-login__input-wrap > svg {
+        position: absolute;
+        left: 1rem;
+        width: 1.15rem;
+        height: 1.15rem;
+        color: #91a5b5;
+        pointer-events: none;
+    }
+
+    .auth-login__input-wrap input {
+        width: 100%;
+        min-height: 3.15rem;
+        padding: .8rem 3rem .8rem 2.9rem;
+        border: 1px solid #dce7ec;
+        border-radius: .85rem;
+        outline: none;
+        color: #18334b;
+        background: #fbfdfe;
+        font-size: .88rem;
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .auth-login__input-wrap input::placeholder { color: #a4b3bf; }
+    .auth-login__input-wrap input:focus { border-color: #45bfd0; background: #fff; box-shadow: 0 0 0 4px rgba(6, 174, 202, .11); }
+
+    .auth-login__password-toggle {
+        position: absolute;
+        right: .85rem;
+        display: grid;
+        width: 1.6rem;
+        height: 1.6rem;
+        place-items: center;
+        border: 0;
+        color: #8397a8;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .auth-login__password-toggle:hover { color: #078eaa; }
+    .auth-login__password-toggle svg { width: 1.15rem; height: 1.15rem; }
+
+    .auth-login__forgot {
+        align-self: flex-end;
+        margin-top: -.45rem;
+        color: #078eaa;
+        font-size: .78rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .auth-login__forgot:hover { color: #0c2a4a; text-decoration: underline; }
+
+    .auth-login__submit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .7rem;
+        min-height: 3.2rem;
+        margin-top: .25rem;
+        border: 0;
+        border-radius: .85rem;
+        color: #fff;
+        background: linear-gradient(105deg, #08aeca, #1472b8);
+        box-shadow: 0 10px 22px rgba(8, 150, 190, .2);
+        font-size: .9rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .auth-login__submit:hover { transform: translateY(-1px); box-shadow: 0 13px 26px rgba(8, 150, 190, .28); }
+    .auth-login__submit svg { width: 1.1rem; height: 1.1rem; }
+
+    .auth-login__error {
+        padding: .8rem 1rem;
+        border: 1px solid #fecaca;
+        border-radius: .75rem;
+        color: #b42318;
+        background: #fff5f4;
+        font-size: .82rem;
+    }
+
+    .auth-login__demo {
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+        margin-top: 1.5rem;
+        padding: .95rem 1rem;
+        border: 1px solid #d8f0f3;
+        border-radius: .85rem;
+        color: #62798b;
+        background: #f3fbfc;
+        font-size: .72rem;
+    }
+
+    .auth-login__demo strong { margin-bottom: .1rem; color: #167f93; font-size: .76rem; }
+    .auth-login__demo b { color: #34556c; font-weight: 700; }
+
+    .auth-login__divider {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin: 1.25rem 0;
+        color: #9aabb9;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .auth-login__divider::before,
+    .auth-login__divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e2ecf1;
+    }
+
+    .auth-login__google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .7rem;
+        min-height: 3.1rem;
+        border: 1px solid #dce7ec;
+        border-radius: .85rem;
+        color: #2d4760;
+        background: #fff;
+        font-size: .87rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .auth-login__google:hover {
+        border-color: #b9d4de;
+        background: #fbfdfe;
+        box-shadow: 0 6px 16px rgba(12, 42, 74, .08);
+    }
+
+    .auth-login__google-hint {
+        margin-top: 1rem;
+        padding: .7rem .85rem;
+        border: 1px dashed #d6e4ec;
+        border-radius: .75rem;
+        color: #7b8fa1;
+        background: #f7fbfd;
+        font-size: .71rem;
+        line-height: 1.6;
+    }
+
+    .auth-login__google-hint code {
+        padding: .05rem .3rem;
+        border-radius: .3rem;
+        color: #167f93;
+        background: #e8f5f8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: .68rem;
+    }
+
+    @media (max-width: 767px) {
+        .auth-login { min-height: 100vh; padding: 6rem 1rem 2rem; }
+        .auth-login__card { display: block; width: min(100%, 31rem); min-height: auto; border-radius: 1.3rem; }
+        .auth-login__intro { display: none; }
+        .auth-login__form-panel { padding: 1.75rem 1.3rem; }
+        .auth-login__tabs { margin-top: 1.4rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .auth-login *,
+        .auth-login *::before,
+        .auth-login *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -131,17 +546,22 @@
         const input = document.getElementById('password');
         const eyeIcon = document.querySelector('.eye-icon');
         const eyeOffIcon = document.querySelector('.eye-off-icon');
-        
+        const toggle = document.querySelector('.auth-login__password-toggle');
+
         if (input.type === 'password') {
             input.type = 'text';
-            eyeIcon.classList.add('hidden');
-            eyeOffIcon.classList.remove('hidden');
+            eyeIcon.hidden = true;
+            eyeOffIcon.hidden = false;
+            toggle.setAttribute('aria-label', 'Masquer le mot de passe');
         } else {
             input.type = 'password';
-            eyeIcon.classList.remove('hidden');
-            eyeOffIcon.classList.add('hidden');
+            eyeIcon.hidden = false;
+            eyeOffIcon.hidden = true;
+            toggle.setAttribute('aria-label', 'Afficher le mot de passe');
         }
     }
+
+    // Removed reCAPTCHA
 </script>
 @endpush
 @endsection
