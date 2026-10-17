@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\InterventionRequest;
 use App\Models\Intervention;
 use App\Models\Technicien;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class InterventionController extends Controller
@@ -64,6 +65,27 @@ class InterventionController extends Controller
         $intervention->load(['technicien', 'infrastructure.zone']);
 
         return view('manager.interventions.show', compact('intervention'));
+    }
+
+    /**
+     * Rapport d'intervention au format PDF (fiche + rapport terrain + historique de l'équipement).
+     */
+    public function pdf(Intervention $intervention)
+    {
+        $intervention->load(['technicien', 'infrastructure.zone']);
+
+        $historique = $intervention->infrastructure
+            ? $intervention->infrastructure->interventions()
+                ->with('technicien')
+                ->whereKeyNot($intervention->id)
+                ->latest('date')
+                ->take(5)
+                ->get()
+            : collect();
+
+        return Pdf::loadView('manager.interventions.pdf', compact('intervention', 'historique'))
+            ->setPaper('a4')
+            ->download('intervention-'.$intervention->id.'.pdf');
     }
 
     /**

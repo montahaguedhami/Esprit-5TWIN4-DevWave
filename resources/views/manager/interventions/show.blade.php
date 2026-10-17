@@ -6,6 +6,7 @@
 <div class="max-w-4xl mx-auto">
     <x-maintenance.page-header :title="'Intervention #'.$intervention->id" :subtitle="$intervention->technicien->nom" icon="clipboard-list">
         <x-maintenance.link-button :href="route('manager.interventions.index')" variant="secondary" icon="arrow-left">Retour</x-maintenance.link-button>
+        <x-maintenance.link-button :href="route('manager.interventions.pdf', $intervention)" variant="secondary" icon="file-down">PDF</x-maintenance.link-button>
         <x-maintenance.link-button :href="route('manager.interventions.edit', $intervention)" variant="secondary" icon="pencil">Modifier</x-maintenance.link-button>
         <x-maintenance.delete-button :action="route('manager.interventions.destroy', $intervention)" confirm="Supprimer cette intervention ?" />
     </x-maintenance.page-header>

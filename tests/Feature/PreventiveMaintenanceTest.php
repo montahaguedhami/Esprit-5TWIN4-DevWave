@@ -175,6 +175,31 @@ class PreventiveMaintenanceTest extends TestCase
         $this->assertSame($date->toDateString(), $normale->fresh()->date_derniere_maintenance->toDateString());
     }
 
+    public function test_report_filed_early_dates_the_work_today_and_restarts_the_cycle(): void
+    {
+        $technicien = $this->technicien('Sami Pompage', 'Pompage');
+        $infra = $this->infrastructure();
+        $intervention = Intervention::factory()->for($technicien)->create([
+            'infrastructure_id' => $infra->id,
+            'date' => today()->addDays(3)->toDateString(),
+            'statut' => 'Planifiée',
+            'type' => Intervention::TYPE_PREVENTIVE,
+        ]);
+
+        $this->withSession(['user' => [
+            'name' => 'Sami Pompage',
+            'role' => 'technicien',
+            'technicien_id' => $technicien->id,
+        ]])->post(route('technician.interventions.report.store', $intervention->id), [
+            'status' => 'resolved',
+            'work_performed' => 'Graissage et contrôle des pompes',
+        ])->assertRedirect();
+
+        $this->assertSame(today()->toDateString(), $intervention->fresh()->date->toDateString());
+        $this->assertSame(today()->toDateString(), $infra->fresh()->date_derniere_maintenance->toDateString());
+        $this->assertSame(today()->addMonthsNoOverflow(3)->toDateString(), $infra->fresh()->date_prochaine_maintenance->toDateString());
+    }
+
     public function test_finishing_a_corrective_intervention_keeps_the_schedule(): void
     {
         $infra = $this->infrastructure();

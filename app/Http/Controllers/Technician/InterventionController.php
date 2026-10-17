@@ -141,8 +141,11 @@ class InterventionController extends Controller
             'work_performed.min' => 'Le descriptif des travaux doit comporter au moins :min caractères.',
         ]);
 
-        // 1. Clôture de l'intervention
+        // 1. Clôture de l'intervention (réalisée en avance : elle est datée du jour réel des travaux)
         $intervention->statut = 'Terminée';
+        if ($intervention->date->isFuture()) {
+            $intervention->date = today();
+        }
 
         $piecesTxt = '';
         if (! empty($validated['parts']) && is_array($validated['parts'])) {
