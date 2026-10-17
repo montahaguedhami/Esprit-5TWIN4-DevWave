@@ -59,6 +59,26 @@ class TechnicienUserLinkTest extends TestCase
             ->assertDontSee('Remplacement compteur secteur sud');
     }
 
+    public function test_dashboard_lists_real_interventions_with_working_links(): void
+    {
+        $user = $this->userWithRole(Role::TECHNICIEN, ['name' => 'Sami Gharbi']);
+        $sami = Technicien::factory()->create(['nom' => 'Sami Gharbi', 'user_id' => $user->id]);
+        $enCours = Intervention::factory()->for($sami)->create(['date' => today()->toDateString(), 'statut' => 'En cours', 'description' => 'Réparation vanne secteur nord']);
+        $retard = Intervention::factory()->for($sami)->create(['date' => today()->subDays(3)->toDateString(), 'statut' => 'Planifiée']);
+        $autre = Intervention::factory()->create(['date' => today()->toDateString(), 'statut' => 'En cours']);
+
+        $page = $this->loginAs($user)->get(route('technician.dashboard'))->assertOk();
+
+        $page->assertSee(route('technician.interventions.show', $enCours->id))
+            ->assertSee(route('technician.interventions.report', $enCours->id))
+            ->assertSee(route('technician.interventions.show', $retard->id))
+            ->assertSee('(en retard)')
+            ->assertDontSee(route('technician.interventions.show', $autre->id))
+            ->assertDontSee('INT-089'); // ancienne donnée factice
+
+        $this->loginAs($user)->get(route('technician.interventions.show', $enCours->id))->assertOk();
+    }
+
     public function test_technician_account_without_linked_fiche_is_forbidden(): void
     {
         $user = $this->userWithRole(Role::TECHNICIEN);

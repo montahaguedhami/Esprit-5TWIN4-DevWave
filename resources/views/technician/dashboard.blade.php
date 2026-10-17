@@ -8,16 +8,47 @@
     $user          = session('user', ['name' => 'Amira Ben Ali', 'role' => 'technician']);
     $technicien    = TechnicianScopeService::currentTechnicien();
     $dbZones       = $technicien ? TechnicianScopeService::zonesQuery($technicien)->take(4)->get() : collect();
-    $interventions = PlaceholderData::technicianInterventions();
     $equipment     = PlaceholderData::technicianEquipment();
     $zones         = PlaceholderData::technicianZones();
 
+    // Interventions réelles du technicien connecté (en cours, puis planifiées, plus celles du jour)
+    $mesInterventions = $technicien
+        ? \App\Models\Intervention::with('infrastructure.zone')
+            ->where('technicien_id', $technicien->id)
+            ->where(fn ($q) => $q->whereIn('statut', ['Planifiée', 'En cours'])->orWhereDate('date', today()))
+            ->orderByRaw("CASE statut WHEN 'En cours' THEN 0 WHEN 'Planifiée' THEN 1 ELSE 2 END")
+            ->orderBy('date')
+            ->get()
+        : collect();
+
+    // Priorité : en retard ou équipement critique → urgent ; criticité moyenne → moyen ; sinon faible
+    $priorite = function ($i) {
+        $actif = in_array($i->statut, ['Planifiée', 'En cours'], true);
+        if (($actif && $i->date->lt(today())) || $i->infrastructure?->niveau_criticite?->value === 'critique') {
+            return 'high';
+        }
+
+        return $i->infrastructure?->niveau_criticite?->value === 'faible' ? 'low' : 'medium';
+    };
+
+    $interventions = $mesInterventions->take(6)->map(fn ($i) => [
+        'id'             => $i->id,
+        'type'           => $i->infrastructure ? $i->type.' — '.$i->infrastructure->nom : $i->type.' — '.\Illuminate\Support\Str::limit(strtok($i->description, "\n"), 50),
+        'status'         => ['En cours' => 'in_progress', 'Planifiée' => 'scheduled', 'Terminée' => 'completed'][$i->statut] ?? 'scheduled',
+        'priority'       => $priorite($i),
+        'zone'           => $i->infrastructure?->zone?->nom ?? 'Zone non précisée',
+        'address'        => $i->infrastructure?->localisation ?? '—',
+        'scheduled_time' => $i->date->format('d/m/Y').($i->date->lt(today()) && $i->statut !== 'Terminée' ? ' (en retard)' : ''),
+    ])->all();
+
     $firstName     = explode(' ', $user['name'])[0];
-    $today         = count($interventions);
-    $inProgress    = count(array_filter($interventions, fn($i)=>$i['status']==='in_progress'));
-    $scheduled     = count(array_filter($interventions, fn($i)=>$i['status']==='scheduled'));
-    $completed     = count(array_filter($interventions, fn($i)=>$i['status']==='completed'));
-    $urgent        = count(array_filter($interventions, fn($i)=>$i['priority']==='high'));
+    $today         = $mesInterventions->filter(fn ($i) => $i->date->isToday())->count();
+    $inProgress    = $mesInterventions->where('statut', 'En cours')->count();
+    $scheduled     = $mesInterventions->where('statut', 'Planifiée')->count();
+    $completed     = $technicien
+        ? $technicien->interventions()->where('statut', 'Terminée')->whereDate('date', '>=', today()->subDays(30)->toDateString())->count()
+        : 0;
+    $urgent        = $mesInterventions->filter(fn ($i) => in_array($i->statut, ['Planifiée', 'En cours'], true) && $priorite($i) === 'high')->count();
 
     $statusStyle = [
         'in_progress' => ['bg'=>'bg-amber-50 text-amber-700 border border-amber-200','label'=>'En cours'],
@@ -75,7 +106,7 @@
         @foreach([
             ['val'=>$today,     'label'=>'Aujourd\'hui',  'icon'=>'calendar',      'bg'=>'bg-cyan-50',  'ic'=>'text-cyan-600',  'border'=>'border-cyan-100'],
             ['val'=>$inProgress,'label'=>'En cours',       'icon'=>'loader',        'bg'=>'bg-amber-50', 'ic'=>'text-amber-600', 'border'=>'border-amber-100'],
-            ['val'=>$completed, 'label'=>'Terminées',      'icon'=>'check-circle',  'bg'=>'bg-emerald-50','ic'=>'text-emerald-600','border'=>'border-emerald-100'],
+            ['val'=>$completed, 'label'=>'Terminées (30 j)', 'icon'=>'check-circle',  'bg'=>'bg-emerald-50','ic'=>'text-emerald-600','border'=>'border-emerald-100'],
             ['val'=>$urgent,    'label'=>'Urgentes',       'icon'=>'alert-triangle','bg'=>'bg-rose-50',   'ic'=>'text-rose-600',   'border'=>'border-rose-100'],
         ] as $kpi)
         <div class="glass rounded-xl p-4 border border-slate-200 bg-white shadow-sm flex items-center justify-between">
@@ -131,7 +162,7 @@
             </a>
         </div>
         <div class="divide-y divide-slate-100">
-            @foreach($interventions as $int)
+            @forelse($interventions as $int)
             @php
                 $ss = $statusStyle[$int['status']] ?? $statusStyle['scheduled'];
                 $ps = $priorityStyle[$int['priority']] ?? $priorityStyle['low'];
@@ -174,7 +205,9 @@
                     </a>
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div class="px-5 py-8 text-center text-sm text-slate-500">Aucune intervention planifiée ou en cours. Bonne journée !</div>
+            @endforelse
         </div>
     </div>
 
