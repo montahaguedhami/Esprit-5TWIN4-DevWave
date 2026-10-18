@@ -28,6 +28,21 @@
             var theme = localStorage.getItem('aq-theme')
                 || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             document.documentElement.setAttribute('data-theme', theme);
+
+            try {
+                var acc = localStorage.getItem('aq-accessibility-preferences');
+                if (acc) {
+                    var p = JSON.parse(acc);
+                    if (p.font && p.font !== 'normal') document.documentElement.setAttribute('data-aq-font', p.font);
+                    if (p.contrast) document.documentElement.classList.add('aq-contrast');
+                    if (p.grayscale) document.documentElement.classList.add('aq-grayscale');
+                    if (p.dyslexia) document.documentElement.classList.add('aq-dyslexia');
+                    if (p.spacing) document.documentElement.classList.add('aq-spacing');
+                    if (p.links) document.documentElement.classList.add('aq-links');
+                    if (p.cursor) document.documentElement.classList.add('aq-cursor');
+                    if (p.motion) document.documentElement.classList.add('aq-motion');
+                }
+            } catch (e) {}
         })();
     </script>
 </head>
@@ -38,6 +53,7 @@
 
 
 
+    <x-accessibility-menu />
     <x-ai-assistant />
     <div id="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>
     <div class="route-sweep" aria-hidden="true"><span></span><span></span><span></span></div>

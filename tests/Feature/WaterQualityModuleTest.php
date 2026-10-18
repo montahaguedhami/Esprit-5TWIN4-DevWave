@@ -33,7 +33,11 @@ class WaterQualityModuleTest extends TestCase
             ->get(route('manager.quality'))
             ->assertOk()
             ->assertSee('WQR-2026-108')
-            ->assertSee('12.4 mg/L');
+            ->assertSee('12.4 mg/L')
+            ->assertDontSee('aq-accessibility-fab')
+            ->assertSee('aq-topbar-acc-btn')
+            ->assertSee('openAccessibilityModal()')
+            ->assertSee('aq-accessibility-modal');
 
         $this->actingAs($manager)
             ->get(route('manager.map'))
