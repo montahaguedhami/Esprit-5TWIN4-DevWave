@@ -8,12 +8,15 @@ use App\Http\Requests\UpdatePointMesureRequest;
 use App\Models\AuditLog;
 use App\Models\Infrastructure;
 use App\Models\PointMesure;
+use App\Models\Zone;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PointMesureController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
         $query = PointMesure::with(['derniereMesure', 'infrastructure.zone']);
 
@@ -126,13 +129,32 @@ class PointMesureController extends Controller
         return redirect()->route('manager.points-mesure.show', $point_mesure)->with('success', 'Le point de mesure a été mis à jour avec succès.');
     }
 
-        return redirect()->route('manager.points-mesure.show', $point_mesure)->with('success', 'Le point de mesure a été mis à jour.');
-    }
-
     public function destroy(PointMesure $point_mesure): RedirectResponse
     {
         if ($point_mesure->mesuresQualites()->exists()) {
             $point_mesure->update(['statut' => 'inactif']);
+
+            AuditLog::record('point_mesure_deactivated', 'PointMesure', $point_mesure->id, [
+                'code' => $point_mesure->code,
+                'reason' => 'measurements_exist',
+            ], auth()->user());
+
+            return redirect()->route('manager.points-mesure.index')
+                ->with('success', 'Le point a été désactivé car il contient des mesures.');
+        }
+
+        DB::transaction(function () use ($point_mesure): void {
+            AuditLog::record('point_mesure_deleted', 'PointMesure', $point_mesure->id, [
+                'code' => $point_mesure->code,
+                'nom' => $point_mesure->nom,
+            ], auth()->user());
+
+            $point_mesure->delete();
+        });
+
+        return redirect()->route('manager.points-mesure.index')
+            ->with('success', 'Le point de mesure a été supprimé.');
+    }
 
     /**
      * Keep the point's zone in sync with its linked network infrastructure.
@@ -177,8 +199,11 @@ class PointMesureController extends Controller
             return $code;
         }
 
-        $point_mesure->delete();
+        $next = (int) PointMesure::query()->max('id') + 1;
+        do {
+            $candidate = sprintf('PMS-%03d', $next++);
+        } while (PointMesure::where('code', $candidate)->exists());
 
-        return redirect()->route('manager.points-mesure.index')->with('success', 'Le point de mesure a été supprimé.');
+        return $candidate;
     }
 }

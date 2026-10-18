@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\MesureQualite;
 use App\Models\PointMesure;
+use App\Models\Role;
+use App\Models\User;
 use App\Services\WaterQualityService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WaterQualityController extends Controller
 {
     public function __construct(private readonly WaterQualityService $waterQualityService) {}
 
-    public function points(): JsonResponse
+    public function points(Request $request): JsonResponse
     {
         $user = $this->resolveApiUser($request);
         if ($user && ! $user->hasPermission('measurements.view')) {
@@ -39,10 +43,7 @@ class WaterQualityController extends Controller
         }
 
         return response()->json([
-            'data' => PointMesure::query()
-                ->where('statut', 'actif')
-                ->orderBy('nom')
-                ->get(),
+            'data' => $query->orderBy('nom')->get(),
         ]);
     }
 
@@ -64,7 +65,7 @@ class WaterQualityController extends Controller
         ]);
     }
 
-    public function show(MesureQualite $mesure): JsonResponse
+    public function show(Request $request, MesureQualite $mesure): JsonResponse
     {
         $user = $this->resolveApiUser($request);
         if ($user && ! $user->hasPermission('measurements.view')) {
@@ -82,6 +83,15 @@ class WaterQualityController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $user = $this->resolveApiUser($request);
+        if (! $user) {
+            return response()->json(['message' => 'Non authentifié.'], 401);
+        }
+
+        if (! $user->hasPermission('measurements.create')) {
+            return response()->json(['message' => 'Permission measurements.create requise.'], 403);
+        }
+
         $validated = $request->validate([
             'reference' => ['required', 'string', 'max:50', 'unique:mesures_qualites,reference'],
             'point_mesure_id' => ['required', 'integer', 'exists:point_mesures,id'],

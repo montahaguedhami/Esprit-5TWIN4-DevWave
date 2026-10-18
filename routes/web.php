@@ -334,14 +334,11 @@ Route::middleware('manager')->prefix('manager')->name('manager.')->group(functio
 });
 
 Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('map', MapController::class)->name('map');
     Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
     Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
     Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
-    Route::resource('zones', ZoneController::class);
-    Route::resource('infrastructures', InfrastructureController::class);
-});
-
     Route::resource('zones', ZoneController::class);
     Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
     Route::get('infrastructures/{infrastructure}/risk', [InfrastructureRiskController::class, 'show'])->name('infrastructures.risk.show');
@@ -390,13 +387,16 @@ Route::get('/admin/roles', function () {
     return view('admin.roles');
 })->name('admin.roles');
 
-        return redirect()->route($user['route'])->with('success', 'Passé au rôle : ' . $user['name']);
-    })->name('switch.role');
-}
-
 // ── Administrateur ────────────────────────────────────────────────────────────
 Route::middleware('role:administrateur')->group(function () {
-    Route::get('/admin/dashboard',   fn () => view('admin.dashboard'))->name('admin.dashboard');
+    Route::get('/admin/settings/infrastructure-risk', [InfrastructureRiskSettingsController::class, 'index'])->name('admin.settings.infrastructure-risk');
+    Route::put('/admin/settings/infrastructure-risk', [InfrastructureRiskSettingsController::class, 'update'])->name('admin.settings.infrastructure-risk.update');
+    Route::post('/admin/settings/infrastructure-risk/recompute', [InfrastructureRiskSettingsController::class, 'recomputeAll'])->name('admin.settings.infrastructure-risk.recompute');
+    Route::get('/admin/dashboard', function () {
+        $riskDistribution = app(InfrastructureRiskSettingsController::class)->distribution();
+
+        return view('admin.dashboard', compact('riskDistribution'));
+    })->name('admin.dashboard');
     Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');

@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'manager' => EnsureManager::class,
             'role' => \App\Http\Middleware\EnsureRole::class,
+            'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
+            'jwt.role' => \App\Http\Middleware\JwtCheckRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

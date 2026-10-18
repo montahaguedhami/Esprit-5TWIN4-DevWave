@@ -2054,6 +2054,26 @@ body:has(.auth-layout) > .ai-assistant-wrapper > #ai-assistant-toggle {
 
 /* Landing */
 .landing-shell {
+  --navbar-height: 68px;
+  --section-py: clamp(3.5rem, 7vw, 5.5rem);
+  --card-gap: 1.25rem;
+  --card-padding: 1.25rem;
+  --card-padding-lg: clamp(1.5rem, 3vw, 2.5rem);
+  --spacing-sm: .75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --font-size-nav: .8125rem;
+  --font-size-xs: .75rem;
+  --font-size-sm: .875rem;
+  --font-size-body: 1rem;
+  --font-size-h4: 1.125rem;
+  --font-size-h3: 1.375rem;
+  --icon-sm: 1rem;
+  --icon-md: 1.25rem;
+  --icon-lg: 1.5rem;
+  --icon-wrap-sm: 2.75rem;
+  --icon-wrap-md: 3.5rem;
+  --icon-wrap-lg: 4.5rem;
   overflow: clip;
   color: var(--text-primary);
   background: var(--bg-app);
@@ -2382,7 +2402,9 @@ body:has(.auth-layout) > .ai-assistant-wrapper > #ai-assistant-toggle {
 }
 
 .landing-shell #features > .fo-container > .grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 980px;
+  margin-inline: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .landing-shell .feature-card,

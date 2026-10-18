@@ -26,6 +26,7 @@ return [
     */
 
     'secret' => env('JWT_SECRET'),
+    'audience' => env('JWT_AUDIENCE', 'aquasecure-api'),
 
     /*
     |--------------------------------------------------------------------------

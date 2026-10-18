@@ -1,4 +1,4 @@
-@extends('layouts.manager')
+@extends($layout ?? 'layouts.manager')
 
 @section('title', 'Carte Réseau — AquaSecure')
 
@@ -116,14 +116,14 @@
 </style>
 @endpush
 
-@section('manager-content')
+@section($contentSection ?? 'manager-content')
 <div class="flex h-full flex-col bg-slate-950">
 
     {{-- ── TOP BAR ── --}}
     <div class="glass-strong border-b border-cyan-500/10 px-4 sm:px-6 py-3 flex flex-wrap gap-4 items-center justify-between">
         {{-- Left: breadcrumb + title --}}
         <div class="flex items-center gap-3">
-            <a href="{{ route('manager.dashboard') }}"
+            <a href="{{ route($dashboardRoute ?? 'manager.dashboard') }}"
                class="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Dashboard</span>
