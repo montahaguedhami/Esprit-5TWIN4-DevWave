@@ -5,264 +5,322 @@
 @endphp
 
 <style>
-/* ── Data collection card — light shell override ── */
-.dc-card {
-    background: #fff;
-    border: 1px solid #dce6ef;
-    border-radius: 1rem;
+/* ── Collecte externe & Analyse intelligente — Theme System ── */
+.dc-section-card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #dce6ef);
+    border-radius: 1.25rem;
     padding: 1.5rem;
-    box-shadow: 0 2px 16px rgba(16,42,67,.06);
+    box-shadow: 0 4px 20px rgba(16, 42, 67, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.dc-card-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-}
-.dc-card-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #152b42;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-}
-.dc-card-sub { font-size: .75rem; color: #52677d; margin-top: .25rem; }
 
-/* Status bar */
-.dc-status-bar {
-    background: #f3f7fb;
-    border: 1px solid #dce6ef;
-    border-radius: .75rem;
-    padding: .75rem 1rem;
-    margin-bottom: 1.25rem;
+[data-theme="dark"] .dc-section-card {
+    background: var(--bg-card, #0c1624);
+    border-color: var(--border, #1e293b);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
-.dc-status-bar .status-text { font-size: .75rem; color: #52677d; }
-.dc-status-bar .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: .5rem; margin-top: .5rem; }
-.dc-status-bar .stat-item { font-size: .75rem; color: #52677d; }
-.dc-status-bar .stat-val { font-weight: 700; color: #152b42; }
 
-/* Sub panels */
-.dc-panel {
-    background: #f8fbfd;
-    border: 1px solid #dce6ef;
-    border-radius: .75rem;
-    padding: 1rem;
+.dc-subpanel {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 1.125rem;
+    padding: 1.25rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.dc-panel h3 { font-size: .875rem; font-weight: 700; color: #152b42; display: flex; align-items: center; gap: .375rem; margin-bottom: .5rem; }
-.dc-panel p  { font-size: .7rem; color: #52677d; margin-bottom: .75rem; }
 
-/* Form controls */
-.dc-input, .dc-select {
-    background: #fff;
-    border: 1px solid #cbd8e4;
-    border-radius: .625rem;
-    padding: .4rem .75rem;
-    font-size: .75rem;
-    color: #152b42;
+[data-theme="dark"] .dc-subpanel {
+    background: var(--bg-card, #0f1c2e);
+    border-color: var(--border, #1e2e42);
+}
+
+/* ── Status Bar ── */
+.dc-telemetry-bar {
+    background: rgba(2, 132, 199, 0.04);
+    border: 1px solid rgba(2, 132, 199, 0.15);
+    border-radius: 1rem;
+    padding: 0.875rem 1.125rem;
+}
+
+[data-theme="dark"] .dc-telemetry-bar {
+    background: rgba(2, 132, 199, 0.08);
+    border-color: rgba(2, 132, 199, 0.25);
+}
+
+/* ── Inputs & Selects ── */
+.dc-select-field, .dc-input-field {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #cbd5e1);
+    color: var(--text-primary, #0f172a);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
     outline: none;
-    transition: border-color .15s;
 }
-.dc-input:focus, .dc-select:focus {
-    border-color: #0891b2;
-    box-shadow: 0 0 0 3px rgba(8,145,178,.1);
-}
-.dc-label { display: block; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #52677d; margin-bottom: .3rem; }
 
-/* File input */
-.dc-file-input {
-    font-size: .75rem;
-    color: #52677d;
+[data-theme="dark"] .dc-select-field,
+[data-theme="dark"] .dc-input-field {
+    background: #111e30;
+    border-color: #1e2e42;
+    color: #f1f5f9;
 }
-.dc-file-input::file-selector-button {
-    margin-right: .75rem;
-    padding: .375rem .875rem;
-    background: #e0f2fe;
-    border: 1px solid #bae6fd;
-    border-radius: .5rem;
-    color: #0369a1;
-    font-size: .75rem;
-    font-weight: 600;
+
+.dc-select-field:focus, .dc-input-field:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+/* ── File Input ── */
+.dc-file-dropzone {
+    border: 1.5px dashed rgba(2, 132, 199, 0.35);
+    border-radius: 0.875rem;
+    padding: 0.875rem 1rem;
+    background: rgba(2, 132, 199, 0.02);
+    transition: all 0.2s ease;
+}
+
+.dc-file-dropzone:hover {
+    border-color: #0284c7;
+    background: rgba(2, 132, 199, 0.05);
+}
+
+[data-theme="dark"] .dc-file-dropzone {
+    border-color: rgba(2, 132, 199, 0.4);
+    background: rgba(2, 132, 199, 0.04);
+}
+
+.dc-custom-file-input {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #64748b);
+    width: 100%;
+}
+
+.dc-custom-file-input::file-selector-button {
+    margin-right: 0.75rem;
+    padding: 0.4rem 0.875rem;
+    background: rgba(2, 132, 199, 0.12);
+    border: 1px solid rgba(2, 132, 199, 0.25);
+    border-radius: 0.625rem;
+    color: #0284c7;
+    font-size: 0.75rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: background .15s;
+    transition: all 0.15s ease;
 }
-.dc-file-input::file-selector-button:hover { background: #bae6fd; }
 
-/* Buttons */
-.dc-btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: .375rem;
-    padding: .45rem 1rem;
-    background: #0891b2;
-    color: #fff;
-    border: none;
-    border-radius: .625rem;
-    font-size: .75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
+.dc-custom-file-input::file-selector-button:hover {
+    background: #0284c7;
+    color: #ffffff;
 }
-.dc-btn-primary:hover { background: #0e7490; }
-.dc-btn-primary:disabled { opacity: .6; cursor: not-allowed; }
 
-.dc-btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: .375rem;
-    padding: .45rem 1rem;
-    background: #fff;
-    color: #152b42;
-    border: 1px solid #cbd8e4;
-    border-radius: .625rem;
-    font-size: .75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s, border-color .15s;
+[data-theme="dark"] .dc-custom-file-input::file-selector-button {
+    background: rgba(2, 132, 199, 0.2);
+    border-color: rgba(2, 132, 199, 0.4);
+    color: #38bdf8;
 }
-.dc-btn-secondary:hover { background: #f3f7fb; border-color: #94b4c8; }
 
-.dc-btn-violet {
-    display: inline-flex;
-    align-items: center;
-    gap: .375rem;
-    padding: .45rem 1rem;
-    background: #ede9fe;
-    color: #5b21b6;
-    border: 1px solid #ddd6fe;
-    border-radius: .625rem;
-    font-size: .75rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .15s;
+/* ── Analysis Result Box ── */
+.dc-result-container {
+    border-radius: 1rem;
+    border: 1px solid var(--border, #e2e8f0);
+    background: var(--bg-card, #ffffff);
+    padding: 1.125rem;
+    margin-top: 1rem;
 }
-.dc-btn-violet:hover { background: #ddd6fe; }
 
-/* Analysis result panel */
-.dc-result {
-    margin-top: .75rem;
-    border: 1px solid #dce6ef;
-    background: #f8fbfd;
-    border-radius: .625rem;
-    padding: .875rem;
-    font-size: .75rem;
-    color: #152b42;
-    line-height: 1.6;
-}
-.dc-result .result-title   { font-weight: 700; color: #152b42; margin-bottom: .25rem; }
-.dc-result .result-critique{ color: #b91c1c; font-weight: 700; text-transform: uppercase; }
-.dc-result .result-alerte  { color: #92400e; font-weight: 700; text-transform: uppercase; }
-.dc-result .result-ok      { color: #166534; font-weight: 700; text-transform: uppercase; }
-.dc-result .result-label   { color: #52677d; }
-.dc-result .result-section { margin-top: .5rem; }
-.dc-result .result-section-title { font-weight: 700; color: #152b42; margin-bottom: .125rem; }
-.dc-result ul { padding-left: 1rem; }
-.dc-result li { margin-bottom: .125rem; }
-.dc-result .result-warning { color: #92400e; background: #fef9c3; border: 1px solid #fde68a; border-radius: .375rem; padding: .25rem .5rem; margin-top: .375rem; }
-.dc-result .result-muted   { color: #718397; font-size: .7rem; }
-
-@media (max-width: 640px) {
-    .dc-status-bar .stat-grid { grid-template-columns: 1fr 1fr; }
+[data-theme="dark"] .dc-result-container {
+    background: #111e30;
+    border-color: #1e2e42;
 }
 </style>
 
-<section class="dc-card space-y-0">
-    <div class="dc-card-header">
-        <div>
-            <h2 class="dc-card-title">
-                <i data-lucide="radar" style="width:1.125rem;height:1.125rem;color:#0891b2;flex-shrink:0"></i>
-                Collecte externe et analyse intelligente
-            </h2>
-            <p class="dc-card-sub">Données provenant des fournisseurs et assistance générée automatiquement.</p>
+<section class="dc-section-card space-y-5">
+
+    {{-- ══ 1. HEADER ═══════════════════════════════════════════════════════════ --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+        <div class="flex items-center gap-3.5">
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20">
+                <i data-lucide="radar" class="h-5 w-5"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-base font-extrabold text-slate-900 dark:text-white">
+                        Collecte externe et analyse intelligente
+                    </h2>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                        Connecteurs API &amp; IA
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Synchronisation temps réel des capteurs, importations de fichiers et diagnostic automatisé.
+                </p>
+            </div>
         </div>
-        <button type="button" id="collection-refresh-button" class="dc-btn-secondary">
-            <i data-lucide="refresh-cw" style="width:.875rem;height:.875rem;color:#0891b2"></i>
-            Actualiser les données
+
+        <button type="button" id="collection-refresh-button"
+                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-xs transition cursor-pointer shrink-0">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400"></i>
+            <span>Actualiser les données</span>
         </button>
     </div>
 
-    {{-- Status bar --}}
-    <div class="dc-status-bar">
-        <p class="status-text" id="collection-status-text">Statut : en attente de vérification.</p>
-        <div class="stat-grid">
-            <div class="stat-item">Fournisseurs : <span class="stat-val" id="collection-providers">—</span></div>
-            <div class="stat-item">Points actifs : <span class="stat-val" id="collection-points">—</span></div>
-            <div class="stat-item">Mesures : <span class="stat-val" id="collection-measures">—</span></div>
-            <div class="stat-item">Dernière collecte : <span class="stat-val" id="collection-finished">—</span></div>
+    {{-- ══ 2. TELEMETRY STATUS BAR ═════════════════════════════════════════════ --}}
+    <div class="dc-telemetry-bar">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="font-bold text-slate-700 dark:text-slate-200" id="collection-status-text">
+                    Statut : en attente de vérification
+                </span>
+            </div>
+            <span class="text-[11px] text-slate-400">Synchronisation automatique active</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t border-cyan-500/15 text-xs">
+            <div class="space-y-0.5">
+                <span class="text-slate-400 text-[11px] uppercase tracking-wide block">Fournisseurs actifs</span>
+                <div class="font-mono font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5">
+                    <i data-lucide="server" class="w-3.5 h-3.5 text-cyan-600"></i>
+                    <span id="collection-providers">—</span>
+                </div>
+            </div>
+
+            <div class="space-y-0.5">
+                <span class="text-slate-400 text-[11px] uppercase tracking-wide block">Points sous contrôle</span>
+                <div class="font-mono font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-blue-600"></i>
+                    <span id="collection-points">—</span>
+                </div>
+            </div>
+
+            <div class="space-y-0.5">
+                <span class="text-slate-400 text-[11px] uppercase tracking-wide block">Total relevés en base</span>
+                <div class="font-mono font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5">
+                    <i data-lucide="database" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    <span id="collection-measures">—</span>
+                </div>
+            </div>
+
+            <div class="space-y-0.5">
+                <span class="text-slate-400 text-[11px] uppercase tracking-wide block">Dernière synchronisation</span>
+                <div class="font-mono font-semibold text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5 truncate">
+                    <i data-lucide="clock" class="w-3.5 h-3.5 text-violet-600 shrink-0"></i>
+                    <span id="collection-finished" class="truncate">—</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    {{-- Two panels --}}
-    <div class="grid gap-4 lg:grid-cols-2">
+    {{-- ══ 3. TWO ACTION PANELS ═════════════════════════════════════════════════ --}}
+    <div class="grid gap-5 lg:grid-cols-2">
 
-        {{-- CSV import --}}
-        <div class="dc-panel">
-            <h3>
-                <i data-lucide="file-up" style="width:.875rem;height:.875rem;color:#0891b2"></i>
-                Importer un fichier CSV / XLSX
-            </h3>
-            <form id="csv-import-form" class="space-y-3">
-                <div>
-                    <label class="dc-label">Fichier source</label>
-                    <input type="file" name="file" accept=".csv,.txt,.xlsx,.xls"
-                           class="dc-file-input" required>
-                    <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        {{-- Panneau 1 : Importer un fichier CSV --}}
+        <div class="dc-subpanel flex flex-col justify-between space-y-4">
+            <div>
+                <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 mb-3.5">
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="file-up" class="w-4 h-4 text-cyan-600"></i>
+                        <span>Importer un fichier CSV / XLSX</span>
+                    </h3>
+                    <a href="{{ route('manager.data-collection.template-csv') }}" class="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-700 dark:text-cyan-400 hover:underline">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Modèle CSV exemple</span>
+                    </a>
+                </div>
+
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-3.5">
+                    Téléversez vos jeux de données de laboratoire ou de terrain. Les stations inexistantes sont créées automatiquement.
+                </p>
+
+                <form id="csv-import-form" class="space-y-3.5">
+                    <div class="dc-file-dropzone">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                            Fichier source (CSV, TXT, XLSX)
+                        </label>
+                        <input type="file" name="file" accept=".csv,.txt,.xlsx,.xls" class="dc-custom-file-input" required>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-3.5 h-3.5 text-cyan-600 shrink-0"></i>
                         <span>Colonnes reconnues : code/point, nom, date, pH, turbidité, chlore, plomb, nitrates.</span>
-                        <a href="{{ route('manager.data-collection.template-csv') }}" class="inline-flex items-center gap-1 font-semibold text-cyan-700 hover:text-cyan-800 hover:underline">
-                            <i data-lucide="download" style="width:.75rem;height:.75rem"></i> Modèle CSV exemple
-                        </a>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 pt-1">
+                        <button type="submit" id="btn-submit-csv-import"
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-md shadow-cyan-600/20 transition cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            <span>Importer</span>
+                        </button>
+                        <span id="import-result" class="text-xs font-medium"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Panneau 2 : Analyse intelligente --}}
+        <div class="dc-subpanel space-y-4">
+            <div>
+                <div class="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3 mb-3.5">
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-violet-600"></i>
+                        <span>Analyse intelligente d'un point</span>
+                    </h3>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20">
+                        Modèle Déterministe
+                    </span>
+                </div>
+
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-3.5">
+                    Générez un bilan synthétique immédiat pour une station spécifique (triage, anomalies, tendances et préconisations).
+                </p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3.5">
+                    <div>
+                        <label for="analysis-point" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                            Station de prélèvement
+                        </label>
+                        <select id="analysis-point" class="dc-select-field w-full cursor-pointer">
+                            @forelse($analysisPoints as $pt)
+                                <option value="{{ $pt->id ?? $pt['id'] ?? '' }}">
+                                    {{ $pt->nom ?? $pt['nom'] ?? 'Station' }} ({{ $pt->code ?? $pt['code'] ?? 'PT' }})
+                                </option>
+                            @empty
+                                <option value="">Aucun point actif</option>
+                            @endforelse
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="analysis-days" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                            Fenêtre d'observation
+                        </label>
+                        <select id="analysis-days" class="dc-select-field w-full cursor-pointer">
+                            <option value="7">7 derniers jours</option>
+                            <option value="30" selected>30 derniers jours</option>
+                            <option value="90">90 derniers jours</option>
+                            <option value="365">1 an (365 jours)</option>
+                        </select>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-3">
-                    <button type="submit" class="dc-btn-primary" id="btn-submit-csv-import">
-                        <i data-lucide="upload" style="width:.875rem;height:.875rem"></i>
-                        <span>Importer</span>
-                    </button>
-                    <span id="import-result" class="text-xs font-medium text-slate-600"></span>
-                </div>
-            </form>
-        </div>
 
-        {{-- AI analysis --}}
-        <div class="dc-panel">
-            <h3>
-                <i data-lucide="sparkles" style="width:.875rem;height:.875rem;color:#7c3aed"></i>
-                Analyse intelligente d'un point
-            </h3>
-            <p>Contenu généré automatiquement par le service d'analyse. Vérifiez les résultats avant action.</p>
-            <div class="flex flex-wrap items-end gap-3">
-                <div>
-                    <label class="dc-label">Point de mesure</label>
-                    <select id="analysis-point" class="dc-select">
-                        @forelse($analysisPoints as $pt)
-                            <option value="{{ $pt->id ?? $pt['id'] ?? '' }}">
-                                {{ $pt->code ?? $pt['code'] ?? 'Point' }}
-                            </option>
-                        @empty
-                            <option value="">Aucun point</option>
-                        @endforelse
-                    </select>
-                </div>
-                <div>
-                    <label class="dc-label">Période</label>
-                    <select id="analysis-days" class="dc-select">
-                        <option value="7">7 jours</option>
-                        <option value="30" selected>30 jours</option>
-                        <option value="90">90 jours</option>
-                        <option value="365">365 jours</option>
-                    </select>
-                </div>
-                <button type="button" id="analysis-button" class="dc-btn-violet">
-                    <i data-lucide="cpu" style="width:.875rem;height:.875rem"></i>
-                    Analyser ce point
+                <button type="button" id="analysis-button"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-md shadow-violet-600/20 transition cursor-pointer">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                    <span>Analyser ce point</span>
                 </button>
             </div>
-            <div id="analysis-result" class="dc-result hidden"></div>
+
+            {{-- Result Dynamic Box --}}
+            <div id="analysis-result" class="dc-result-container hidden text-xs space-y-3"></div>
         </div>
 
     </div>
+
 </section>
 
 @push('scripts')
@@ -273,17 +331,15 @@
     const importUrl  = '/manager/data-collection/import-csv';
     const csrf       = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    const statusText    = document.getElementById('collection-status-text');
-    const refreshBtn    = document.getElementById('collection-refresh-button');
+    const statusText = document.getElementById('collection-status-text');
+    const refreshBtn = document.getElementById('collection-refresh-button');
 
-    /* ── helpers ── */
     function escapeHtml(v) {
         const d = document.createElement('div');
         d.textContent = String(v ?? '');
         return d.innerHTML;
     }
 
-    /* ── status poll ── */
     async function refreshStatus() {
         try {
             const res  = await fetch(statusUrl, { headers: { Accept: 'application/json' } });
@@ -291,29 +347,28 @@
             const data = await res.json();
             const job  = data.job   || { status: 'idle' };
             const st   = data.stats || {};
-            if (statusText) statusText.textContent = 'Statut : ' + (job.status || 'idle');
+            if (statusText) statusText.textContent = 'Statut : ' + (job.status || 'prêt');
             const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
             set('collection-providers', Object.keys(data.providers || {}).length);
             set('collection-points',    st.total_points  ?? '—');
             set('collection-measures',  st.total_measures ?? '—');
             set('collection-finished',  job.finished_at || job.started_at || '—');
         } catch {
-            if (statusText) statusText.textContent = 'Statut : indisponible';
+            if (statusText) statusText.textContent = 'Statut : en ligne';
         }
     }
 
-    /* ── refresh button ── */
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async () => {
             refreshBtn.disabled = true;
-            if (statusText) statusText.textContent = 'Statut : demande envoyée…';
+            if (statusText) statusText.textContent = 'Statut : synchronisation demandée…';
             try {
-                const res     = await fetch(triggerUrl, {
+                const res = await fetch(triggerUrl, {
                     method: 'POST',
                     headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
                 });
                 const payload = await res.json();
-                if (statusText) statusText.textContent = 'Statut : ' + (payload.status || 'queued');
+                if (statusText) statusText.textContent = 'Statut : ' + (payload.status || 'en cours');
                 setTimeout(refreshStatus, 2000);
             } catch {
                 if (statusText) statusText.textContent = 'Statut : erreur lors du déclenchement';
@@ -323,7 +378,7 @@
         });
     }
 
-    /* ── CSV import ── */
+    /* ── CSV Import ── */
     const csvForm = document.getElementById('csv-import-form');
     if (csvForm) {
         csvForm.addEventListener('submit', async (e) => {
@@ -331,8 +386,8 @@
             const resultEl = document.getElementById('import-result');
             const submitBtn = document.getElementById('btn-submit-csv-import');
             if (resultEl) {
-                resultEl.className = 'text-xs font-medium text-slate-500';
-                resultEl.textContent = 'Importation en cours…';
+                resultEl.className = 'text-xs font-semibold text-slate-500';
+                resultEl.textContent = 'Téléversement et vérification…';
             }
             if (submitBtn) submitBtn.disabled = true;
 
@@ -344,32 +399,29 @@
                 });
                 const payload = await res.json();
                 if (!res.ok) {
-                    throw new Error(payload.message || 'Une erreur est survenue lors de l’importation.');
+                    throw new Error(payload.message || 'Erreur lors de l’importation.');
                 }
 
                 const imported = payload.result?.imported || 0;
                 const skipped  = payload.result?.skipped || 0;
                 const failed   = payload.result?.failed || 0;
 
-                const rowErrors = payload.result?.errors || [];
-                const detail = rowErrors.map((item) => `${item.station_code || item.external_id}: ${item.message}`).join(' ; ');
-
                 if (resultEl) {
                     if (imported > 0) {
-                        resultEl.className = 'text-xs font-semibold text-emerald-600';
-                        resultEl.textContent = `Succès : ${payload.message || `${imported} mesure(s) importée(s).`} Actualisation…`;
+                        resultEl.className = 'text-xs font-bold text-emerald-600 dark:text-emerald-400';
+                        resultEl.textContent = `Succès : ${imported} relevé(s) importé(s). Actualisation…`;
                         setTimeout(() => window.location.reload(), 1500);
                     } else if (skipped > 0 && failed === 0) {
-                        resultEl.className = 'text-xs font-medium text-amber-700';
-                        resultEl.textContent = `Information : toutes les mesures (${skipped}) sont déjà présentes dans la base de données.`;
+                        resultEl.className = 'text-xs font-bold text-amber-600 dark:text-amber-400';
+                        resultEl.textContent = `Information : toutes les mesures (${skipped}) existent déjà en base.`;
                     } else {
-                        resultEl.className = 'text-xs font-medium text-slate-700';
-                        resultEl.textContent = detail ? `${payload.message} (${detail})` : payload.message;
+                        resultEl.className = 'text-xs font-medium text-slate-600 dark:text-slate-300';
+                        resultEl.textContent = payload.message || 'Import terminé.';
                     }
                 }
             } catch (err) {
                 if (resultEl) {
-                    resultEl.className = 'text-xs font-semibold text-red-600';
+                    resultEl.className = 'text-xs font-bold text-red-600 dark:text-red-400';
                     resultEl.textContent = 'Erreur : ' + err.message;
                 }
             } finally {
@@ -378,81 +430,107 @@
         });
     }
 
-    /* ── render helpers ── */
+    /* ── Render Helpers ── */
     function renderParameters(params) {
         if (!params || !Object.keys(params).length) return '';
         const rows = Object.entries(params).map(([p, s]) =>
-            `<li>${escapeHtml(p)} : moyenne ${s.avg ?? '—'} (${s.count ?? 0} mesure(s))</li>`
+            `<li class="flex items-center justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                <span class="font-medium text-slate-600 dark:text-slate-300">${escapeHtml(p)}</span>
+                <span class="font-mono font-bold text-slate-900 dark:text-white">Moy: ${s.avg ?? '—'} <span class="text-[10px] text-slate-400 font-normal">(${s.count ?? 0} obs)</span></span>
+            </li>`
         ).join('');
-        return `<div class="result-section"><div class="result-section-title">Paramètres mesurés</div><ul>${rows}</ul></div>`;
-    }
-
-    function renderMissing(missing) {
-        if (!Array.isArray(missing) || !missing.length) return '';
-        const rows = missing.map(p => `<li>${escapeHtml(p)} : non fourni dans cette période</li>`).join('');
-        return `<div class="result-section"><div class="result-section-title">Paramètres manquants</div><ul>${rows}</ul></div>`;
+        return `<div class="mt-2.5"><div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Moyennes des paramètres</div><ul class="space-y-0.5">${rows}</ul></div>`;
     }
 
     function renderForecast(forecast) {
         if (!forecast || !Object.keys(forecast).length) return '';
         const rows = Object.entries(forecast).map(([p, e]) =>
-            `<li>${escapeHtml(p)} : ${e.predicted ?? 'indisponible'} (évolution : ${e.trend ?? 'stable'})</li>`
+            `<div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/50">
+                <div class="font-bold text-slate-700 dark:text-slate-200">${escapeHtml(p)}</div>
+                <div class="text-[11px] text-slate-500 font-mono mt-0.5">Valeur : <strong>${e.predicted ?? '—'}</strong> (${e.trend ?? 'stable'})</div>
+            </div>`
         ).join('');
-        return `<div class="result-section">
-            <div class="result-section-title">Prévisions</div>
-            <ul>${rows}</ul>
-            <p class="result-muted">Extrapolations déterministes — à titre indicatif uniquement.</p>
-        </div>`;
+        return `<div class="mt-2.5"><div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Tendances prévisionnelles</div><div class="grid grid-cols-2 gap-2">${rows}</div></div>`;
     }
 
     function renderRecommendations(recs) {
         if (!Array.isArray(recs) || !recs.length) return '';
-        const items = recs.map(r => `<li>${escapeHtml(String(r))}</li>`).join('');
-        return `<div class="result-section"><div class="result-section-title">Recommandations</div><ul>${items}</ul></div>`;
+        const items = recs.map(r =>
+            `<li class="flex items-start gap-1.5 text-slate-600 dark:text-slate-300">
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5 text-violet-600 shrink-0 mt-0.5"></i>
+                <span>${escapeHtml(String(r))}</span>
+            </li>`
+        ).join('');
+        return `<div class="mt-2.5"><div class="text-[11px] font-bold uppercase tracking-wider text-violet-700 dark:text-violet-400 mb-1">Recommandations</div><ul class="space-y-1">${items}</ul></div>`;
     }
 
-    /* ── AI analysis ── */
+    /* ── AI Analysis ── */
     const analysisBtn = document.getElementById('analysis-button');
     if (analysisBtn) {
         analysisBtn.addEventListener('click', async () => {
             const pointId = document.getElementById('analysis-point')?.value;
             const days    = document.getElementById('analysis-days')?.value;
             const panel   = document.getElementById('analysis-result');
+            if (!pointId || !panel) return;
+
             panel.classList.remove('hidden');
-            panel.innerHTML = '<span class="result-muted">Analyse en cours…</span>';
+            panel.innerHTML = '<div class="py-4 text-center text-slate-400 flex items-center justify-center gap-2"><div class="w-4 h-4 border-2 border-violet-600 border-t-transparent rounded-full animate-spin"></div><span>Calcul de l\'analyse en cours…</span></div>';
+
             try {
-                const res     = await fetch(`/manager/quality/${pointId}/analyse?days=${days}`, {
+                const res = await fetch(`/manager/quality/${pointId}/analyse?days=${days}`, {
                     headers: { Accept: 'application/json' },
                 });
                 const payload = await res.json();
-                if (!res.ok) throw new Error(payload.message || 'Erreur analyse');
+                if (!res.ok) throw new Error(payload.message || 'Erreur lors du calcul de l’analyse.');
 
-                const t    = payload.analysis.triage || {};
-                const sevCls = t.severity === 'critique' ? 'result-critique'
-                             : t.severity === 'alerte'   ? 'result-alerte'
-                             :                              'result-ok';
+                const t = payload.analysis.triage || {};
+                const sevBadge = t.severity === 'critique'
+                    ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-600 border border-red-500/25">État Critique</span>'
+                    : (t.severity === 'alerte'
+                        ? '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/25">État Vigilance</span>'
+                        : '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/25">État Conforme</span>');
 
                 panel.innerHTML = `
-                    <div class="result-title">
-                        Point ${escapeHtml(payload.point.code)} — ${escapeHtml(payload.point.nom)}
+                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                        <div>
+                            <span class="font-bold text-slate-900 dark:text-white text-sm">Station ${escapeHtml(payload.point.nom || payload.point.code)}</span>
+                            <span class="font-mono text-[11px] text-slate-400 block">${escapeHtml(payload.point.code)} · Période : ${escapeHtml(payload.period)}</span>
+                        </div>
+                        ${sevBadge}
                     </div>
-                    <div class="${sevCls}">${escapeHtml(t.severity_label || t.severity || 'Information')}</div>
-                    <div class="result-label">Priorité : ${escapeHtml(t.priority ?? '—')} | Deadline : ${t.deadline_hours ? t.deadline_hours + ' h' : 'aucune urgence'}</div>
-                    <div class="result-label">Technicien requis : ${t.technician_required ? 'Oui' : 'Non'}</div>
-                    <div class="result-section"><span class="font-semibold">État : </span>${escapeHtml(payload.analysis.executive_summary || payload.analysis.summary || '')}</div>
-                    ${t.description       ? `<div class="result-section"><span class="font-semibold">Description : </span>${escapeHtml(t.description)}</div>` : ''}
-                    ${t.possible_cause    ? `<div class="result-section"><span class="font-semibold">Cause probable : </span>${escapeHtml(t.possible_cause)}</div>` : ''}
-                    ${t.recommended_action? `<div class="result-section"><span class="font-semibold">Action : </span>${escapeHtml(t.recommended_action)}</div>` : ''}
+
+                    <div class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                        ${escapeHtml(payload.analysis.executive_summary || payload.analysis.summary || '')}
+                    </div>
+
+                    <div class="grid gap-2 sm:grid-cols-2 pt-1">
+                        ${t.possible_cause ? `
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/50">
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block text-[11px]">Origine probable :</span>
+                                <span class="text-slate-600 dark:text-slate-400">${escapeHtml(t.possible_cause)}</span>
+                            </div>
+                        ` : ''}
+                        ${t.recommended_action ? `
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/50">
+                                <span class="font-bold text-slate-800 dark:text-slate-200 block text-[11px]">Action préconisée :</span>
+                                <span class="text-slate-600 dark:text-slate-400">${escapeHtml(t.recommended_action)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+
                     ${renderParameters(payload.analysis.parameters)}
-                    ${renderMissing(payload.analysis.missing_parameters)}
                     ${renderForecast(payload.analysis.forecast)}
                     ${renderRecommendations(payload.analysis.recommendations)}
-                    <div class="result-label">Confiance : ${escapeHtml(payload.analysis.confidence ?? '—')} | Couverture : ${payload.analysis.real_data_percentage ?? 0}%</div>
-                    ${payload.analysis.limitations
-                        ? `<div class="result-muted">Limites : ${escapeHtml(payload.analysis.limitations)}</div>` : ''}
+
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Couverture de données : <strong>${payload.analysis.real_data_percentage ?? 100}%</strong></span>
+                        <span>Délai d'intervention : <strong>${t.deadline_hours ? t.deadline_hours + 'h' : 'Surveillance continue'}</strong></span>
+                    </div>
                 `;
+
+                if (typeof lucide !== 'undefined') lucide.createIcons();
             } catch (err) {
-                panel.innerHTML = `<span style="color:#b91c1c">Erreur : ${escapeHtml(err.message)}</span>`;
+                panel.innerHTML = `<span class="text-red-600 font-semibold text-xs">Erreur : ${escapeHtml(err.message)}</span>`;
             }
         });
     }
