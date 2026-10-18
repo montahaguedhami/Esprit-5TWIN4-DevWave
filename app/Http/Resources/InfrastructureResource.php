@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\FailureRiskService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,7 @@ class InfrastructureResource extends JsonResource
     {
         $sante = $this->sante;
 
-        return [
+        $attributes = [
             'id' => $this->id,
             'nom' => $this->nom,
             'reference' => $this->reference,
@@ -66,6 +67,52 @@ class InfrastructureResource extends JsonResource
             'zone_id' => $this->zone_id,
             'cree_le' => $this->created_at?->toISOString(),
             'mis_a_jour_le' => $this->updated_at?->toISOString(),
+        ];
+
+        $risk = $this->riskFields($request);
+        if ($risk !== null) {
+            $attributes['risk'] = $risk;
+        }
+
+        return $attributes;
+    }
+
+    /**
+     * Champs de l'estimation de risque, visibles pour les rôles back-office uniquement.
+     * Les clients citoyens ne reçoivent jamais ces données.
+     *
+     * @return array{
+     *     estimation_indicative: bool,
+     *     horizon_days: int,
+     *     probability: int,
+     *     level: string,
+     *     factors: list<array<string, mixed>>,
+     *     recommendation: string,
+     *     computed_at: string|null
+     * }|null
+     */
+    private function riskFields(Request $request): ?array
+    {
+        $user = $request->hasSession() ? $request->session()->get('user') : null;
+        if (! is_array($user) || ! in_array($user['role'] ?? '', ['manager', 'technician', 'admin'], true)) {
+            return null;
+        }
+
+        $infrastructure = $this->resource;
+        $prediction = $infrastructure->latestRiskPrediction;
+        $calculated = app(FailureRiskService::class)->predict($infrastructure);
+        $probability = $prediction?->probability ?? $calculated['probability'];
+        $level = $prediction?->level ?? $calculated['level'];
+        $factors = $prediction?->factors ?? $calculated['factors'];
+
+        return [
+            'estimation_indicative' => true,
+            'horizon_days' => 30,
+            'probability' => $probability,
+            'level' => $level,
+            'factors' => $factors,
+            'recommendation' => app(FailureRiskService::class)->recommendationFor($factors, $level, null, $this->resource->id),
+            'computed_at' => $prediction?->computed_at?->toISOString(),
         ];
     }
 }

@@ -287,6 +287,19 @@ Toutes les évolutions apportées respectent le principe de **rétrocompatibilit
      - `GET /api/infrastructures/{infrastructure}` (fiche technique avec score de santé calculé)
    - **Sécurité & Protection :** Restriction de débit par Rate Limiting via `throttle:60,1` (60 requêtes/minute par client).
 
+8. **Estimation indicative du risque de panne :**
+   - Probabilité d'une panne dans les 30 jours calculée côté serveur par un modèle logistique, sans dépendance externe.
+   - Facteurs configurables dans `config/infrastructure.php` : âge relatif, retard de maintenance, état, interventions et incidents récents, criticité et changements d'état.
+   - Historique des snapshots dans `infrastructure_risk_predictions`; recalcul quotidien à 06:05 ou à la demande :
+     ```sh
+     php artisan migrate
+     php artisan infrastructures:predict-risk
+     php artisan infrastructures:predict-risk --zone=1
+     ```
+   - Les fiches, listes et tableaux de bord gestionnaire/technicien/administrateur affichent le risque; les vues et ressources citoyennes n'incluent pas ces données. L'API de risque est accessible aux rôles `manager`, `technician` et `admin` via `GET /api/infrastructures/{infrastructure}/risk`.
+   - L'écran admin `admin/settings/infrastructure-risk` permet d'ajuster le biais, les poids et les seuils, puis de recalculer l'ensemble du parc. Les opérations d'administration sont consignées dans le journal Laravel.
+   - Une reformulation facultative des facteurs par LLM est activée avec `FAILURE_RISK_AI_API_KEY` et `FAILURE_RISK_AI_MODEL` dans `.env`. Sans clé ou si l'appel échoue, l'explication locale est utilisée; l'IA ne reçoit que les facteurs structurés et ne modifie jamais le score.
+
 ---
 
 ### 4. Jeu de Données de Démonstration (`DemoSeeder`)
@@ -312,7 +325,7 @@ npm run dev                    # Vite en mode développement
 npm run build                  # Compiler les fichiers frontend
 php artisan serve              # Lancer le serveur local
 php artisan migrate:fresh --seed  # Réinitialiser et peupler toute la base
-php artisan test               # Exécuter les 70 tests automatisés
+php artisan test               # Exécuter les tests automatisés
 php artisan test --filter=InfrastructureCrudTest # Tester les contrôles de saisie et CRUD
 ```
 php artisan test --filter=InventaireAndApiModuleTest # Tester spécifiquement le module inventaire & API
@@ -355,4 +368,3 @@ tests/
 
 - L'authentification actuelle repose sur la session (`session('user')`).
 - Les données géographiques sont projetées en WGS 84 (EPSG:4326) avec Leaflet.
-

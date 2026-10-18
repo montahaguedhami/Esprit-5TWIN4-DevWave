@@ -1,10 +1,10 @@
-@extends('layouts.manager')
+@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', 'Zones — AquaSecure')
 
-@section('manager-content')
+@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
 @php
-    $inventoryRoutePrefix = 'manager';
+    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
 @endphp
 <div class="manager-catalog-page mx-auto max-w-7xl space-y-5">
     {{-- En-tête de la page --}}
@@ -229,19 +229,29 @@
 @push('scripts')
 <script>
     function confirmDeleteZone(id, nom, infraCount) {
-        let hint = 'Cette opération archivera la zone dans le système (suppression logique).';
+        let impactHtml = '';
+        let hint = '';
+
         if (infraCount > 0) {
-            hint = 'Attention : cette zone englobe actuellement ' + infraCount + ' équipement(s). Conformément aux règles de sécurité, vous ne pourrez pas la supprimer tant que ces infrastructures sont rattachées.';
+            impactHtml += '<div class="flex items-start gap-2 mb-1"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-rose-400"></span><span class="text-rose-200/90 font-medium">Bloqué par ' + infraCount + ' infrastructure(s) rattachée(s)</span></div>';
+            impactHtml += '<div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-amber-400"></span><span class="text-amber-200/90">Détachez d\'abord les équipements avant de pouvoir archiver cette zone.</span></div>';
+            hint = 'Opération bloquée : ' + infraCount + ' équipement' + (infraCount > 1 ? 's' : '') + ' dépendent encore de cette zone.';
+        } else {
+            impactHtml += '<div class="flex items-start gap-2 mb-1"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-emerald-400"></span><span class="text-emerald-200/90 font-medium">Aucune dépendance — suppression autorisée</span></div>';
+            impactHtml += '<div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-cyan-400"></span><span class="text-cyan-200/90">La zone sera archivée (Soft Delete). Son historique reste conservé.</span></div>';
+            hint = 'Cette opération archivera la zone dans le système (suppression logique). Les données associées restent conservées.';
         }
 
         window.openAquaConfirm({
             variant: 'danger',
             title: 'Supprimer la zone géographique',
-            message: 'Êtes-vous certain de vouloir supprimer cette zone territoriale du réseau ?',
-            badge: nom + ' (' + infraCount + ' équipement' + (infraCount > 1 ? 's' : '') + ')',
+            message: 'Êtes-vous certain de vouloir supprimer « ' + nom + ' » du réseau ?',
+            badge: nom + ' · ' + infraCount + ' équipement' + (infraCount > 1 ? 's' : ''),
+            impact: impactHtml,
             hint: hint,
-            confirmText: 'Supprimer la zone',
+            confirmText: infraCount > 0 ? 'Supprimer quand même' : 'Supprimer la zone',
             cancelText: 'Annuler',
+            footerLeft: 'Action irréversible',
             onConfirm: function () {
                 document.getElementById('delete-zone-form-' + id).submit();
             }

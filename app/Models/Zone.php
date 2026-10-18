@@ -16,13 +16,6 @@ class Zone extends Model
     /** @use HasFactory<\Database\Factories\ZoneFactory> */
     use HasFactory, SoftDeletes;
 
-    protected static function booted(): void
-    {
-        static::deleting(function (self $zone): bool {
-            return ! $zone->infrastructures()->exists();
-        });
-    }
-
     protected $fillable = [
         'nom',
         'description',

@@ -64,11 +64,6 @@
                     <i data-lucide="briefcase"></i>
                     <span>Projets</span>
                 </a>
-                <a href="{{ route('citizen.notifications') }}"
-                   class="fo-nav-link {{ request()->routeIs('citizen.notifications') ? 'is-active' : '' }}">
-                    <i data-lucide="bell"></i>
-                    <span>Alertes</span>
-                </a>
             </nav>
 
             {{-- Right: theme + notifications + user --}}
@@ -89,8 +84,6 @@
                             <a href="{{ route('citizen.zones.index') }}"      class="fo-nav-link" style="border-radius:8px;">Zones</a>
                             <a href="{{ route('citizen.infrastructures.index') }}" class="fo-nav-link" style="border-radius:8px;">Infrastructure</a>
                             <a href="{{ route('citizen.projets.index') }}"   class="fo-nav-link" style="border-radius:8px;">Projets</a>
-                            <a href="{{ route('citizen.notifications') }}"   class="fo-nav-link" style="border-radius:8px;">Alertes &amp; coupures</a>
-                            <a href="{{ route('profile.show') }}"            class="fo-nav-link" style="border-radius:8px;">Profil</a>
                         </div>
                     </div>
                 </div>

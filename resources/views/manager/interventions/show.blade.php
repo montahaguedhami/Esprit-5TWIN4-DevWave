@@ -55,7 +55,7 @@
                             {{ $intervention->infrastructure->nom }}
                         </a>
                         <p class="text-xs text-cyan-100/60 mt-0.5">
-                            {{ $intervention->infrastructure->type->label() }} · Zone : {{ $intervention->infrastructure->zone?->nom ?? 'Sans zone' }}
+                            {{ $intervention->infrastructure->type->label() }} · Zone : {{ $intervention->infrastructure->zone->nom }}
                         </p>
                     </div>
                     <div class="flex items-center gap-3">

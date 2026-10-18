@@ -209,6 +209,7 @@
     backdrop-filter: blur(5px);
 }
 </style>
+@include('manager.shared.light-shell')
 @endpush
 
 @section('manager-content')
@@ -760,9 +761,42 @@
                                 <span>Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.</span>
                             </td>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        @forelse($records as $rec)
+                            <tr class="hover:bg-slate-800/40 transition-colors">
+                                <td class="px-4 py-3 font-semibold text-white">
+                                    <a href="{{ route('manager.quality.mesures.show', $rec['measurement_id']) }}" class="font-mono text-cyan-400 text-[11px] hover:underline">{{ $rec['id'] }}</a>
+                                    <div><a href="{{ route('manager.points-mesure.index') }}">{{ $rec['sampling_point'] }}</a></div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-200">{{ $rec['zone'] }}</td>
+                                <td class="px-4 py-3 text-slate-400">{{ $rec['date'] }}</td>
+                                <td class="px-4 py-3 font-mono {{ $rec['pH'] > 8.5 ? 'text-red-400 font-bold' : 'text-slate-200' }}">{{ $rec['pH'] }}</td>
+                                <td class="px-4 py-3 font-mono {{ $rec['turbidity'] > 1.0 ? 'text-amber-400 font-bold' : 'text-slate-200' }}">{{ $rec['turbidity'] }} NTU</td>
+                                <td class="px-4 py-3 font-mono {{ $rec['residual_chlorine'] < 0.2 ? 'text-red-400 font-bold' : 'text-slate-200' }}">{{ $rec['residual_chlorine'] }} mg/L</td>
+                                <td class="px-4 py-3 font-mono {{ $rec['lead_pb'] > 15 ? 'text-red-400 font-bold' : 'text-slate-200' }}">{{ $rec['lead_pb'] }} ppb</td>
+                                <td class="px-4 py-3 font-mono text-slate-200">{{ $rec['nitrates'] }} mg/L</td>
+                                <td class="px-4 py-3">
+                                    @if($rec['is_verified'])
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30 inline-flex items-center gap-1">
+                                            <i data-lucide="check-circle-2" class="w-3 h-3 text-teal-400"></i> Vérifié en laboratoire
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 inline-flex items-center gap-1">
+                                            <i data-lucide="clipboard-check" class="w-3 h-3 text-amber-400"></i> Relevé à vérifier
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-right font-bold {{ $rec['status'] === 'Compliant' ? 'text-emerald-400' : ($rec['status'] === 'Alert' ? 'text-amber-400' : 'text-red-400') }}">
+                                    {{ $rec['status'] }} ({{ $rec['overall_compliance'] }}%)
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="10" class="px-4 py-10 text-center text-slate-400">Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         @if(auth()->user()?->hasPermission('measurements.delete'))
@@ -927,9 +961,8 @@
 function openThresholdModal()  { document.getElementById('threshold-modal').classList.remove('hidden'); }
 function closeThresholdModal() { document.getElementById('threshold-modal').classList.add('hidden'); }
 
-function escapeHtml(v) {
-    return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[c]);
-}
+function openThresholdModal() { document.getElementById('threshold-modal').classList.remove('hidden'); }
+function closeThresholdModal() { document.getElementById('threshold-modal').classList.add('hidden'); }
 
 /* ── Leaflet map ── */
 (function () {
@@ -941,20 +974,18 @@ function escapeHtml(v) {
     L.control.zoom({ position: 'topright' }).addTo(map);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
 
-    POINTS.forEach(function (pt) {
-        const r = pt.measurement;
-        const c = pt.status === 'normal' ? '#0891b2'
-                : pt.status === 'alert'  ? '#f59e0b'
-                :                          '#ef4444';
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-            <circle cx="16" cy="16" r="11" fill="${c}" fill-opacity="0.9" stroke="#fff" stroke-width="2.5"/>
+    POINTS.forEach(point => {
+        const r = point.measurement;
+        const c = point.status === 'normal' ? '#2dd4bf' : (point.status === 'alert' ? '#fbbf24' : '#ef4444');
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30">
+            <circle cx="15" cy="15" r="12" fill="${c}" fill-opacity="0.8" stroke="#ffffff" stroke-width="2"/>
         </svg>`;
         const details = r
-            ? `Réf. ${escapeHtml(r.reference)}<br>Conformité : <b>${pt.overall_compliance}%</b><br>pH : ${r.ph} | Turbidité : ${r.turbidite} NTU<br>Chlore : ${r.chlore_residuel} mg/L | Plomb : ${r.plomb} ppb`
-            : '<em>Aucune mesure</em>';
-        L.marker([pt.lat, pt.lng], {
-            icon: L.divIcon({ html: svg, iconSize: [32, 32], iconAnchor: [16, 16], className: '' })
-        }).addTo(map).bindPopup(`<b>${escapeHtml(pt.name)}</b><br><small>${escapeHtml(pt.zone ?? '')}</small><br>${details}`);
+            ? `Réf. ${escapeHtml(r.reference)}<br>Conformité: ${point.overall_compliance}%<br>pH: ${r.ph} | Turbidité: ${r.turbidite} NTU<br>Chlore: ${r.chlore_residuel} mg/L | Plomb: ${r.plomb} ppb | Nitrates: ${r.nitrates} mg/L`
+            : 'Aucune mesure';
+        L.marker([point.lat, point.lng], {
+            icon: L.divIcon({ html: svg, iconSize:[30,30], iconAnchor:[15,15], className:'' })
+        }).addTo(map).bindPopup(`<b>${escapeHtml(point.name)}</b><br>${details}`);
     });
 })();
 
@@ -969,53 +1000,25 @@ function escapeHtml(v) {
     const gridColor  = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,42,67,0.06)';
     const labelColor = isDark ? '#94a3b8' : '#64748b';
 
+(function() {
+    const ctx = document.getElementById('qualityTrendChart').getContext('2d');
+    const chartRecords = @json($chartRecords);
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.map(r => r.date.slice(0, 10)),
+            labels: chartRecords.map(record => record.date),
             datasets: [
-                {
-                    label: 'Conformité (%)',
-                    data: data.map(r => r.overall_compliance),
-                    borderColor: '#0891b2',
-                    backgroundColor: 'rgba(8,145,178,0.08)',
-                    fill: true,
-                    tension: 0.35,
-                    pointRadius: 3,
-                    pointBackgroundColor: '#0891b2',
-                    borderWidth: 2,
-                },
-                {
-                    label: 'pH',
-                    data: data.map(r => r.pH),
-                    borderColor: '#6366f1',
-                    backgroundColor: 'transparent',
-                    tension: 0.35,
-                    pointRadius: 2,
-                    borderWidth: 1.5,
-                    borderDash: [4, 3],
-                }
+                { label: 'Taux de conformité (%)', data: chartRecords.map(record => record.overall_compliance), borderColor: '#2dd4bf', backgroundColor: 'rgba(45, 212, 191, 0.1)', fill: true, tension: 0.3 },
+                { label: 'pH', data: chartRecords.map(record => record.pH), borderColor: '#3b82f6', tension: 0.3 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    labels: { color: labelColor, font: { size: 11 }, boxWidth: 14, padding: 12 }
-                },
-                tooltip: {
-                    backgroundColor: isDark ? '#1e293b' : '#fff',
-                    titleColor: isDark ? '#f1f5f9' : '#152b42',
-                    bodyColor:  isDark ? '#94a3b8' : '#52677d',
-                    borderColor: isDark ? '#334155' : '#dce6ef',
-                    borderWidth: 1,
-                }
-            },
+            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
             scales: {
-                x: { ticks: { color: labelColor, font: { size: 10 } }, grid: { color: gridColor } },
-                y: { ticks: { color: labelColor, font: { size: 10 } }, grid: { color: gridColor }, min: 0, max: 100 }
+                x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
             }
         }
     });

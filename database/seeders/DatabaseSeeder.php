@@ -18,8 +18,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(RbacSeeder::class);
-
         // Créer les utilisateurs de démo (version équipe)
         User::firstOrCreate(['email' => 'test@example.com'], [
             'name' => 'Test User',

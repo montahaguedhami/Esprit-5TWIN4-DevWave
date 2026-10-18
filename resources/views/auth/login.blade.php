@@ -59,15 +59,9 @@
             <form method="POST" action="{{ route('login.post') }}" class="auth-login__form">
                 @csrf
 
-                @if (session('success'))
-                    <div role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                @if (session('error') || $errors->any())
+                @if ($errors->any())
                     <div role="alert" class="auth-login__error">
-                        {{ session('error') ?? $errors->first() }}
+                        {{ $errors->first() }}
                     </div>
                 @endif
 

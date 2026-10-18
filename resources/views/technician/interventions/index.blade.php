@@ -1,9 +1,9 @@
-@extends('layouts.technician')
+@extends('layouts.manager')
 
 @section('title', 'Mes Interventions — Technicien')
 
-@section('technician-content')
-<div class="technician-interventions max-w-6xl mx-auto space-y-6">
+@section('manager-content')
+<div class="max-w-6xl mx-auto space-y-6">
 
     {{-- En-tête mobile --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -122,6 +122,9 @@
                             <span class="text-xs text-cyan-100/50">
                                 {{ $intervention->date?->format('d/m/Y') }}
                             </span>
+                            @if($infra?->latestRiskPrediction)
+                                <x-infrastructure.risk-badge :level="$infra->latestRiskPrediction->level" :probability="$infra->latestRiskPrediction->probability" />
+                            @endif
                         </div>
 
                         <h3 class="text-sm font-bold text-white">

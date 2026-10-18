@@ -29,13 +29,4 @@
         </form>
     </div>
 </div>
-
-<script>
-document.getElementById('measure-create-form').addEventListener('submit', function() {
-    const btn = document.getElementById('submit-btn');
-    document.getElementById('btn-text').classList.add('hidden');
-    document.getElementById('btn-spinner').classList.remove('hidden');
-    btn.disabled = true;
-});
-</script>
 @endsection
