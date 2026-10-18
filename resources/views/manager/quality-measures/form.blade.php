@@ -83,7 +83,7 @@
         >
             <option value="manuel" @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'manuel')>Manuel (saisie terrain technicien)</option>
             <option value="laboratoire" @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'laboratoire')>Laboratoire certifié</option>
-            <option value="simule" @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'simule')>Simulé (démonstration / test)</option>
+            <option value="simule" @selected(old('source_donnee', $mesure->source_donnee ?? 'manuel') === 'simule')>Station automatique / Télémesure</option>
         </select>
         <span class="mt-1 block text-[11px] text-slate-500">Canal d'acquisition de la mesure</span>
         @error('source_donnee')

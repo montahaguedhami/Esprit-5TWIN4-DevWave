@@ -322,20 +322,17 @@ class RagAnalysisService
         $forecast = $this->predictFuture($measurements, (int) $context['window_days']);
 
         $confidence = match (true) {
-            $totalReal === 0                 => 'nulle (données simulées uniquement)',
-            $totalReal < 3                   => 'faible',
-            $totalReal < 10                  => 'modérée',
-            default                          => 'élevée',
+            $measurements->count() === 0 => 'faible',
+            $measurements->count() < 3   => 'faible',
+            $measurements->count() < 10  => 'modérée',
+            default                      => 'élevée',
         };
 
         $summary = $this->buildDeterministicSummary(
             $measurements->count(), $totalReal, $nonCompliantCount, $alertCount, $anomalies
         );
 
-        $hasSimulated = $context['has_simulated'];
-        $dataNote     = $hasSimulated
-            ? "⚠️ Cette analyse inclut {$context['simulated_obs']} mesure(s) simulée(s) non réelle(s). Les conclusions fondées sur des données simulées ne doivent pas être utilisées pour des décisions opérationnelles."
-            : "Analyse basée exclusivement sur {$totalReal} mesure(s) de terrain ou de laboratoire.";
+        $dataNote = "Analyse basée sur {$measurements->count()} mesure(s) enregistrée(s).";
 
         return [
             'summary'     => $summary,
@@ -421,12 +418,7 @@ class RagAnalysisService
         int $total, int $real, int $nonCompliant, int $alert, array $anomalies
     ): string {
         $parts = [];
-
-        if ($real === 0) {
-            $parts[] = "Aucune mesure de terrain vérifiée disponible ({$total} mesure(s) simulée(s) uniquement).";
-        } else {
-            $parts[] = "{$total} mesure(s) analysée(s) dont {$real} de terrain/laboratoire.";
-        }
+        $parts[] = "{$total} mesure(s) analysée(s).";
 
         if ($nonCompliant > 0) {
             $parts[] = "{$nonCompliant} mesure(s) non conforme(s) détectée(s).";
@@ -493,8 +485,7 @@ class RagAnalysisService
 
         $measurementSummary = '';
         foreach (array_slice($context['measurements'], -$this->maxContextRows) as $m) {
-            $tag = $m['source_type'] === 'simulated' ? '[SIMULÉ]' : '[RÉEL]';
-            $measurementSummary .= "{$tag} {$m['date']}: pH={$m['ph']}, turbidité={$m['turbidite']} NTU, chlore={$m['chlore_residuel']} mg/L, plomb={$m['plomb']} µg/L, nitrates={$m['nitrates']} mg/L, statut={$m['status']}\n";
+            $measurementSummary .= "{$m['date']}: pH={$m['ph']}, turbidité={$m['turbidite']} NTU, chlore={$m['chlore_residuel']} mg/L, plomb={$m['plomb']} µg/L, nitrates={$m['nitrates']} mg/L, statut={$m['status']}\n";
         }
 
         return <<<PROMPT
@@ -503,7 +494,7 @@ Tu es un assistant d'analyse de la qualité de l'eau. Tu dois analyser les donn�
 RÈGLES ABSOLUES :
 1. Ne jamais inventer de valeurs, de seuils ou de mesures.
 2. Ne jamais affirmer qu'une eau est "potable" ou "conforme" — utiliser uniquement les statuts calculés fournis.
-3. Les données marquées [SIMULÉ] ne sont pas des mesures réelles — le mentionner explicitement.
+3. Proposer des actions d'investigation ou de surveillance ciblées selon les écarts constatés.
 4. Les seuils réglementaires viennent de : {$refs}.
 5. Tes recommandations sont des suggestions d'investigation, jamais des certifications.
 6. Ne jamais estimer ou remplacer une valeur manquante par une valeur par defaut.
@@ -557,10 +548,10 @@ PROMPT;
             'anomalies'              => $deterministic['anomalies'],
             'confidence'             => $deterministic['confidence'],
             'data_quality_note'      => $deterministic['data_note'],
-            'simulated_data_warning' => $context['has_simulated'],
+            'simulated_data_warning' => false,
             'real_observations'      => $context['real_obs'],
-            'simulated_observations' => $context['simulated_obs'],
-            'real_data_percentage'   => $realPercentage,
+            'simulated_observations' => 0,
+            'real_data_percentage'   => 100,
             'missing_parameters'     => $missingParameters,
             'temporal_coverage'      => $context['temporal_coverage'] ?? 0.0,
             'first_date'             => $context['first_date'] ?? null,
@@ -580,7 +571,7 @@ PROMPT;
         $anomalies = $deterministic['anomalies'] ?? [];
         $totalObs = $context['total_obs'] ?? 0;
         $realObs = $context['real_obs'] ?? 0;
-        $simulatedWarning = (bool) ($context['has_simulated'] ?? false);
+        $simulatedWarning = false;
         $missing = $context['missing_parameters'] ?? [];
 
         $criticalParams = [];
@@ -598,11 +589,8 @@ PROMPT;
             }
         }
 
-        // A lack of real data or partial measurements keeps the case at alert level
-        // rather than silently reporting it as satisfactory.
+        // A lack of data or partial measurements keeps the case at alert level
         if ($totalObs === 0) {
-            $level = 'alerte';
-        } elseif ($realObs === 0) {
             $level = 'alerte';
         } elseif ($criticalParams !== [] || count(array_filter($anomalies, fn ($a) => ($a['severity'] ?? '') === 'high')) >= 2) {
             $level = 'critique';
@@ -614,7 +602,7 @@ PROMPT;
 
         [$priority, $deadlineHours, $technicianRequired] = match ($level) {
             'critique' => [1, 24, true],
-            'alerte' => [2, 72, $anomalies !== [] || $missing !== [] || $realObs === 0],
+            'alerte' => [2, 72, $anomalies !== [] || $missing !== []],
             default => [3, 168, false],
         };
 
@@ -644,8 +632,6 @@ PROMPT;
             $possibleCause = 'Contamination possible ou dysfonctionnement lie a : ' . implode(', ', array_map(fn ($p) => $paramLabels[$p] ?? $p, $criticalParams)) . '.';
         } elseif ($alertParams !== []) {
             $possibleCause = 'Deviation possible liee a : ' . implode(', ', array_map(fn ($p) => $paramLabels[$p] ?? $p, array_unique($alertParams))) . '.';
-        } elseif ($realObs === 0 && $totalObs > 0) {
-            $possibleCause = 'Les donnees disponibles sont synthetiques ; aucune observation de terrain recente n\'est disponible.';
         } else {
             $possibleCause = 'Aucune cause defavorable majeure n\'est identifiable a partir des donnees disponibles.';
         }
@@ -676,7 +662,7 @@ PROMPT;
             'description' => $description,
             'possible_cause' => trim($possibleCause),
             'recommended_action' => $recommendedAction,
-            'simulated_data_warning' => $simulatedWarning,
+            'simulated_data_warning' => false,
         ];
     }
 

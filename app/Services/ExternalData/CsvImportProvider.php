@@ -333,20 +333,6 @@ class CsvImportProvider implements ExternalDataProviderInterface
             'infrastructure_id', 'id_infrastructure', 'infra_id'
         ]));
 
-        $code = trim((string) $this->firstValue($row, [
-            'code', 'code_station', 'station_code', 'code_point', 'point_code',
-            'point', 'point_mesure', 'point_de_mesure', 'point_prelevement',
-            'station', 'site', 'sampling_point'
-        ]));
-
-        if ($code === '' && $pointMesureId) {
-            $code = 'PT-' . str_pad($pointMesureId, 3, '0', STR_PAD_LEFT);
-        } elseif ($code === '' && $infrastructureReference !== '') {
-            $code = $infrastructureReference;
-        } elseif ($code === '' && $infrastructureId !== '') {
-            $code = 'INF-' . $infrastructureId;
-        }
-
         $derivedName = null;
         if ($rawReference !== '') {
             $stripped = preg_replace('/^(DEMO|MES|REF)[-_]/i', '', $rawReference);
@@ -356,14 +342,28 @@ class CsvImportProvider implements ExternalDataProviderInterface
             }
         }
 
+        $code = trim((string) $this->firstValue($row, [
+            'code', 'code_station', 'station_code', 'code_point', 'point_code',
+            'code_prelevement', 'sampling_point'
+        ]));
+
+        if ($code === '' && $derivedName) {
+            $code = 'PT-' . strtoupper(Str::slug($derivedName));
+        } elseif ($code === '' && $pointMesureId) {
+            $code = 'PT-' . str_pad($pointMesureId, 3, '0', STR_PAD_LEFT);
+        } elseif ($code === '' && $infrastructureReference !== '') {
+            $code = $infrastructureReference;
+        } elseif ($code === '' && $infrastructureId !== '') {
+            $code = 'INF-' . $infrastructureId;
+        }
+
         $name = trim((string) $this->firstValue($row, [
             'nom', 'nom_station', 'station_name', 'nom_point', 'point_nom',
-            'station', 'point', 'point_mesure', 'point_de_mesure',
-            'libelle', 'designation', 'name'
+            'station', 'libelle', 'designation', 'name'
         ]));
 
         if ($name === '' && $derivedName) {
-            $name = 'Station ' . $derivedName;
+            $name = str_starts_with(strtolower($derivedName), 'station') ? $derivedName : ('Station ' . $derivedName);
         } elseif ($name === '' && $code !== '') {
             $name = $code;
         }
@@ -461,6 +461,9 @@ class CsvImportProvider implements ExternalDataProviderInterface
         foreach ($row as $k => $v) {
             if (trim((string) $v) === '') continue;
             foreach ($aliases as $alias) {
+                if (!str_ends_with($alias, '_id') && str_ends_with($k, '_id')) {
+                    continue;
+                }
                 if (str_contains($k, $alias)) {
                     return $v;
                 }

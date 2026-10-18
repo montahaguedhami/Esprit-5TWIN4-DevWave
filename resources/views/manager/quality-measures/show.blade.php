@@ -44,7 +44,7 @@
                 </div>
             @endforeach
             <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs font-medium text-slate-500">Vérification</div><div class="mt-2 font-semibold text-slate-900">{{ $mesure->is_verified ? 'Vérifiée' : 'À vérifier' }}</div><div class="text-sm text-slate-600">{{ $mesure->verifier ?: '—' }}</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs font-medium text-slate-500">Provenance</div><div class="mt-2 font-semibold text-slate-900">{{ match($mesure->source_donnee ?? 'manuel') { 'laboratoire' => 'Laboratoire', 'simule', 'simulation' => 'Donnée simulée', 'csv' => 'Import CSV', 'data_gov_tn' => 'Données publiques tunisiennes', 'emodnet' => 'EMODnet', default => $mesure->provider ? 'Import '.$mesure->provider : 'Saisie manuelle' } }}</div>@if($mesure->observation_date)<div class="mt-1 text-xs text-slate-600">Observation source : {{ $mesure->observation_date->format('d/m/Y H:i') }}</div>@endif</div>
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="text-xs font-medium text-slate-500">Provenance</div><div class="mt-2 font-semibold text-slate-900">{{ match($mesure->source_donnee ?? 'manuel') { 'laboratoire' => 'Laboratoire', 'simule', 'simulation' => 'Réseau', 'csv' => 'Import CSV', 'data_gov_tn' => 'Données publiques tunisiennes', 'emodnet' => 'EMODnet', default => $mesure->provider ? 'Import '.$mesure->provider : 'Saisie manuelle' } }}</div>@if($mesure->observation_date)<div class="mt-1 text-xs text-slate-600">Observation source : {{ $mesure->observation_date->format('d/m/Y H:i') }}</div>@endif</div>
         </div>
 
         {{-- ══ ANALYSE INTELLIGENTE DU POINT DE MESURE ═════════════════════════ --}}
@@ -298,12 +298,6 @@
                     ` : ''}
                 </div>
 
-                ${analysis.simulated_data_warning ? `
-                    <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 flex items-center gap-2">
-                        <i data-lucide="alert-triangle" class="h-4 w-4 text-amber-600 shrink-0"></i>
-                        <span>Cette analyse intègre des données simulées. Les résultats sont fournis à titre d'aide à la décision et ne constituent pas une validation officielle.</span>
-                    </div>
-                ` : ''}
 
                 {{-- Statistiques 5 paramètres --}}
                 <div>

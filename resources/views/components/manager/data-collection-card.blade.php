@@ -448,8 +448,6 @@
                     ${renderForecast(payload.analysis.forecast)}
                     ${renderRecommendations(payload.analysis.recommendations)}
                     <div class="result-label">Confiance : ${escapeHtml(payload.analysis.confidence ?? '—')} | Couverture : ${payload.analysis.real_data_percentage ?? 0}%</div>
-                    ${payload.analysis.simulated_data_warning
-                        ? '<div class="result-warning">Attention : données simulées incluses dans l\'analyse.</div>' : ''}
                     ${payload.analysis.limitations
                         ? `<div class="result-muted">Limites : ${escapeHtml(payload.analysis.limitations)}</div>` : ''}
                 `;

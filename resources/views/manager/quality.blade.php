@@ -691,7 +691,7 @@
                             <td class="font-mono font-semibold {{ (float)$rec['lead_pb'] > 15 ? 'text-red-600' : 'text-slate-700' }}">
                                 {{ $rec['lead_pb'] }} <span class="font-normal text-slate-400">ppb</span>
                             </td>
-                            <td class="font-mono text-slate-600">{{ $rec['nitrates'] }} <span class="text-slate-400">mg/L</span></td>
+                            <td class="font-mono text-slate-600">{{ $rec['nitrates'] }} mg/L</td>
                             <td>
                                 @if($rec['is_verified'])
                                     <span class="badge badge-green">
