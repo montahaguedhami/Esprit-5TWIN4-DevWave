@@ -43,8 +43,6 @@ Copiez ensuite `.env.example` dans un fichier `.env`, puis préparez l’applica
 php artisan key:generate
 ```
 
-Pour une installation avec SQLite, créez le fichier `database/database.sqlite` si nécessaire et vérifiez que `.env` utilise `DB_CONNECTION=sqlite`. Puis lancez :
-
 ```sh
 php artisan migrate
 npm run build
