@@ -286,8 +286,8 @@ Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group
     Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
     Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
-    Route::resource('zones', ZoneController::class)->only(['index', 'show']);
-    Route::resource('infrastructures', InfrastructureController::class)->only(['index', 'show']);
+    Route::resource('zones', ZoneController::class);
+    Route::resource('infrastructures', InfrastructureController::class);
 });
 
 Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
