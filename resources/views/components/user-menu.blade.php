@@ -1,14 +1,16 @@
 @php
-    use App\Models\Role;
-
-    $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => Role::CITOYEN]);
-    $roleSlug  = Role::normalizeSlug($user['role'] ?? null);
-    $roleLabel = Role::label($roleSlug);
+    $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => 'citizen']);
+    $roleLabels = [
+        'admin' => 'Administrateur',
+        'manager' => 'Gestionnaire',
+        'technician' => 'Technicien',
+        'citizen' => 'Citoyen',
+    ];
     $roleColors = [
-        Role::ADMINISTRATEUR => 'purple',
-        Role::MANAGER        => 'blue',
-        Role::TECHNICIEN     => 'cyan',
-        Role::CITOYEN        => 'emerald',
+        'admin' => 'purple',
+        'manager' => 'blue',
+        'technician' => 'cyan',
+        'citizen' => 'emerald',
     ];
 @endphp
 
@@ -24,7 +26,7 @@
             <div class="truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-cyan-700">
                 {{ $user['name'] }}
             </div>
-            <div class="text-xs text-cyan-100/60">{{ $roleLabel }}</div>
+            <div class="text-xs text-slate-500">{{ $roleLabels[$user['role']] ?? 'Utilisateur' }}</div>
         </div>
         <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-cyan-700 transition-all group-hover:rotate-180"></i>
     </button>
@@ -43,9 +45,9 @@
                     <p class="text-xs text-slate-500 truncate">{{ $user['email'] }}</p>
                 </div>
             </div>
-            <x-ui.status-badge
-                :status="$roleColors[$roleSlug] ?? 'cyan'"
-                :label="$roleLabel"
+            <x-ui.status-badge 
+                :status="$roleColors[$user['role']] ?? 'cyan'" 
+                :label="$roleLabels[$user['role']] ?? 'Utilisateur'" 
             />
         </div>
 
@@ -85,8 +87,35 @@
             </a>
 
             <!-- Divider -->
-            <div class="my-2 border-t border-white/10"></div>
+            <div class="my-2 border-t border-slate-100"></div>
+            <div class="px-4 py-1 text-[11px] font-bold text-cyan-800 uppercase tracking-wider">Changer de rôle (Demo 120Water)</div>
+            <a href="{{ route('switch.role', 'admin') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
+                <i data-lucide="shield" class="w-4 h-4 text-purple-400"></i>
+                <span class="text-xs text-slate-700">System Administrator</span>
+            </a>
+            <a href="{{ route('switch.role', 'manager') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
+                <i data-lucide="briefcase" class="w-4 h-4 text-blue-400"></i>
+                <span class="text-xs text-slate-700">Utility Manager</span>
+            </a>
+            <a href="{{ route('switch.role', 'quality') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
+                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i>
+                <span class="text-xs text-slate-700">Water Quality Specialist</span>
+            </a>
+            <a href="{{ route('switch.role', 'technician') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
+                <i data-lucide="wrench" class="w-4 h-4 text-cyan-400"></i>
+                <span class="text-xs text-slate-700">Field Technician</span>
+            </a>
+            <a href="{{ route('switch.role', 'finance') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
+                <i data-lucide="dollar-sign" class="w-4 h-4 text-emerald-400"></i>
+                <span class="text-xs text-slate-700">Finance Manager</span>
+            </a>
+            <a href="{{ route('switch.role', 'citizen') }}" class="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition-colors">
+                <i data-lucide="user" class="w-4 h-4 text-amber-400"></i>
+                <span class="text-xs text-slate-700">Citizen Portal</span>
+            </a>
 
+            <!-- Divider -->
+            <div class="my-2 border-t border-slate-100"></div>
 
             <!-- Help -->
             <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group">

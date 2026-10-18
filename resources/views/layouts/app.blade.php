@@ -5,17 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'AquaSecure' }} — Gestion du réseau d'eau</title>
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $title ?? 'AquaSecure' }} — Gestion du réseau d'eau">
-    <meta property="og:description" content="AquaSecure, plateforme de suivi de la qualité de l'eau et du réseau.">
-    <meta property="og:image" content="{{ asset('assets/aquasecure-thumbnail.jpg') }}">
-    <meta property="og:image:width" content="1024">
-    <meta property="og:image:height" content="1024">
-    <meta property="og:image:alt" content="AquaSecure — Water Quality Monitoring Platform">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $title ?? 'AquaSecure' }} — Gestion du réseau d'eau">
-    <meta name="twitter:description" content="AquaSecure, plateforme de suivi de la qualité de l'eau et du réseau.">
-    <meta name="twitter:image" content="{{ asset('assets/aquasecure-thumbnail.jpg') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,22 +14,8 @@
     <!-- App styles & scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Additional Styles -->
-    @stack('styles')
-</head>
-<body class="antialiased bg-[#04121b] text-white min-h-screen">
-    <div id="app" class="min-h-screen flex flex-col">
-        @yield('content')
-    </div>
-
-    <!-- AI Assistant (Global) -->
-    <x-ai-assistant />
-
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 max-w-sm"></div>
+    <!-- Lucide icons (CDN — loaded before body so icons resolve on first paint) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
     @stack('styles')
 
@@ -55,9 +30,7 @@
 </head>
 <body>
 
-<div id="app" class="min-h-screen flex flex-col">
 @yield('content')
-</div>
 
 {{-- ── Demo-mode banner ── --}}
 @unless (request()->routeIs('auth.login', 'auth.register', 'auth.forgot-password'))
@@ -72,12 +45,6 @@
 
 {{-- ── Toast container ── --}}
 <div id="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>
-
-<div class="route-sweep" aria-hidden="true">
-    <span></span>
-    <span></span>
-    <span></span>
-</div>
 
 @stack('scripts')
 

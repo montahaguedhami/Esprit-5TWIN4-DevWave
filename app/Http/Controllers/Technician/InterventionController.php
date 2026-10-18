@@ -21,7 +21,14 @@ class InterventionController extends Controller
 
         $query = Intervention::query()
             ->where('technicien_id', $technicien->id)
-            ->with(['infrastructure.zone'])
+            ->with(['infrastructure.zone', 'infrastructure.latestRiskPrediction'])
+            ->orderByDesc(
+                \App\Models\InfrastructureRiskPrediction::query()
+                    ->select('probability')
+                    ->whereColumn('infrastructure_id', 'interventions.infrastructure_id')
+                    ->orderByDesc('computed_at')
+                    ->limit(1),
+            )
             ->latest('date');
 
         // Filtre par statut

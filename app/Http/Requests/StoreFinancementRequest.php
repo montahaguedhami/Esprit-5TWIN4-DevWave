@@ -12,10 +12,8 @@ class StoreFinancementRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return \App\Models\Role::sessionMatches(
-            \App\Models\Role::MANAGER,
-            \App\Models\Role::ADMINISTRATEUR
-        );
+        // Autoriser si l'utilisateur est manager ou admin
+        return session('user') && in_array(session('user.role'), ['manager', 'admin']);
     }
 
     /**

@@ -11,6 +11,8 @@ class Intervention extends Model
     /** @use HasFactory<\Database\Factories\InterventionFactory> */
     use HasFactory;
 
+    public ?int $ancienneInfrastructureId = null;
+
     public const STATUTS = ['Planifiée', 'En cours', 'Terminée', 'Annulée'];
 
     protected $attributes = [
@@ -32,11 +34,6 @@ class Intervention extends Model
             'date' => 'date',
             'cout' => 'decimal:2',
         ];
-    }
-
-    public function setStatutAttribute(?string $value): void
-    {
-        $this->attributes['statut'] = $value ?? 'Planifiée';
     }
 
     /**

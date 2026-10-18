@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -91,6 +92,16 @@ class Infrastructure extends Model
     public function incidents(): HasMany
     {
         return $this->hasMany(Incident::class)->latest('date_signalement');
+    }
+
+    public function riskPredictions(): HasMany
+    {
+        return $this->hasMany(InfrastructureRiskPrediction::class)->orderByDesc('computed_at');
+    }
+
+    public function latestRiskPrediction(): HasOne
+    {
+        return $this->hasOne(InfrastructureRiskPrediction::class)->latestOfMany('computed_at');
     }
 
     /**

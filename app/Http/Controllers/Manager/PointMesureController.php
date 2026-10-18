@@ -5,87 +5,29 @@ namespace App\Http\Controllers\Manager;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePointMesureRequest;
 use App\Http\Requests\UpdatePointMesureRequest;
-use App\Models\AuditLog;
 use App\Models\PointMesure;
-use App\Models\Zone;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PointMesureController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $query = PointMesure::with('derniereMesure');
-
-        // Search by keyword in name, code, zone, address
-        if ($search = trim((string) $request->input('search', ''))) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nom', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('zone', 'like', "%{$search}%")
-                  ->orWhere('adresse', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by status
-        if ($statut = $request->input('statut')) {
-            if (in_array($statut, ['actif', 'inactif'], true)) {
-                $query->where('statut', $statut);
-            }
-        }
-
-        // Filter by type
-        if ($type = $request->input('type')) {
-            if (in_array($type, ['Station', 'Puits', 'Réservoir', 'Réseau', 'Autre'], true)) {
-                $query->where('type', $type);
-            }
-        }
-
-        // Sorting
-        $sort = $request->input('sort', 'nom_asc');
-        match ($sort) {
-            'nom_desc'  => $query->orderByDesc('nom'),
-            'code_asc'  => $query->orderBy('code'),
-            'code_desc' => $query->orderByDesc('code'),
-            'recent'    => $query->latest('id'),
-            default     => $query->orderBy('nom'),
-        };
-
-        $points = $query->paginate(15)->withQueryString();
+        $points = PointMesure::with('derniereMesure')->orderBy('nom')->paginate(15);
 
         return view('manager.points-mesure.index', compact('points'));
     }
 
     public function create(): View
     {
-        $zones     = Zone::orderBy('nom')->pluck('nom')->all();
-        $nextCode  = $this->generateUniqueCode(null);
-        $pointForm = [
-            'zones'   => $zones,
-            'nextCode' => $nextCode,
-        ];
-
-        return view('manager.points-mesure.create', $pointForm);
+        return view('manager.points-mesure.create');
     }
 
     public function store(StorePointMesureRequest $request): RedirectResponse
     {
-        $point = DB::transaction(function () use ($request) {
-            $data             = $request->validated();
-            $data['code']     = $this->generateUniqueCode($data['code'] ?? null);
-            $point = PointMesure::create($data);
+        $point = PointMesure::create($request->validated());
 
-            AuditLog::record('point_mesure_created', 'PointMesure', $point->id, [
-                'code' => $point->code,
-                'nom'  => $point->nom,
-            ], auth()->user());
-
-            return $point;
-        });
-
-        return redirect()->route('manager.points-mesure.show', $point)->with('success', 'Le point de mesure a été créé avec succès.');
+        return redirect()->route('manager.points-mesure.show', $point)->with('success', 'Le point de mesure a été créé.');
     }
 
     public function show(PointMesure $point_mesure): View
@@ -97,90 +39,27 @@ class PointMesureController extends Controller
 
     public function edit(PointMesure $point_mesure): View
     {
-        $zones = Zone::orderBy('nom')->pluck('nom')->all();
-
-        return view('manager.points-mesure.edit', [
-            'point' => $point_mesure,
-            'zones' => $zones,
-        ]);
+        return view('manager.points-mesure.edit', ['point' => $point_mesure]);
     }
 
     public function update(UpdatePointMesureRequest $request, PointMesure $point_mesure): RedirectResponse
     {
-        DB::transaction(function () use ($request, $point_mesure) {
-            $data           = $request->validated();
-            $data['code']   = $this->resolveExistingCode($request, $point_mesure);
-            $point_mesure->update($data);
+        $point_mesure->update($request->validated());
 
-            AuditLog::record('point_mesure_updated', 'PointMesure', $point_mesure->id, [
-                'code' => $point_mesure->code,
-                'nom'  => $point_mesure->nom,
-            ], auth()->user());
-        });
-
-        return redirect()->route('manager.points-mesure.show', $point_mesure)->with('success', 'Le point de mesure a été mis à jour avec succès.');
+        return redirect()->route('manager.points-mesure.show', $point_mesure)->with('success', 'Le point de mesure a été mis à jour.');
     }
 
     public function destroy(PointMesure $point_mesure): RedirectResponse
     {
-        return DB::transaction(function () use ($point_mesure) {
-            if ($point_mesure->mesuresQualites()->exists()) {
-                $point_mesure->update(['statut' => 'inactif']);
+        if ($point_mesure->mesuresQualites()->exists()) {
+            $point_mesure->update(['statut' => 'inactif']);
 
-                AuditLog::record('point_mesure_deactivated', 'PointMesure', $point_mesure->id, [
-                    'code'   => $point_mesure->code,
-                    'reason' => 'has_historical_measurements',
-                ], auth()->user());
-
-                return redirect()->route('manager.points-mesure.index')
-                    ->with('success', 'Le point possède un historique de mesures : il a été désactivé pour préserver l’intégrité des données.');
-            }
-
-            $code = $point_mesure->code;
-            $point_mesure->delete();
-
-            AuditLog::record('point_mesure_deleted', 'PointMesure', null, [
-                'code' => $code,
-            ], auth()->user());
-
-            return redirect()->route('manager.points-mesure.index')->with('success', 'Le point de mesure a été supprimé.');
-        });
-    }
-
-    /**
-     * Keep an explicitly supplied code, otherwise keep the existing one.
-     *
-     * The "update" form no longer asks for the code: it is only kept
-     * when the request still carries one (backward compatibility).
-     */
-    private function resolveExistingCode(UpdatePointMesureRequest $request, PointMesure $point_mesure): string
-    {
-        $code = $request->input('code');
-
-        return $code !== null && $code !== ''
-            ? $code
-            : $point_mesure->code;
-    }
-
-    /**
-     * Generate the next unique point code (e.g. PMS-001).
-     *
-     * Used when the client did not send a code (the create form leaves the
-     * code field empty and readonly); an explicit code always wins.
-     */
-    private function generateUniqueCode(?string $code): string
-    {
-        if ($code !== null && $code !== '') {
-            return $code;
+            return redirect()->route('manager.points-mesure.index')
+                ->with('success', 'Le point possède un historique de mesures : il a été désactivé.');
         }
 
-        $max = 0;
-        foreach (PointMesure::pluck('code') as $existingCode) {
-            if (preg_match('/(\d+)$/', (string) $existingCode, $matches) === 1) {
-                $max = max($max, (int) $matches[1]);
-            }
-        }
+        $point_mesure->delete();
 
-        return sprintf('PMS-%04d', $max + 1);
+        return redirect()->route('manager.points-mesure.index')->with('success', 'Le point de mesure a été supprimé.');
     }
 }

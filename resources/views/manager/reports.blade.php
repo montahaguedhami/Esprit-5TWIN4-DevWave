@@ -35,7 +35,7 @@
     <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
         <div>
             <h1 class="text-2xl font-display font-bold text-white tracking-tight">Rapports de conformité et du réseau d’eau</h1>
-            <p class="text-slate-400 text-xs mt-1">Download official compliance audits, water loss reports, and budget expenditure logs.</p>
+            <p class="text-slate-400 text-xs mt-1">Download official EPA/INNORPI compliance audits, water loss reports, and budget expenditure logs.</p>
         </div>
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
