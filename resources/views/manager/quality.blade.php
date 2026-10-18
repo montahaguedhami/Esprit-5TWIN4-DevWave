@@ -9,6 +9,11 @@
 <style>
 #quality-map { height: 300px; border-radius: .75rem; }
 .leaflet-tile-pane { filter: brightness(.98) contrast(1.02) saturate(.9); }
+.aqua-manager-standalone .point-analysis-overlay { background-color: rgb(15 23 42 / 62%); backdrop-filter: blur(4px); }
+.aqua-manager-standalone .bulk-delete-overlay {
+    background-color: rgb(15 23 42 / 58%);
+    backdrop-filter: blur(4px);
+}
 .leaflet-control-zoom a {
     background: #fff !important;
     border-color: #dce6ef !important;
@@ -457,14 +462,14 @@
                 <span class="param-name">Chlore rés.</span>
                 <span class="aq-param-badge bg-indigo-50 text-indigo-700 border border-indigo-100">0.2–2.0 mg/L</span>
             </div>
-            <div class="param-value">{{ $latestMeasurement?->chlore_residuel ?? '—' }}<span class="param-unit"> mg/L</span></div>
+            <div class="param-value">@if($latestMeasurement?->chlore_residuel !== null){{ $latestMeasurement->chlore_residuel }}<span class="param-unit"> mg/L</span>@else<span class="text-base font-medium text-slate-500">Non renseigné</span>@endif</div>
             <div class="aq-progress">
-                <div class="aq-progress-bar bg-indigo-400" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->chlore_residuel/2)*100,100) : 0 }}%"></div>
+                <div class="aq-progress-bar bg-indigo-400" style="width:{{ $latestMeasurement?->chlore_residuel !== null ? min(((float)$latestMeasurement->chlore_residuel/2)*100,100) : 0 }}%"></div>
             </div>
             <p class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
                 <span>Dernière mesure</span>
                 <span class="{{ ($latestAssessment['parameter_statuses']['chlore_residuel'] ?? '') === 'Compliant' ? 'text-emerald-600' : 'text-amber-600' }} font-semibold">
-                    {{ $latestAssessment['parameter_statuses']['chlore_residuel'] ?? '—' }}
+                    {{ $latestAssessment['parameter_statuses']['chlore_residuel'] ?? 'Non fourni par la source' }}
                 </span>
             </p>
         </div>
@@ -475,14 +480,14 @@
                 <span class="param-name">Plomb (Pb)</span>
                 <span class="aq-param-badge bg-amber-50 text-amber-700 border border-amber-100">&lt;15 ppb</span>
             </div>
-            <div class="param-value">{{ $latestMeasurement?->plomb ?? '—' }}<span class="param-unit"> ppb</span></div>
+            <div class="param-value">@if($latestMeasurement?->plomb !== null){{ $latestMeasurement->plomb }}<span class="param-unit"> ppb</span>@else<span class="text-base font-medium text-slate-500">Non renseigné</span>@endif</div>
             <div class="aq-progress">
-                <div class="aq-progress-bar bg-amber-400" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->plomb/15)*100,100) : 0 }}%"></div>
+                <div class="aq-progress-bar bg-amber-400" style="width:{{ $latestMeasurement?->plomb !== null ? min(((float)$latestMeasurement->plomb/15)*100,100) : 0 }}%"></div>
             </div>
             <p class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
                 <span>Dernière mesure</span>
                 <span class="{{ ($latestAssessment['parameter_statuses']['plomb'] ?? '') === 'Compliant' ? 'text-emerald-600' : 'text-red-600' }} font-semibold">
-                    {{ $latestAssessment['parameter_statuses']['plomb'] ?? '—' }}
+                    {{ $latestAssessment['parameter_statuses']['plomb'] ?? 'Non fourni par la source' }}
                 </span>
             </p>
         </div>
@@ -577,7 +582,7 @@
                     <select name="point_mesure_id">
                         <option value="">Tous les points</option>
                         @foreach($allPointsForFilter ?? [] as $pt)
-                            <option value="{{ $pt->id }}" @selected((string) request('point_mesure_id') === (string) $pt->id)>{{ $pt->nom }} ({{ $pt->code }})</option>
+                            <option value="{{ $pt->id }}" @selected((string) request('point_mesure_id') === (string) $pt->id)>{{ $pt->nom }} ({{ $pt->code }}){{ $pt->infrastructure ? ' · '.$pt->infrastructure->nom : '' }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -596,7 +601,7 @@
                         <option value="">Toutes sources</option>
                         <option value="manuel"      @selected(request('source_donnee') === 'manuel')>Manuel (terrain)</option>
                         <option value="laboratoire" @selected(request('source_donnee') === 'laboratoire')>Laboratoire</option>
-                        <option value="simule"      @selected(request('source_donnee') === 'simule')>Simulé</option>
+                        <option value="csv"         @selected(request('source_donnee') === 'csv')>Import CSV</option>
                     </select>
                 </div>
                 <div class="flex items-end gap-2">
@@ -616,10 +621,29 @@
         </div>
 
         {{-- Table --}}
+        @if(auth()->user()?->hasPermission('measurements.delete'))
+        <form id="bulk-delete-measurements" method="POST" action="{{ route('manager.quality.mesures.bulk-destroy') }}">
+            @csrf
+            @method('DELETE')
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                <div class="flex items-center gap-3">
+                    <button type="button" id="select-all-measurements" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-cyan-400 hover:bg-cyan-50 hover:text-cyan-800">
+                        Tout sélectionner (page)
+                    </button>
+                    <span id="selected-measurements-count" class="text-xs text-slate-500">Aucune mesure sélectionnée</span>
+                </div>
+                <button type="submit" id="delete-selected-measurements" disabled class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40">
+                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i> Supprimer la sélection
+                </button>
+            </div>
+        @endif
         <div class="overflow-x-auto">
             <table class="aq-table">
                 <thead>
                     <tr>
+                        @if(auth()->user()?->hasPermission('measurements.delete'))
+                            <th class="w-10"><span class="sr-only">Sélection</span></th>
+                        @endif
                         <th>Réf. &amp; Point</th>
                         <th>Zone</th>
                         <th>Date</th>
@@ -636,12 +660,22 @@
                 <tbody>
                     @forelse($records as $rec)
                         <tr>
+                            @if(auth()->user()?->hasPermission('measurements.delete'))
+                                <td><input type="checkbox" name="mesure_ids[]" value="{{ $rec['measurement_id'] }}" class="measurement-row-checkbox h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500" aria-label="Sélectionner la mesure {{ $rec['id'] }}"></td>
+                            @endif
                             <td>
                                 <a href="{{ route('manager.quality.mesures.show', $rec['measurement_id']) }}"
                                    class="font-mono text-[11px] text-cyan-700 hover:underline font-semibold">{{ $rec['id'] }}</a>
                                 <div class="text-[11px] text-slate-500 mt-0.5">
-                                    <a href="{{ route('manager.points-mesure.index') }}" class="hover:text-cyan-700">{{ $rec['sampling_point'] }}</a>
+                                    @if($rec['point_mesure_id'])
+                                        <a href="{{ route('manager.points-mesure.show', $rec['point_mesure_id']) }}" class="hover:text-cyan-700">{{ $rec['sampling_point'] }}</a>
+                                    @else
+                                        {{ $rec['sampling_point'] }}
+                                    @endif
                                 </div>
+                                @if($rec['infrastructure'])
+                                    <div class="text-[11px] text-cyan-700">Infrastructure : {{ $rec['infrastructure'] }}</div>
+                                @endif
                             </td>
                             <td class="text-slate-600">{{ $rec['zone'] }}</td>
                             <td class="text-slate-500 whitespace-nowrap">{{ $rec['date'] }}</td>
@@ -673,8 +707,8 @@
                                 @php $src = $rec['source_donnee'] ?? 'manuel'; @endphp
                                 @if($src === 'laboratoire')
                                     <span class="badge badge-blue">Laboratoire</span>
-                                @elseif($src === 'simule')
-                                    <span class="badge badge-slate">Simulé</span>
+                                @elseif($src === 'simule' || $src === 'csv')
+                                    <span class="badge badge-blue">Import</span>
                                 @else
                                     <span class="badge badge-violet">Manuel</span>
                                 @endif
@@ -692,7 +726,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" style="text-align:center;padding:3rem 1rem;color:#52677d">
+                            <td colspan="{{ auth()->user()?->hasPermission('measurements.delete') ? 12 : 11 }}" style="text-align:center;padding:3rem 1rem;color:#52677d">
                                 <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300" style="display:block"></i>
                                 Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.
                             </td>
@@ -701,6 +735,29 @@
                 </tbody>
             </table>
         </div>
+        @if(auth()->user()?->hasPermission('measurements.delete'))
+        </form>
+        <div id="bulk-delete-confirmation" class="bulk-delete-overlay fixed inset-0 z-[100] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="bulk-delete-title" aria-describedby="bulk-delete-description">
+            <div class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+                <div class="flex items-start gap-4">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+                        <i data-lucide="trash-2" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h2 id="bulk-delete-title" class="text-lg font-bold text-slate-900">Supprimer les mesures sélectionnées ?</h2>
+                        <p id="bulk-delete-description" class="mt-2 text-sm leading-6 text-slate-600">Vous allez supprimer définitivement <strong id="bulk-delete-confirm-count" class="text-slate-900">0 mesure</strong>. Cette action ne peut pas être annulée.</p>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" id="cancel-bulk-delete" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2">Annuler</button>
+                    <button type="button" id="confirm-bulk-delete" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                        <i data-lucide="trash-2" class="h-4 w-4"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
+
 
         @if($paginator->hasPages())
             <div class="px-4 py-3 border-t border-slate-100">
@@ -764,6 +821,66 @@
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+/* Bulk selection for the visible results page. */
+(function () {
+    const selectAllButton = document.getElementById('select-all-measurements');
+    const deleteButton = document.getElementById('delete-selected-measurements');
+    const selectedCount = document.getElementById('selected-measurements-count');
+    const checkboxes = Array.from(document.querySelectorAll('.measurement-row-checkbox'));
+    const form = document.getElementById('bulk-delete-measurements');
+    const modal = document.getElementById('bulk-delete-confirmation');
+    const cancelButton = document.getElementById('cancel-bulk-delete');
+    const confirmButton = document.getElementById('confirm-bulk-delete');
+    const confirmCount = document.getElementById('bulk-delete-confirm-count');
+
+    if (!selectAllButton || !deleteButton || !selectedCount || !form || !modal) return;
+    let confirmed = false;
+
+    function refreshSelection() {
+        const selected = checkboxes.filter(checkbox => checkbox.checked).length;
+        selectedCount.textContent = selected === 0
+            ? 'Aucune mesure sélectionnée'
+            : `${selected} mesure(s) sélectionnée(s)`;
+        deleteButton.disabled = selected === 0;
+        selectAllButton.textContent = selected === checkboxes.length && checkboxes.length > 0
+            ? 'Tout désélectionner'
+            : 'Tout sélectionner (page)';
+    }
+
+    selectAllButton.addEventListener('click', function () {
+        const shouldSelect = checkboxes.some(checkbox => !checkbox.checked);
+        checkboxes.forEach(checkbox => { checkbox.checked = shouldSelect; });
+        refreshSelection();
+    });
+    checkboxes.forEach(checkbox => checkbox.addEventListener('change', refreshSelection));
+    form.addEventListener('submit', function (event) {
+        if (confirmed) return;
+        event.preventDefault();
+        const count = checkboxes.filter(checkbox => checkbox.checked).length;
+        confirmCount.textContent = count === 1 ? '1 mesure' : `${count} mesures`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        cancelButton.focus();
+    });
+    function closeConfirmation() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        deleteButton.focus();
+    }
+    cancelButton.addEventListener('click', closeConfirmation);
+    confirmButton.addEventListener('click', function () {
+        confirmed = true;
+        form.requestSubmit();
+    });
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) closeConfirmation();
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeConfirmation();
+    });
+    refreshSelection();
+})();
+
 /* ── Helpers ── */
 function openThresholdModal()  { document.getElementById('threshold-modal').classList.remove('hidden'); }
 function closeThresholdModal() { document.getElementById('threshold-modal').classList.add('hidden'); }
@@ -771,6 +888,7 @@ function closeThresholdModal() { document.getElementById('threshold-modal').clas
 function escapeHtml(v) {
     return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[c]);
 }
+
 
 /* ── Leaflet map ── */
 (function () {

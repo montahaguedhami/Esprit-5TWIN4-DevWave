@@ -39,6 +39,7 @@ class UpdatePointMesureRequest extends FormRequest
             'code'        => ['sometimes', 'string', 'min:2', 'max:50', Rule::unique('point_mesures', 'code')->ignore($pointMesureId)],
             'nom'         => ['required', 'string', 'min:2', 'max:255'],
             'zone'        => ['nullable', 'string', 'max:255'],
+            'infrastructure_id' => ['nullable', 'integer', Rule::exists('infrastructures', 'id')->whereNull('deleted_at')],
             'adresse'     => ['nullable', 'string', 'max:255'],
             'latitude'    => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'   => ['nullable', 'numeric', 'between:-180,180'],

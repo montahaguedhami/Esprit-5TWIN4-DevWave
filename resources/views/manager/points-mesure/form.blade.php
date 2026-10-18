@@ -111,6 +111,28 @@
         @enderror
     </div>
 
+    <div class="sm:col-span-2">
+        <label for="infrastructure_id" class="block text-sm font-medium text-slate-300">
+            Infrastructure associée <span class="text-xs text-slate-500">(optionnelle pour les stations externes)</span>
+        </label>
+        <select
+            id="infrastructure_id"
+            name="infrastructure_id"
+            class="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-white focus:border-teal-400 focus:outline-none"
+        >
+            <option value="">Aucune infrastructure liée</option>
+            @foreach($infrastructures ?? [] as $infrastructure)
+                <option value="{{ $infrastructure->id }}" @selected((string) old('infrastructure_id', $point->infrastructure_id ?? '') === (string) $infrastructure->id)>
+                    {{ $infrastructure->nom }} — {{ $infrastructure->type->label() }}{{ $infrastructure->zone ? ' · '.$infrastructure->zone->nom : '' }}
+                </option>
+            @endforeach
+        </select>
+        <p class="mt-1 text-[11px] text-slate-400">Les points internes peuvent être rattachés à un équipement du réseau ; les mesures resteront historisées sur le point.</p>
+        @error('infrastructure_id')
+            <span class="mt-1 block text-xs text-red-400 font-medium">{{ $message }}</span>
+        @enderror
+    </div>
+
     <div>
         <label for="latitude" class="block text-sm font-medium text-slate-300">
             Latitude (°N) <span class="text-xs text-slate-500">(-90 à 90)</span>

@@ -116,6 +116,37 @@
         </div>
     </div>
 
+    <section class="glass rounded-2xl border border-white/10 overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between gap-4">
+            <div><h2 class="text-base font-bold text-white">Points de mesure et qualité de l’eau</h2><p class="text-xs text-cyan-100/60 mt-1">Les mesures saisies restent en attente jusqu’à validation du gestionnaire.</p></div>
+            <a href="{{ route('technician.quality.create', $zone) }}" class="rounded-lg bg-cyan-600 px-3 py-2 text-xs font-semibold text-white">Nouvelle mesure</a>
+        </div>
+        @forelse($qualityPoints as $qualityPoint)
+            <div class="p-4 border-b border-white/5 last:border-0 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div><div class="font-semibold text-white">{{ $qualityPoint->nom }} <span class="text-xs font-mono text-cyan-300">{{ $qualityPoint->code }}</span></div><div class="text-xs text-cyan-100/60">{{ $qualityPoint->adresse ?? $qualityPoint->zone }} · {{ $qualityPoint->type }}{{ $qualityPoint->infrastructure ? ' · '.$qualityPoint->infrastructure->nom : '' }}</div></div>
+                <div class="text-xs text-cyan-100/70">@if($qualityPoint->derniereMesure)Dernière saisie : {{ $qualityPoint->derniereMesure->date_mesure?->format('d/m/Y H:i') }} · {{ $qualityPoint->derniereMesure->status }}{{ $qualityPoint->derniereMesure->is_verified ? ' · Validée' : ' · En attente de validation' }}@else Aucune mesure enregistrée @endif</div>
+            </div>
+            @if($qualityPoint->derniereMesure)
+                <div class="grid grid-cols-2 gap-2 px-4 pb-3 text-[11px] text-cyan-100/75 sm:grid-cols-5">
+                    <span>pH : {{ $qualityPoint->derniereMesure->ph ?? '—' }}</span>
+                    <span>Turbidité : {{ $qualityPoint->derniereMesure->turbidite ?? '—' }} NTU</span>
+                    <span>Chlore : {{ $qualityPoint->derniereMesure->chlore_residuel ?? '—' }} mg/L</span>
+                    <span>Plomb : {{ $qualityPoint->derniereMesure->plomb ?? '—' }} ppb</span>
+                    <span>Nitrates : {{ $qualityPoint->derniereMesure->nitrates ?? '—' }} mg/L</span>
+                </div>
+            @endif
+            @if($qualityPoint->mesuresQualites->isNotEmpty())
+                <div class="px-4 pb-3 text-[11px] text-cyan-100/60">Historique récent :
+                    @foreach($qualityPoint->mesuresQualites as $historicalMeasurement)
+                        <span class="ml-2">{{ $historicalMeasurement->date_mesure?->format('d/m/Y') }} · {{ $historicalMeasurement->status }}{{ $historicalMeasurement->is_verified ? '' : ' (en attente)' }}</span>
+                    @endforeach
+                </div>
+            @endif
+        @empty
+            <p class="p-6 text-sm text-cyan-100/60">Aucun point de mesure actif n’est associé à cette zone.</p>
+        @endforelse
+    </section>
+
     {{-- Liste de mes infrastructures dans cette zone --}}
     <div class="glass rounded-2xl border border-white/10 overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between">

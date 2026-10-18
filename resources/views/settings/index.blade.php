@@ -14,6 +14,12 @@
 </style>
 <div class="aqua-light-page min-h-screen bg-slate-50">
     <div class="container mx-auto px-4 py-8">
+        @if(session('success'))
+            <div role="status" class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div role="alert" class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ session('error') }}</div>
+        @endif
         <!-- Header -->
         <div class="flex items-center gap-4 mb-8">
             <a href="javascript:history.back()" class="p-2 rounded-lg glass hover:glass-strong transition-all">
@@ -198,24 +204,32 @@
                                     Sessions actives
                                 </h4>
                                 <div class="space-y-3">
-                                    @foreach([
-                                        ['device' => 'Windows - Chrome', 'location' => 'Tunis, Tunisie', 'time' => 'Session actuelle', 'current' => true],
-                                        ['device' => 'Android - Chrome', 'location' => 'Tunis, Tunisie', 'time' => 'Il y a 2 jours', 'current' => false],
-                                    ] as $session)
+                                    @forelse($sessions as $session)
                                     <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/50">
                                         <div class="flex items-center gap-3">
                                             <i data-lucide="{{ $session['current'] ? 'monitor' : 'smartphone' }}" class="w-5 h-5 text-slate-400"></i>
                                             <div>
-                                                <div class="text-sm font-medium text-white">{{ $session['device'] }}</div>
+                                                <div class="text-sm font-medium text-white">{{ $session['device'] }} @if($session['current'])<span class="ml-2 text-emerald-400">Session actuelle</span>@endif</div>
                                                 <div class="text-xs text-slate-400">{{ $session['location'] }} • {{ $session['time'] }}</div>
                                             </div>
                                         </div>
-                                        @if(!$session['current'])
-                                        <button class="text-red-400 hover:text-red-300 text-sm">Révoquer</button>
-                                        @endif
+                                        @unless($session['current'])
+                                        <form method="POST" action="{{ route('settings.sessions.revoke', $session['id']) }}" onsubmit="return confirm('Revoke this session?')">
+                                            @csrf @method('DELETE')
+                                            <button class="text-red-400 hover:text-red-300 text-sm">Révoquer</button>
+                                        </form>
+                                        @endunless
                                     </div>
-                                    @endforeach
+                                    @empty
+                                    <p class="text-sm text-slate-400">Aucune session enregistrée avec le stockage actuel.</p>
+                                    @endforelse
                                 </div>
+                                @if($sessions->contains(fn ($session) => ! $session['current']))
+                                    <form method="POST" action="{{ route('settings.sessions.revoke-others') }}" class="mt-4" onsubmit="return confirm('Fermer toutes les autres sessions de votre compte ?')">
+                                        @csrf
+                                        <button class="btn btn-secondary">Fermer toutes les autres sessions</button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </x-ui.card>

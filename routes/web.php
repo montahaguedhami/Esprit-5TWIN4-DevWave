@@ -247,6 +247,7 @@ Route::middleware('role:manager')->group(function () {
     Route::get('/manager/analytics', fn () => view('manager.analytics'))->name('manager.analytics');
     Route::get('/manager/map', MapController::class)->name('manager.map');
     Route::get('/manager/quality', [WaterQualityController::class, 'index'])->name('manager.quality');
+    Route::delete('/manager/quality/mesures', [WaterQualityController::class, 'bulkDestroy'])->name('manager.quality.mesures.bulk-destroy');
 
     Route::resource('/manager/points-mesure', PointMesureController::class)
         ->parameters(['points-mesure' => 'point_mesure'])
@@ -299,6 +300,8 @@ Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(fu
 Route::middleware('role:technicien')->prefix('technician')->name('technician.')->group(function () {
     Route::get('/zones', [\App\Http\Controllers\Technician\ZoneController::class, 'index'])->name('zones.index');
     Route::get('/zones/{zone}', [\App\Http\Controllers\Technician\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/zones/{zone}/mesures/create', [\App\Http\Controllers\Technician\WaterQualityController::class, 'create'])->name('quality.create');
+    Route::post('/zones/{zone}/mesures', [\App\Http\Controllers\Technician\WaterQualityController::class, 'store'])->name('quality.store');
     Route::get('/infrastructures', [\App\Http\Controllers\Technician\InfrastructureController::class, 'index'])->name('infrastructures.index');
     Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Technician\InfrastructureController::class, 'show'])->name('infrastructures.show');
     Route::patch('/infrastructures/{infrastructure}/etat', [\App\Http\Controllers\Technician\InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
@@ -343,15 +346,33 @@ Route::middleware('role:administrateur')->group(function () {
     Route::patch('/admin/users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::get('/admin/logs',        [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.logs');
-    Route::get('/admin/system',      fn () => view('admin.system'))->name('admin.system');
+    Route::get('/admin/system', function () {
+        $metrics = \App\Data\PlaceholderData::adminSystemMetrics();
+        $cutoff = now()->subMinutes(15)->timestamp;
+
+        if (config('session.driver') === 'database') {
+            $metrics['active_sessions'] = \Illuminate\Support\Facades\DB::table(config('session.table', 'sessions'))
+                ->where('last_activity', '>=', $cutoff)
+                ->count();
+        } elseif (config('session.driver') === 'file') {
+            $metrics['active_sessions'] = collect(\Illuminate\Support\Facades\File::files(config('session.files')))
+                ->filter(fn ($file) => $file->getMTime() >= $cutoff)
+                ->count();
+        }
+
+        return view('admin.system', compact('metrics'));
+    })->name('admin.system');
     Route::get('/admin/security',    fn () => view('admin.security'))->name('admin.security');
+    Route::post('/admin/security/renew-sessions', [\App\Http\Controllers\Settings\SessionController::class, 'forceRenewAll'])->name('admin.security.renew-sessions');
     Route::get('/admin/backups',     fn () => view('admin.backups'))->name('admin.backups');
 });
 
 // ── All authenticated roles ───────────────────────────────────────────────────
 Route::middleware('role:administrateur,manager,technicien,citoyen')->group(function () {
     Route::get('/profile',                fn () => view('profile.show'))->name('profile.show');
-    Route::get('/settings',               fn () => view('settings.index'))->name('settings.index');
+    Route::get('/settings',               [\App\Http\Controllers\Settings\SessionController::class, 'index'])->name('settings.index');
+    Route::delete('/settings/sessions/{sessionId}', [\App\Http\Controllers\Settings\SessionController::class, 'revoke'])->name('settings.sessions.revoke');
+    Route::post('/settings/sessions/revoke-others', [\App\Http\Controllers\Settings\SessionController::class, 'revokeOthers'])->name('settings.sessions.revoke-others');
     Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
     Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
 });
@@ -400,9 +421,10 @@ Route::middleware('role:manager')->prefix('manager/financements')->name('manager
 });
 
 Route::middleware('role:manager')->group(function () {
-    Route::post('/manager/data-collection/trigger',    [\App\Http\Controllers\Manager\DataCollectionController::class, 'trigger'])->name('manager.data-collection.trigger');
-    Route::post('/manager/data-collection/import-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
-    Route::get('/manager/data-collection/status',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
-    Route::get('/manager/data-collection/history',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
-    Route::get('/manager/quality/{point}/analyse',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
+    Route::post('/manager/data-collection/trigger',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'trigger'])->name('manager.data-collection.trigger');
+    Route::post('/manager/data-collection/import-csv',  [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
+    Route::get('/manager/data-collection/template-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'downloadTemplateCsv'])->name('manager.data-collection.template-csv');
+    Route::get('/manager/data-collection/status',       [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
+    Route::get('/manager/data-collection/history',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
+    Route::get('/manager/quality/{point}/analyse',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
 });

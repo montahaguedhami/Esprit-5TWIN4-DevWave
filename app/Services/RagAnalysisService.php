@@ -83,10 +83,10 @@ class RagAnalysisService
      *   simulated_data_warning: bool,
      * }
      */
-    public function analysePoint(PointMesure $point, int $days = 30): array
+    public function analysePoint(PointMesure $point, int $days = 30, bool $allHistory = false): array
     {
-        $measurements = $this->retrieveMeasurements($point, $days);
-        $context      = $this->buildContext($point, $measurements, $days);
+        $measurements = $this->retrieveMeasurements($point, $days, $allHistory);
+        $context      = $this->buildContext($point, $measurements, $days, $allHistory);
 
         // Always compute deterministic analysis first
         $deterministic = $this->deterministicAnalysis($measurements, $context);
@@ -110,19 +110,22 @@ class RagAnalysisService
     // Retrieval
     // ──────────────────────────────────────────────────────────────────────────
 
-    private function retrieveMeasurements(PointMesure $point, int $days): Collection
+    private function retrieveMeasurements(PointMesure $point, int $days, bool $allHistory = false): Collection
     {
-        return MesureQualite::where('point_mesure_id', $point->id)
-            ->where('date_mesure', '>=', now()->subDays($days))
-            ->orderBy('date_mesure')
-            ->get();
+        $query = MesureQualite::where('point_mesure_id', $point->id);
+
+        if (! $allHistory) {
+            $query->where('date_mesure', '>=', now()->subDays($days));
+        }
+
+        return $query->orderBy('date_mesure')->get();
     }
 
     // ──────────────────────────────────────────────────────────────────────────
     // Context building
     // ──────────────────────────────────────────────────────────────────────────
 
-    private function buildContext(PointMesure $point, Collection $measurements, int $days): array
+    private function buildContext(PointMesure $point, Collection $measurements, int $days, bool $allHistory = false): array
     {
         $realCount = $measurements->filter(fn ($m) => ! $m->isSimulated())->count();
         $simCount  = $measurements->filter(fn ($m) => $m->isSimulated())->count();
@@ -155,6 +158,7 @@ class RagAnalysisService
         return [
             'point'         => ['code' => $point->code, 'nom' => $point->nom, 'zone' => $point->zone, 'type' => $point->type],
             'window_days'   => $days,
+            'all_history'   => $allHistory,
             'total_obs'     => $measurements->count(),
             'real_obs'            => $realCount,
             'simulated_obs'       => $simCount,
@@ -561,6 +565,8 @@ PROMPT;
             'temporal_coverage'      => $context['temporal_coverage'] ?? 0.0,
             'first_date'             => $context['first_date'] ?? null,
             'last_date'              => $context['last_date'] ?? null,
+            'analyzed_measurements'  => $context['total_obs'],
+            'latest_measurements'    => collect($context['measurements'] ?? [])->sortByDesc('date')->take(12)->values()->all(),
             'references'             => $context['references'],
             'recommendations'        => $recommendations,
             'interpretation'         => $interpretation,

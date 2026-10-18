@@ -108,6 +108,9 @@
                                     {{ $point->nom }}
                                 </a>
                                 <div class="text-xs text-slate-400">{{ $point->zone ?: 'Zone non définie' }}</div>
+                                @if($point->infrastructure)
+                                    <div class="mt-1 text-[11px] text-cyan-300">Infrastructure : {{ $point->infrastructure->nom }}</div>
+                                @endif
                             </td>
                             <td class="p-4">
                                 <span class="px-2 py-0.5 rounded text-xs bg-slate-800 border border-slate-700 text-slate-300 font-medium">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePointMesureRequest;
 use App\Http\Requests\UpdatePointMesureRequest;
 use App\Models\AuditLog;
+use App\Models\Infrastructure;
 use App\Models\PointMesure;
 use App\Models\Zone;
 use Illuminate\Http\RedirectResponse;
@@ -17,7 +18,7 @@ class PointMesureController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = PointMesure::with('derniereMesure');
+        $query = PointMesure::with(['derniereMesure', 'infrastructure.zone']);
 
         // Search by keyword in name, code, zone, address
         if ($search = trim((string) $request->input('search', ''))) {
@@ -65,6 +66,7 @@ class PointMesureController extends Controller
         $pointForm = [
             'zones'   => $zones,
             'nextCode' => $nextCode,
+            'infrastructures' => Infrastructure::with('zone')->orderBy('nom')->get(),
         ];
 
         return view('manager.points-mesure.create', $pointForm);
@@ -74,6 +76,7 @@ class PointMesureController extends Controller
     {
         $point = DB::transaction(function () use ($request) {
             $data             = $request->validated();
+            $data             = $this->syncInfrastructureZone($data);
             $data['code']     = $this->generateUniqueCode($data['code'] ?? null);
             $point = PointMesure::create($data);
 
@@ -90,7 +93,10 @@ class PointMesureController extends Controller
 
     public function show(PointMesure $point_mesure): View
     {
-        $point_mesure->load(['mesuresQualites' => fn ($query) => $query->latest('date_mesure')]);
+        $point_mesure->load([
+            'infrastructure.zone',
+            'mesuresQualites' => fn ($query) => $query->latest('date_mesure'),
+        ]);
 
         return view('manager.points-mesure.show', ['point' => $point_mesure]);
     }
@@ -102,6 +108,7 @@ class PointMesureController extends Controller
         return view('manager.points-mesure.edit', [
             'point' => $point_mesure,
             'zones' => $zones,
+            'infrastructures' => Infrastructure::with('zone')->orderBy('nom')->get(),
         ]);
     }
 
@@ -109,6 +116,7 @@ class PointMesureController extends Controller
     {
         DB::transaction(function () use ($request, $point_mesure) {
             $data           = $request->validated();
+            $data           = $this->syncInfrastructureZone($data);
             $data['code']   = $this->resolveExistingCode($request, $point_mesure);
             $point_mesure->update($data);
 
@@ -160,6 +168,37 @@ class PointMesureController extends Controller
         return $code !== null && $code !== ''
             ? $code
             : $point_mesure->code;
+    }
+
+    /**
+     * Keep the point's zone in sync with its linked network infrastructure.
+     *
+     * External sampling stations may remain unlinked, so a null infrastructure
+     * keeps the legacy zone label while clearing the relational zone foreign key.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function syncInfrastructureZone(array $data): array
+    {
+        if (! array_key_exists('infrastructure_id', $data)) {
+            return $data;
+        }
+
+        if (empty($data['infrastructure_id'])) {
+            $data['zone_id'] = null;
+
+            return $data;
+        }
+
+        $infrastructure = Infrastructure::with('zone')->findOrFail($data['infrastructure_id']);
+        $data['zone_id'] = $infrastructure->zone_id;
+
+        if ($infrastructure->zone) {
+            $data['zone'] = $infrastructure->zone->nom;
+        }
+
+        return $data;
     }
 
     /**

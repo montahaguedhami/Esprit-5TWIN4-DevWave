@@ -208,13 +208,19 @@
                     <label class="dc-label">Fichier source</label>
                     <input type="file" name="file" accept=".csv,.txt,.xlsx,.xls"
                            class="dc-file-input" required>
+                    <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                        <span>Colonnes reconnues : code/point, nom, date, pH, turbidité, chlore, plomb, nitrates.</span>
+                        <a href="{{ route('manager.data-collection.template-csv') }}" class="inline-flex items-center gap-1 font-semibold text-cyan-700 hover:text-cyan-800 hover:underline">
+                            <i data-lucide="download" style="width:.75rem;height:.75rem"></i> Modèle CSV exemple
+                        </a>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button type="submit" class="dc-btn-primary">
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" class="dc-btn-primary" id="btn-submit-csv-import">
                         <i data-lucide="upload" style="width:.875rem;height:.875rem"></i>
-                        Importer
+                        <span>Importer</span>
                     </button>
-                    <span id="import-result" class="text-xs text-slate-500"></span>
+                    <span id="import-result" class="text-xs font-medium text-slate-600"></span>
                 </div>
             </form>
         </div>
@@ -323,19 +329,51 @@
         csvForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const resultEl = document.getElementById('import-result');
-            if (resultEl) resultEl.textContent = 'Import en cours…';
+            const submitBtn = document.getElementById('btn-submit-csv-import');
+            if (resultEl) {
+                resultEl.className = 'text-xs font-medium text-slate-500';
+                resultEl.textContent = 'Importation en cours…';
+            }
+            if (submitBtn) submitBtn.disabled = true;
+
             try {
-                const res     = await fetch(importUrl, {
+                const res = await fetch(importUrl, {
                     method: 'POST',
                     headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: new FormData(e.currentTarget),
                 });
                 const payload = await res.json();
-                if (!res.ok) throw new Error(payload.message || 'Erreur import');
-                if (resultEl) resultEl.textContent = payload.message;
-                setTimeout(() => window.location.reload(), 1200);
+                if (!res.ok) {
+                    throw new Error(payload.message || 'Une erreur est survenue lors de l’importation.');
+                }
+
+                const imported = payload.result?.imported || 0;
+                const skipped  = payload.result?.skipped || 0;
+                const failed   = payload.result?.failed || 0;
+
+                const rowErrors = payload.result?.errors || [];
+                const detail = rowErrors.map((item) => `${item.station_code || item.external_id}: ${item.message}`).join(' ; ');
+
+                if (resultEl) {
+                    if (imported > 0) {
+                        resultEl.className = 'text-xs font-semibold text-emerald-600';
+                        resultEl.textContent = `Succès : ${payload.message || `${imported} mesure(s) importée(s).`} Actualisation…`;
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else if (skipped > 0 && failed === 0) {
+                        resultEl.className = 'text-xs font-medium text-amber-700';
+                        resultEl.textContent = `Information : toutes les mesures (${skipped}) sont déjà présentes dans la base de données.`;
+                    } else {
+                        resultEl.className = 'text-xs font-medium text-slate-700';
+                        resultEl.textContent = detail ? `${payload.message} (${detail})` : payload.message;
+                    }
+                }
             } catch (err) {
-                if (resultEl) resultEl.textContent = 'Erreur : ' + err.message;
+                if (resultEl) {
+                    resultEl.className = 'text-xs font-semibold text-red-600';
+                    resultEl.textContent = 'Erreur : ' + err.message;
+                }
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
             }
         });
     }
