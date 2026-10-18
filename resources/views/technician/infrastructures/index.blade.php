@@ -1,8 +1,8 @@
-@extends('layouts.technician')
+@extends('layouts.manager')
 
 @section('title', 'Mes Ouvrages Assignés — Technicien')
 
-@section('technician-content')
+@section('manager-content')
 <div class="max-w-6xl mx-auto space-y-6">
 
     {{-- En-tête mobile-first --}}
@@ -75,9 +75,6 @@
 
     {{-- Formulaire de filtres mobile-friendly --}}
     <form method="GET" action="{{ route('technician.infrastructures.index') }}" class="glass rounded-2xl p-4 border border-white/10 space-y-3">
-        @if(request()->filled('zone_id'))
-            <input type="hidden" name="zone_id" value="{{ request('zone_id') }}">
-        @endif
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             <div class="sm:col-span-5 relative">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-100/40"></i>
@@ -110,7 +107,7 @@
                 <button type="submit" class="w-full py-2 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-all">
                     Filtrer
                 </button>
-                @if(request()->hasAny(['q', 'etat', 'type', 'open_only', 'zone_id']))
+                @if(request()->hasAny(['q', 'etat', 'type', 'open_only']))
                 <a href="{{ route('technician.infrastructures.index') }}" class="p-2 rounded-xl glass text-cyan-300 hover:text-white text-xs transition-colors" title="Réinitialiser">
                     <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                 </a>

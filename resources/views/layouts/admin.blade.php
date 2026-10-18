@@ -35,13 +35,11 @@
             <div class="sidebar-section">
                 <p class="sidebar-section-label">Gestion système</p>
                 <x-admin-nav-item route="admin.users.index" icon="users"            label="Utilisateurs" />
+                <x-admin-nav-item route="admin.roles"       icon="shield-check"     label="Rôles & permissions" />
+                <x-admin-nav-item route="manager.map"       icon="map"              label="Carte réseau" />
                 <x-admin-nav-item route="admin.zones.index" active-route="admin.zones.*" icon="map-pinned" label="Zones" />
                 <x-admin-nav-item route="admin.infrastructures.index" active-route="admin.infrastructures.*" icon="construction" label="Infrastructures" />
-                <x-admin-nav-item route="admin.projets.index" active-route="admin.projets.*" icon="folder-kanban" label="Projets" />
-                <x-admin-nav-item route="admin.budget" icon="wallet" label="Budgets" />
-                <x-admin-nav-item route="admin.qualite" icon="flask-conical" label="Qualité de l’eau" />
-                <x-admin-nav-item route="admin.incidents" icon="alert-triangle" label="Incidents" />
-                <x-admin-nav-item route="admin.interventions" icon="wrench" label="Interventions" />
+                <x-admin-nav-item route="admin.settings.infrastructure-risk" active-route="admin.settings.infrastructure-risk*" icon="activity" label="Modèle de risque" />
                 <x-admin-nav-item route="admin.logs"        icon="file-text"        label="Historique Logs" />
             </div>
 

@@ -1,8 +1,8 @@
-@extends('layouts.technician')
+@extends('layouts.manager')
 
 @section('title', 'Zone ' . $zone->nom . ' — Technicien')
 
-@section('technician-content')
+@section('manager-content')
 <div class="max-w-6xl mx-auto space-y-6">
 
     @php

@@ -10,7 +10,9 @@ use App\Http\Requests\UpdateInfrastructureEtatRequest;
 use App\Http\Requests\UpdateInfrastructureRequest;
 use App\Models\Infrastructure;
 use App\Models\InfrastructureAlerte;
+use App\Models\InfrastructureRiskPrediction;
 use App\Models\Zone;
+use App\Services\FailureRiskService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,8 +32,9 @@ class InfrastructureController extends Controller
         $etat = is_string($rawEtat) && $rawEtat !== '' ? InfrastructureEtat::tryFrom($rawEtat) : null;
 
         $santeFiltre = $request->query('sante'); // 'critique' | 'retard'
+        $riskFilter = $request->query('risk');
 
-        $allowedSorts = ['nom', 'type', 'etat', 'date_installation', 'zone', 'niveau_criticite', 'capacite'];
+        $allowedSorts = ['nom', 'type', 'etat', 'date_installation', 'zone', 'niveau_criticite', 'capacite', 'risk'];
         $rawSort = (string) $request->query('sort');
         $sort = in_array($rawSort, $allowedSorts, true) ? $rawSort : 'nom';
 
@@ -39,7 +42,7 @@ class InfrastructureController extends Controller
         $direction = in_array($rawDirection, ['asc', 'desc'], true) ? $rawDirection : 'asc';
 
         $query = Infrastructure::query()
-            ->with('zone')
+            ->with(['zone', 'latestRiskPrediction'])
             ->withCount([
                 'interventions as interventions_12_mois_count' => fn ($q) => $q->where('date', '>=', now()->subYear()),
             ])
@@ -48,9 +51,22 @@ class InfrastructureController extends Controller
             ->when($type !== null, fn ($query) => $query->deType($type))
             ->when($etat !== null, fn ($query) => $query->dEtat($etat))
             ->when($santeFiltre === 'retard', fn ($query) => $query->enRetardMaintenance())
-            ->when($santeFiltre === 'critique', fn ($query) => $query->santeCritique());
+            ->when($santeFiltre === 'critique', fn ($query) => $query->santeCritique())
+            ->when(
+                in_array($riskFilter, ['Faible', 'Moyen', 'Élevé', 'Critique'], true),
+                fn ($query) => $query->whereHas('latestRiskPrediction', fn ($riskQuery) => $riskQuery->where('level', $riskFilter)),
+            );
 
-        if ($sort === 'zone') {
+        if ($sort === 'risk') {
+            $query->orderBy(
+                InfrastructureRiskPrediction::query()
+                    ->select('probability')
+                    ->whereColumn('infrastructure_id', 'infrastructures.id')
+                    ->orderByDesc('computed_at')
+                    ->limit(1),
+                $direction,
+            );
+        } elseif ($sort === 'zone') {
             $query->orderBy(
                 Zone::select('nom')->whereColumn('zones.id', 'infrastructures.zone_id'),
                 $direction
@@ -67,7 +83,7 @@ class InfrastructureController extends Controller
             ->take(6)
             ->get();
 
-        return view($request->routeIs('admin.*') ? 'admin.inventory.infrastructures.index' : 'manager.infrastructures.index', [
+        return view('manager.infrastructures.index', [
             'infrastructures' => $infrastructures,
             'zones' => Zone::orderBy('nom')->get(['id', 'nom']),
             'types' => InfrastructureType::cases(),
@@ -79,6 +95,7 @@ class InfrastructureController extends Controller
                 'type' => $type?->value ?? '',
                 'etat' => $etat?->value ?? '',
                 'sante' => $santeFiltre ?? '',
+                'risk' => in_array($riskFilter, ['Faible', 'Moyen', 'Élevé', 'Critique'], true) ? $riskFilter : '',
                 'sort' => $sort,
                 'direction' => $direction,
             ],
@@ -112,7 +129,7 @@ class InfrastructureController extends Controller
             ->with('success', 'Infrastructure créée avec succès.');
     }
 
-    public function show(Request $request, Infrastructure $infrastructure): View
+    public function show(Infrastructure $infrastructure, FailureRiskService $riskService, \App\Services\AiExplanationService $aiExplanation): View
     {
         $infrastructure->load([
             'zone',
@@ -124,11 +141,33 @@ class InfrastructureController extends Controller
 
         $sante = $infrastructure->sante;
         $coutTotalMaintenance = (float) $infrastructure->interventions->sum('cout');
+        $riskPrediction = $infrastructure->latestRiskPrediction;
+        $risk = $riskPrediction
+            ? [
+                'probability' => $riskPrediction->probability,
+                'level' => $riskPrediction->level,
+                'factors' => $riskPrediction->factors ?? [],
+            ]
+            : $riskService->predict($infrastructure);
+        $risk['recommendation'] = $riskService->recommendationFor($risk['factors'], $risk['level'], null, $infrastructure->id);
+        $fallbackExplanation = implode('. ', array_map(
+            static fn (string $factor): string => rtrim($factor, '. '),
+            array_slice(array_column($risk['factors'], 'explanation'), 0, 2),
+        ));
+        if ($fallbackExplanation === '') {
+            $fallbackExplanation = 'Les données disponibles indiquent une estimation du risque. Complétez les informations de maintenance pour affiner ce résultat.';
+        } else {
+            $fallbackExplanation .= '.';
+        }
+        $risk['explanation'] = $aiExplanation->explain($infrastructure->id, $risk['factors'], $fallbackExplanation);
+        $riskHistory = $infrastructure->riskPredictions()->limit(12)->get()->reverse()->values();
 
-        return view($request->routeIs('admin.*') ? 'admin.inventory.infrastructures.show' : 'manager.infrastructures.show', [
+        return view('manager.infrastructures.show', [
             'infrastructure' => $infrastructure,
             'sante' => $sante,
             'coutTotalMaintenance' => $coutTotalMaintenance,
+            'risk' => $risk,
+            'riskHistory' => $riskHistory,
             'etats' => InfrastructureEtat::cases(),
         ]);
     }
