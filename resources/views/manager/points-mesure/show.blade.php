@@ -10,6 +10,7 @@
         @if(session('success'))<div class="rounded-xl border border-teal-500/30 bg-teal-500/10 p-3 text-sm text-teal-200">{{ session('success') }}</div>@endif
         <div class="grid gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:grid-cols-3">
             <div><div class="text-xs text-slate-400">Type / statut</div><div>{{ $point->type }} · {{ ucfirst($point->statut) }}</div></div>
+            <div><div class="text-xs text-slate-400">Infrastructure associée</div><div>{{ $point->infrastructure?->nom ?? 'Aucune (station externe ou à rattacher)' }}</div>@if($point->infrastructure)<div class="text-xs text-slate-400">{{ $point->infrastructure->reference }} · {{ $point->infrastructure->zone?->nom ?? 'Zone non définie' }}</div>@endif</div>
             <div><div class="text-xs text-slate-400">Adresse</div><div>{{ $point->adresse ?: '—' }}</div></div>
             <div><div class="text-xs text-slate-400">Coordonnées</div><div>{{ $point->latitude ?? '—' }}, {{ $point->longitude ?? '—' }}</div></div>
             <div class="sm:col-span-3"><div class="text-xs text-slate-400">Description</div><div>{{ $point->description ?: '—' }}</div></div>

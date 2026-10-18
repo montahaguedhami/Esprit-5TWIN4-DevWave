@@ -70,13 +70,13 @@ final class NormalisedObservation
         public readonly array $rawMeta = [],
     ) {}
 
-    /**
-     * True only if the observation has the minimum parameters to be useful
-     * (at least one of ph, turbidite, or nitrates must be non-null).
-     */
     public function isUsable(): bool
     {
-        return $this->ph !== null || $this->turbidite !== null || $this->nitrates !== null;
+        return $this->ph !== null
+            || $this->turbidite !== null
+            || $this->nitrates !== null
+            || $this->chloreResiduel !== null
+            || $this->plomb !== null;
     }
 
     /**

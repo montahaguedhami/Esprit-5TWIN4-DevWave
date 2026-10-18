@@ -7,6 +7,9 @@
     .aqua-auth-page > section:first-child { background: linear-gradient(145deg,#123b57,#0d5b76); border-color: #1e7892; }
     .aqua-auth-page > section:first-child .text-white { color: #fff !important; }
     .aqua-auth-page > section:first-child [class*="text-cyan-100/"] { color: #c5e5ef !important; }
+    .aqua-auth-page > section:first-child .glass-strong { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.16) !important; }
+    .aqua-auth-page > section:first-child .glass-strong .text-white { color: #fff !important; }
+    .aqua-auth-page > section:first-child .glass-strong [class*="text-cyan-100/"] { color: #c5e5ef !important; }
     .aqua-auth-page > section:last-child { background: #fff; }
     .aqua-auth-page [class~="text-white"] { color: #102a43 !important; }
     .aqua-auth-page [class~="text-cyan-100/70"], .aqua-auth-page [class~="text-cyan-100/65"] { color: #52677a !important; }
@@ -14,6 +17,9 @@
     .aqua-auth-page [class*="bg-slate-950"] { background-color: #f5f8fb !important; }
     .aqua-auth-page [class*="border-cyan-400/"] { border-color: #d5e2eb !important; }
     .aqua-auth-page input:not([type="checkbox"]), .aqua-auth-page select { color: #102a43; background: #f8fafc; border-color: #cbd9e5; }
+    .aqua-auth-page > section:last-child .relative > input:not([type="checkbox"]) { padding-left: 2.75rem !important; }
+    .aqua-auth-page > section:last-child .relative > input[name="password"],
+    .aqua-auth-page > section:last-child .relative > input[name="password_confirmation"] { padding-right: 2.75rem !important; }
     .aqua-auth-page input::placeholder { color: #94a3b8; }
     .aqua-auth-page [class*="bg-gradient-to-r"],
     .aqua-auth-page [class*="bg-gradient-to-r"] [class~="text-white"],
@@ -88,7 +94,7 @@
         </div>
 
         <!-- Register Form -->
-        <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4">
+        <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4" autocomplete="off">
             @csrf
             
             <div>
@@ -102,6 +108,8 @@
                         id="name"
                         required 
                         minlength="3"
+                        value="{{ old('name') }}"
+                        autocomplete="off"
                         placeholder="Ex. Yassine Hamdi" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -119,6 +127,8 @@
                         name="email" 
                         id="email"
                         required 
+                        value="{{ old('email') }}"
+                        autocomplete="off"
                         placeholder="vous@exemple.tn" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -134,6 +144,7 @@
                     <input 
                         type="tel" 
                         name="phone" 
+                        autocomplete="off"
                         placeholder="+216 XX XXX XXX" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -152,6 +163,7 @@
                         id="password" 
                         required 
                         minlength="6" 
+                        autocomplete="new-password"
                         placeholder="••••••••" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -184,6 +196,7 @@
                         id="password_confirmation" 
                         required 
                         minlength="6" 
+                        autocomplete="new-password"
                         placeholder="••••••••" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />

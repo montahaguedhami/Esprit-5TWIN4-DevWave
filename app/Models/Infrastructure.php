@@ -69,6 +69,11 @@ class Infrastructure extends Model
         return $this->belongsTo(Zone::class);
     }
 
+    public function pointsMesure(): HasMany
+    {
+        return $this->hasMany(PointMesure::class);
+    }
+
     public function historiques(): HasMany
     {
         return $this->hasMany(InfrastructureHistorique::class)->orderByDesc('created_at')->orderByDesc('id');

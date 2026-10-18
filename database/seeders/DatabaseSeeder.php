@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\MesureQualite;
+use App\Models\PointMesure;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -34,6 +36,117 @@ class DatabaseSeeder extends Seeder
             WaterQualitySeeder::class,
             ZoneSeeder::class,
         ]);
+
+        // === MODULE QUALITÉ DE L'EAU — points de mesure de démonstration =========
+        // A few demo measurement points, so the quality dashboards are usable
+        // before any real data has been imported. Only managers/techniciens can
+        // import real measurements through the external connectors.
+        $demoPoints = [
+            [
+                'code'      => 'DEM-001',
+                'nom'       => 'Poste T1 — Centre Ville',
+                'zone'      => 'Grand Tunis',
+                'adresse'   => 'Rue des Sources, Tunis',
+                'latitude'  => 36.81,
+                'longitude' => 10.18,
+                'type'      => 'Station',
+                'statut'    => 'actif',
+            ],
+            [
+                'code'      => 'DEM-002',
+                'nom'       => 'Station T2 — Belvédère',
+                'zone'      => 'Grand Tunis',
+                'adresse'   => 'Av. de l’Océan, Tunis',
+                'latitude'  => 36.79,
+                'longitude' => 10.22,
+                'type'      => 'Station',
+                'statut'    => 'actif',
+            ],
+            [
+                'code'      => 'DEM-003',
+                'nom'       => 'Puits rural — Sousse',
+                'zone'      => 'Sahel',
+                'adresse'   => 'Km 4, route de Sousse',
+                'latitude'  => 35.83,
+                'longitude' => 10.63,
+                'type'      => 'Puits',
+                'statut'    => 'actif',
+            ],
+            [
+                'code'      => 'DEM-004',
+                'nom'       => 'Réservoir — Djerba',
+                'zone'      => 'Djerba',
+                'adresse'   => 'Port de Djerba',
+                'latitude'  => 34.87,
+                'longitude' => 10.37,
+                'type'      => 'Réservoir',
+                'statut'    => 'actif',
+            ],
+            [
+                'code'      => 'DEM-005',
+                'nom'       => 'Station T3 — Sfax',
+                'zone'      => 'Sfax',
+                'adresse'   => 'Avenue de la Liberté',
+                'latitude'  => 34.74,
+                'longitude' => 10.76,
+                'type'      => 'Station',
+                'statut'    => 'actif',
+            ],
+        ];
+
+        foreach ($demoPoints as $donnees) {
+            PointMesure::firstOrCreate(
+                ['code' => $donnees['code']],
+                $donnees + ['description' => 'Point de mesure de démonstration.']
+            );
+        }
+
+        // Synthetic measurements for those demo points (one per point, mixed
+        // outcomes so every dashboard state is visible). They are never
+        // presented as real field data: source_type is 'simulated'.
+        $syntheticMeasurements = [
+            [
+                'DEM-001', 'DEM-R01', '2026-10-10 08:30', 7.20, 0.40, 0.60,  5.00, 12.00, 'Compliant',
+            ],
+            [
+                'DEM-002', 'DEM-R02', '2026-10-11 09:15', 9.80, 2.50, null, 40.00, 25.00, 'Non-Compliant',
+            ],
+            [
+                'DEM-003', 'DEM-R03', '2026-10-12 10:00', 7.10, 0.90, 0.90, 12.00, 8.00, 'Compliant',
+            ],
+            [
+                'DEM-004', 'DEM-R04', '2026-10-13 11:45', 6.40, 1.20, null, 18.00, 10.00, 'Alert',
+            ],
+            [
+                'DEM-005', 'DEM-R05', '2026-10-14 14:20', 8.10, 0.30, 0.50, 25.00, 15.00, 'Compliant',
+            ],
+        ];
+
+        foreach ($syntheticMeasurements as [$pointCode, $reference, $date, $ph, $turbidite, $chloreResiduel, $plomb, $nitrates, $status]) {
+            $point = PointMesure::where('code', $pointCode)->firstOrFail();
+
+            MesureQualite::firstOrCreate(
+                ['reference' => $reference],
+                [
+                    'point_mesure_id'   => $point->id,
+                    'date_mesure'       => $date,
+                    'ph'                => $ph,
+                    'turbidite'         => $turbidite,
+                    'chlore_residuel'   => $chloreResiduel,
+                    'plomb'             => $plomb,
+                    'nitrates'          => $nitrates,
+                    'source_donnee'     => 'simule',
+                    'source_type'       => 'simulated',
+                    'status'            => $status,
+                    'overall_compliance' => match ($status) {
+                        'Compliant'      => 100.0,
+                        'Alert'          => 60.0,
+                        'Non-Compliant'  => 0.0,
+                        default           => null,
+                    },
+                ]
+            );
+        }
 
         // === MODULE PROJETS/FINANCEMENTS (Ghada) ===
         

@@ -289,8 +289,10 @@ Route::get('/manager/analytics', function () {
 
 Route::get('/manager/map', MapController::class)->name('manager.map');
 
-Route::get('/manager/quality', [WaterQualityController::class, 'index'])
-    ->name('manager.quality');
+    Route::get('/manager/analytics', fn () => view('manager.analytics'))->name('manager.analytics');
+    Route::get('/manager/map', MapController::class)->name('manager.map');
+    Route::get('/manager/quality', [WaterQualityController::class, 'index'])->name('manager.quality');
+    Route::delete('/manager/quality/mesures', [WaterQualityController::class, 'bulkDestroy'])->name('manager.quality.mesures.bulk-destroy');
 
 Route::resource('/manager/points-mesure', PointMesureController::class)
     ->parameters(['points-mesure' => 'point_mesure'])
@@ -336,6 +338,9 @@ Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function
     Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
     Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
+    Route::resource('zones', ZoneController::class);
+    Route::resource('infrastructures', InfrastructureController::class);
+});
 
     Route::resource('zones', ZoneController::class);
     Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
@@ -346,10 +351,19 @@ Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function
     Route::resource('infrastructures', InfrastructureController::class);
 });
 
-Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
-    Route::get('settings/infrastructure-risk', [InfrastructureRiskSettingsController::class, 'index'])->name('settings.infrastructure-risk');
-    Route::put('settings/infrastructure-risk', [InfrastructureRiskSettingsController::class, 'update'])->name('settings.infrastructure-risk.update');
-    Route::post('settings/infrastructure-risk/recompute', [InfrastructureRiskSettingsController::class, 'recomputeAll'])->name('settings.infrastructure-risk.recompute');
+Route::middleware('role:technicien')->prefix('technician')->name('technician.')->group(function () {
+    Route::get('/zones', [\App\Http\Controllers\Technician\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Technician\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/zones/{zone}/mesures/create', [\App\Http\Controllers\Technician\WaterQualityController::class, 'create'])->name('quality.create');
+    Route::post('/zones/{zone}/mesures', [\App\Http\Controllers\Technician\WaterQualityController::class, 'store'])->name('quality.store');
+    Route::get('/infrastructures', [\App\Http\Controllers\Technician\InfrastructureController::class, 'index'])->name('infrastructures.index');
+    Route::get('/infrastructures/{infrastructure}', [\App\Http\Controllers\Technician\InfrastructureController::class, 'show'])->name('infrastructures.show');
+    Route::patch('/infrastructures/{infrastructure}/etat', [\App\Http\Controllers\Technician\InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::get('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'scan'])->name('scan');
+    Route::post('/scan', [\App\Http\Controllers\Technician\InfrastructureController::class, 'processScan'])->name('scan.process');
+    Route::get('/tournee', [\App\Http\Controllers\Technician\TourneeController::class, 'index'])->name('tournee');
+    Route::get('/incidents/create', [\App\Http\Controllers\Technician\IncidentController::class, 'create'])->name('incidents.create');
+    Route::post('/incidents', [\App\Http\Controllers\Technician\IncidentController::class, 'store'])->name('incidents.store');
 });
 
 // Admin Space (BackOffice) - DEMO
@@ -376,19 +390,49 @@ Route::get('/admin/roles', function () {
     return view('admin.roles');
 })->name('admin.roles');
 
-Route::get('/admin/system', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.system');
-})->name('admin.system');
+        return redirect()->route($user['route'])->with('success', 'Passé au rôle : ' . $user['name']);
+    })->name('switch.role');
+}
 
-Route::get('/admin/logs', function () {
-    if (!session('user') || session('user.role') !== 'admin') {
-        return redirect()->route('auth.login');
-    }
-    return view('admin.logs');
-})->name('admin.logs');
+// ── Administrateur ────────────────────────────────────────────────────────────
+Route::middleware('role:administrateur')->group(function () {
+    Route::get('/admin/dashboard',   fn () => view('admin.dashboard'))->name('admin.dashboard');
+    Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
+    Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
+    Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
+    Route::patch('/admin/users/{user}/toggle-status', [\App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('admin.users.toggle-status');
+    Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('admin.users.destroy');
+    Route::get('/admin/logs',        [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.logs');
+    Route::get('/admin/system', function () {
+        $metrics = \App\Data\PlaceholderData::adminSystemMetrics();
+        $cutoff = now()->subMinutes(15)->timestamp;
+
+        if (config('session.driver') === 'database') {
+            $metrics['active_sessions'] = \Illuminate\Support\Facades\DB::table(config('session.table', 'sessions'))
+                ->where('last_activity', '>=', $cutoff)
+                ->count();
+        } elseif (config('session.driver') === 'file') {
+            $metrics['active_sessions'] = collect(\Illuminate\Support\Facades\File::files(config('session.files')))
+                ->filter(fn ($file) => $file->getMTime() >= $cutoff)
+                ->count();
+        }
+
+        return view('admin.system', compact('metrics'));
+    })->name('admin.system');
+    Route::get('/admin/security',    fn () => view('admin.security'))->name('admin.security');
+    Route::post('/admin/security/renew-sessions', [\App\Http\Controllers\Settings\SessionController::class, 'forceRenewAll'])->name('admin.security.renew-sessions');
+    Route::get('/admin/backups',     fn () => view('admin.backups'))->name('admin.backups');
+});
+
+// ── All authenticated roles ───────────────────────────────────────────────────
+Route::middleware('role:administrateur,manager,technicien,citoyen')->group(function () {
+    Route::get('/profile',                fn () => view('profile.show'))->name('profile.show');
+    Route::get('/settings',               [\App\Http\Controllers\Settings\SessionController::class, 'index'])->name('settings.index');
+    Route::delete('/settings/sessions/{sessionId}', [\App\Http\Controllers\Settings\SessionController::class, 'revoke'])->name('settings.sessions.revoke');
+    Route::post('/settings/sessions/revoke-others', [\App\Http\Controllers\Settings\SessionController::class, 'revokeOthers'])->name('settings.sessions.revoke-others');
+    Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
+    Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
+});
 
 Route::get('/admin/security', function () {
     if (!session('user') || session('user.role') !== 'admin') {
@@ -480,6 +524,15 @@ Route::prefix('manager/financements')->name('manager.financements.')->group(func
     Route::post('/', [App\Http\Controllers\Manager\FinancementController::class, 'store'])->name('store');
     Route::get('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'show'])->name('show');
     Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
-    Route::put('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
-    Route::delete('/{financement}', [App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+    Route::put('/{financement}',   [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
+    Route::delete('/{financement}',[App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});
+
+Route::middleware('role:manager')->group(function () {
+    Route::post('/manager/data-collection/trigger',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'trigger'])->name('manager.data-collection.trigger');
+    Route::post('/manager/data-collection/import-csv',  [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
+    Route::get('/manager/data-collection/template-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'downloadTemplateCsv'])->name('manager.data-collection.template-csv');
+    Route::get('/manager/data-collection/status',       [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
+    Route::get('/manager/data-collection/history',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
+    Route::get('/manager/quality/{point}/analyse',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
 });

@@ -27,12 +27,22 @@
                 </thead>
                 <tbody class="divide-y divide-slate-800">
                     @forelse($points as $point)
-                        <tr>
-                            <td class="p-4 font-mono text-cyan-300">{{ $point->code }}</td>
-                            <td class="p-4"><a class="font-semibold text-white hover:underline" href="{{ route('manager.points-mesure.show', $point) }}">{{ $point->nom }}</a><div class="text-xs text-slate-400">{{ $point->zone ?: '—' }}</div></td>
-                            <td class="p-4">{{ $point->type }}</td>
-                            <td class="p-4">{{ ucfirst($point->statut) }}</td>
-                            <td class="p-4 text-slate-300">{{ $point->derniereMesure?->date_mesure?->format('d/m/Y H:i') ?? 'Aucune' }}</td>
+                        <tr class="hover:bg-slate-800/40 transition-colors">
+                            <td class="p-4 font-mono text-cyan-300 font-semibold">{{ $point->code }}</td>
+                            <td class="p-4">
+                                <a class="font-semibold text-white hover:text-teal-300 hover:underline transition-colors" href="{{ route('manager.points-mesure.show', $point) }}">
+                                    {{ $point->nom }}
+                                </a>
+                                <div class="text-xs text-slate-400">{{ $point->zone ?: 'Zone non définie' }}</div>
+                                @if($point->infrastructure)
+                                    <div class="mt-1 text-[11px] text-cyan-300">Infrastructure : {{ $point->infrastructure->nom }}</div>
+                                @endif
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2 py-0.5 rounded text-xs bg-slate-800 border border-slate-700 text-slate-300 font-medium">
+                                    {{ $point->type }}
+                                </span>
+                            </td>
                             <td class="p-4">
                                 <div class="flex flex-wrap gap-2">
                                     <a class="text-cyan-300 hover:underline" href="{{ route('manager.points-mesure.edit', $point) }}">Modifier</a>

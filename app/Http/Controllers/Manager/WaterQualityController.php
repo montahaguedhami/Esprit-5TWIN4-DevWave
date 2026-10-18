@@ -17,16 +17,32 @@ class WaterQualityController extends Controller
 
     public function index(): View
     {
-        if (! session('user')) {
-            session(['user' => ['name' => 'Dr. Selim Dridi', 'email' => 'quality@aquasecure.tn', 'role' => 'manager', 'role_key' => 'quality']]);
+        $query = MesureQualite::with('pointMesure.infrastructure');
+
+        // Search by keyword (reference, point name, point code, or zone)
+        if ($search = trim((string) $request->input('search', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('reference', 'like', "%{$search}%")
+                  ->orWhereHas('pointMesure', function ($sub) use ($search) {
+                      $sub->where('nom', 'like', "%{$search}%")
+                          ->orWhere('code', 'like', "%{$search}%")
+                          ->orWhere('zone', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter by point de mesure
+        if ($pointId = $request->input('point_mesure_id')) {
+            $query->where('point_mesure_id', (int) $pointId);
         }
 
         $records = MesureQualite::with('pointMesure')
             ->latest('date_mesure')
             ->get()
             ->map(fn (MesureQualite $mesure) => $this->recordForView($mesure));
-        $latestMeasurement = MesureQualite::with('pointMesure')->latest('date_mesure')->first();
-        $latestAssessment = $latestMeasurement
+
+        $latestMeasurement = MesureQualite::with('pointMesure.infrastructure')->latest('date_mesure')->first();
+        $latestAssessment  = $latestMeasurement
             ? $this->waterQualityService->assess($latestMeasurement->only([
                 'ph',
                 'turbidite',
@@ -39,9 +55,24 @@ class WaterQualityController extends Controller
             ? round($records->avg('overall_compliance'), 2)
             : null;
         $activePointsCount = PointMesure::where('statut', 'actif')->count();
-        $chartCutoff = now()->subDays(30)->format('Y-m-d H:i');
-        $chartRecords = $records->reverse()
-            ->filter(fn (array $record) => $record['date'] >= $chartCutoff)
+        $recentMeasurementsCount = MesureQualite::where('date_mesure', '>=', now()->subDays(7))->count();
+        $activeAlertsCount = MesureQualite::where('date_mesure', '>=', now()->subDays(30))
+            ->whereIn('status', ['Alert', 'Non-Compliant'])
+            ->count();
+        $realMeasurementsCount = MesureQualite::where('date_mesure', '>=', now()->subDays(30))
+            ->where('source_type', 'real')
+            ->count();
+        $recentMeasurementsBaseCount = MesureQualite::where('date_mesure', '>=', now()->subDays(30))->count();
+        $realDataCoverage = $recentMeasurementsBaseCount > 0
+            ? round(($realMeasurementsCount / $recentMeasurementsBaseCount) * 100, 1)
+            : 0.0;
+
+        $chartCutoff  = now()->subDays(30)->format('Y-m-d H:i');
+        $chartRecords = MesureQualite::with('pointMesure.infrastructure')
+            ->where('date_mesure', '>=', $chartCutoff)
+            ->oldest('date_mesure')
+            ->get()
+            ->map(fn (MesureQualite $mesure) => $this->recordForView($mesure))
             ->values();
         $points = PointMesure::with('derniereMesure')
             ->where('statut', 'actif')
@@ -50,6 +81,10 @@ class WaterQualityController extends Controller
             ->get()
             ->map(fn (PointMesure $point) => $this->pointForMap($point));
         $user = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
+
+        $allPointsForFilter = PointMesure::with('infrastructure')
+            ->orderBy('nom')
+            ->get(['id', 'nom', 'code', 'infrastructure_id']);
 
         return view('manager.quality', compact(
             'records',
@@ -68,7 +103,7 @@ class WaterQualityController extends Controller
         abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, 'Créez d’abord un point de mesure actif.');
 
         return view('manager.quality-measures.create', [
-            'points' => PointMesure::where('statut', 'actif')->orderBy('nom')->get(),
+            'points' => PointMesure::with('infrastructure')->where('statut', 'actif')->orderBy('nom')->get(),
         ]);
     }
 
@@ -86,7 +121,7 @@ class WaterQualityController extends Controller
 
     public function show(MesureQualite $mesure): View
     {
-        $mesure->load('pointMesure');
+        $mesure->load('pointMesure.infrastructure');
 
         return view('manager.quality-measures.show', compact('mesure'));
     }
@@ -95,7 +130,7 @@ class WaterQualityController extends Controller
     {
         return view('manager.quality-measures.edit', [
             'mesure' => $mesure,
-            'points' => PointMesure::orderBy('nom')->get(),
+            'points' => PointMesure::with('infrastructure')->orderBy('nom')->get(),
         ]);
     }
 
@@ -113,7 +148,53 @@ class WaterQualityController extends Controller
 
     public function destroy(MesureQualite $mesure): RedirectResponse
     {
-        $mesure->delete();
+        $this->authorize('delete', $mesure);
+
+        DB::transaction(function () use ($mesure) {
+            $ref = $mesure->reference;
+            $mesure->delete();
+
+            AuditLog::record('measurement_deleted', 'MesureQualite', null, [
+                'reference' => $ref,
+            ], auth()->user());
+        });
+
+        return redirect()->route('manager.quality')->with('success', 'La mesure a été supprimée avec succès.');
+    }
+
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'mesure_ids' => ['required', 'array', 'min:1', 'max:25'],
+            'mesure_ids.*' => ['required', 'integer', 'distinct', 'exists:mesures_qualites,id'],
+        ]);
+
+        $mesures = MesureQualite::whereIn('id', $validated['mesure_ids'])->get();
+        foreach ($mesures as $mesure) {
+            $this->authorize('delete', $mesure);
+        }
+
+        DB::transaction(function () use ($mesures) {
+            foreach ($mesures as $mesure) {
+                $reference = $mesure->reference;
+                $id = $mesure->id;
+                $mesure->delete();
+
+                AuditLog::record('measurement_deleted', 'MesureQualite', null, [
+                    'measurement_id' => $id,
+                    'reference' => $reference,
+                    'bulk' => true,
+                ], auth()->user());
+            }
+        });
+
+        return redirect()->route('manager.quality')
+            ->with('success', count($validated['mesure_ids']) . ' mesure(s) supprimée(s) avec succès.');
+    }
+
+    public function validateMeasurement(MesureQualite $mesure): RedirectResponse
+    {
+        $this->authorize('validate', $mesure);
 
         return redirect()->route('manager.quality')->with('success', 'La mesure a été supprimée.');
     }
@@ -132,20 +213,23 @@ class WaterQualityController extends Controller
         ]));
 
         return [
-            'id' => $mesure->reference,
-            'measurement_id' => $mesure->id,
-            'sampling_point' => $mesure->pointMesure?->nom ?? 'Point supprimé',
-            'zone' => $mesure->pointMesure?->zone ?? '—',
-            'date' => $mesure->date_mesure->format('Y-m-d H:i'),
-            'pH' => (float) $mesure->ph,
-            'turbidity' => (float) $mesure->turbidite,
-            'residual_chlorine' => (float) $mesure->chlore_residuel,
-            'lead_pb' => (float) $mesure->plomb,
-            'nitrates' => (float) $mesure->nitrates,
-            'is_verified' => $mesure->is_verified,
-            'verifier' => $mesure->verifier,
-            'overall_compliance' => $assessment['overall_compliance'],
-            'status' => $assessment['status'],
+            'id'                 => $mesure->reference,
+            'measurement_id'     => $mesure->id,
+            'point_mesure_id'    => $mesure->point_mesure_id,
+            'sampling_point'     => $mesure->pointMesure?->nom ?? 'Point supprimé',
+            'infrastructure'     => $mesure->pointMesure?->infrastructure?->nom,
+            'zone'               => $mesure->pointMesure?->zone ?? '—',
+            'date'               => $mesure->date_mesure?->format('Y-m-d H:i') ?? '-',
+            'pH'                 => (float) ($mesure->ph ?? 0),
+            'turbidity'          => (float) ($mesure->turbidite ?? 0),
+            'residual_chlorine'  => (float) ($mesure->chlore_residuel ?? 0),
+            'lead_pb'            => (float) ($mesure->plomb ?? 0),
+            'nitrates'           => (float) ($mesure->nitrates ?? 0),
+            'source_donnee'      => $mesure->source_donnee ?? 'manuel',
+            'is_verified'        => $mesure->is_verified,
+            'verifier'           => $mesure->verifier,
+            'overall_compliance' => (float) $mesure->overall_compliance,
+            'status'             => $mesure->status,
         ];
     }
 
