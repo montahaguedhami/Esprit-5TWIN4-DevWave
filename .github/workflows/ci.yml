@@ -48,7 +48,8 @@ jobs:
         with:
           php-version: '8.5'
           extensions: mbstring, bcmath, pdo_mysql, dom, fileinfo, xml, curl
-          coverage: none
+          # pcov : couverture de code pour SonarQube (plus rapide que Xdebug)
+          coverage: pcov
 
       - name: Validate Composer configuration
         run: composer validate --no-check-publish
@@ -122,7 +123,7 @@ jobs:
           DB_PASSWORD: test_password
 
       - name: Run Laravel tests
-        run: php artisan test
+        run: php artisan test --coverage-clover=coverage.xml
         env:
           APP_ENV: testing
           DB_CONNECTION: mysql
@@ -131,6 +132,24 @@ jobs:
           DB_DATABASE: aquasecure_test
           DB_USERNAME: aquasecure
           DB_PASSWORD: test_password
+
+      # Chemins relatifs à la racine du dépôt : le rapport reste valable quel que soit le runner d'analyse
+      - name: Make coverage paths relative
+        if: always()
+        run: |
+          if [ -f coverage.xml ]; then
+            sed -i "s#${GITHUB_WORKSPACE}/##g" coverage.xml
+          fi
+
+      # Rapport de couverture repris par le workflow SonarQube
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+          retention-days: 7
+          if-no-files-found: warn
 
   frontend:
     name: Build frontend assets
