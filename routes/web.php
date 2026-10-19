@@ -324,7 +324,53 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(
 
 // ── Manager ───────────────────────────────────────────────────────────────────
 Route::middleware('role:manager')->group(function () {
-    Route::get('/manager/dashboard', fn () => view('manager.dashboard'))->name('manager.dashboard');
+    Route::get('/manager/dashboard', function () {
+        // Variables requises par la vue manager.dashboard
+        $riskTop5  = collect();
+        $riskByZone = [];
+
+        // Charger depuis FailureRiskService si disponible
+        try {
+            if (class_exists(\App\Services\FailureRiskService::class)) {
+                $riskService = app(\App\Services\FailureRiskService::class);
+                if (method_exists($riskService, 'top5')) {
+                    $riskTop5 = $riskService->top5();
+                }
+                if (method_exists($riskService, 'byZone')) {
+                    $riskByZone = $riskService->byZone();
+                }
+            }
+        } catch (\Throwable $e) {
+            // Service indisponible — valeurs par défaut
+        }
+
+        // Statistiques incidents
+        $totalInc   = \App\Models\Incident::count();
+        $pendingInc = \App\Models\Incident::where('statut', 'en_attente')->count();
+        $inProgressInc  = \App\Models\Incident::where('statut', 'en_cours')->count();
+        $resolvedInc    = \App\Models\Incident::where('statut', 'resolu')->count();
+
+        // Projets en cours
+        $projects = \App\Models\Projet::where('statut', 'en_cours')->get();
+
+        // Financement
+        $funding = \App\Models\Financement::sum('montant');
+
+        // Données fictives / calculées pour les autres variables
+        $firstName      = session('user.name', 'Gestionnaire');
+        $municipalities = \App\Models\Zone::count();
+        $monthly        = [];
+        $qualityData    = [];
+        $stats          = [];
+        $reclamations   = collect();
+
+        return view('manager.dashboard', compact(
+            'riskTop5', 'riskByZone',
+            'totalInc', 'pendingInc', 'inProgressInc', 'resolvedInc',
+            'projects', 'funding', 'firstName', 'municipalities',
+            'monthly', 'qualityData', 'stats', 'reclamations'
+        ));
+    })->name('manager.dashboard');
 
     Route::get('/manager/budget', function () {
         $projets             = \App\Models\Projet::with('financements')->get();
@@ -430,7 +476,62 @@ if (app()->environment(['local', 'testing'])) {
 
 // ── Administrateur ────────────────────────────────────────────────────────────
 Route::middleware('role:administrateur')->group(function () {
-    Route::get('/admin/dashboard',   fn () => view('admin.dashboard'))->name('admin.dashboard');
+    Route::get('/admin/dashboard', function () {
+        // Variables requises par la vue admin.dashboard
+        $riskDistribution = ['Faible' => 0, 'Moyen' => 0, 'Élevé' => 0, 'Critique' => 0];
+
+        try {
+            if (class_exists(\App\Services\FailureRiskService::class)) {
+                $riskService = app(\App\Services\FailureRiskService::class);
+                if (method_exists($riskService, 'distribution')) {
+                    $riskDistribution = $riskService->distribution();
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // Statistiques incidents
+        $totalRec    = \App\Models\Incident::count();
+        $criticalRec = \App\Models\Incident::where('statut', 'critique')->count();
+        $progressRec = \App\Models\Incident::where('statut', 'en_cours')->count();
+        $resolvedRec = \App\Models\Incident::where('statut', 'resolu')->count();
+        $pendingRec  = \App\Models\Incident::where('statut', 'en_attente')->count();
+
+        // Utilisateurs
+        $citizens     = \App\Models\User::whereHas('roles', fn ($q) => $q->where('slug', 'citoyen'))->count();
+        $managers     = \App\Models\User::whereHas('roles', fn ($q) => $q->where('slug', 'manager'))->count();
+        $technicians  = \App\Models\User::whereHas('roles', fn ($q) => $q->where('slug', 'technicien'))->count();
+        $accounts     = \App\Models\User::count();
+
+        // Techniciens
+        $techCount     = $technicians;
+        $techAvail     = 0;
+        $techOnMission = 0;
+
+        // Incidents 7j
+        $inc7d = \App\Models\Incident::where('created_at', '>=', now()->subDays(7))->count();
+
+        // Zones
+        $mapZones    = \App\Models\Zone::withCount('incidents')->get();
+        $zoneOverview = $mapZones;
+
+        // Données par défaut
+        $reclamations = collect();
+        $resHistory   = [];
+        $distData     = [];
+
+        return view('admin.dashboard', compact(
+            'riskDistribution', 'mapZones', 'zoneOverview',
+            'totalRec', 'criticalRec', 'progressRec', 'resolvedRec', 'pendingRec',
+            'citizens', 'managers', 'technicians', 'accounts',
+            'techCount', 'techAvail', 'techOnMission', 'inc7d',
+            'reclamations', 'resHistory', 'distData'
+        ));
+    })->name('admin.dashboard');
+
+    // Route manquante pour les paramètres du modèle de risque
+    Route::get('/admin/settings/infrastructure-risk',
+        [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'index']
+    )->name('admin.settings.infrastructure-risk');
     Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
