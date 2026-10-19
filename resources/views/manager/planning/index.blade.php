@@ -180,8 +180,8 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales/fr.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js" integrity="sha384-B1OFx8Gy9GjPu8UbUyXbGQpzll9ubAUQ9agInFJ8NnD7nYG1u/CLR+Sqr5yifl4q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales/fr.global.min.js" integrity="sha384-JAvKXRZVkNs+jHQB9thGYPx3J0NTR+B8/bjh00vSzKTuOs7TZUN3ioWKYalj2Yhb" crossorigin="anonymous"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var csrf = document.querySelector('meta[name="csrf-token"]').content;
