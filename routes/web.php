@@ -372,17 +372,15 @@ Route::middleware('role:manager')->group(function () {
         ));
     })->name('manager.dashboard');
 
-    Route::get('/manager/budget', function () {
-        $projets             = \App\Models\Projet::with('financements')->get();
-        $financements        = \App\Models\Financement::with('projet')->latest()->get();
-        $totalBudget         = $projets->sum('budget');
-        $totalFinance        = $financements->sum('montant');
-        $budgetRestant       = $totalBudget - $totalFinance;
-        $pourcentageUtilise  = $totalBudget > 0 ? ($totalFinance / $totalBudget * 100) : 0;
-        $sourcesUniques      = $financements->pluck('source')->unique()->count();
-
-        return view('manager.budget', compact('projets', 'financements', 'totalBudget', 'totalFinance', 'budgetRestant', 'pourcentageUtilise', 'sourcesUniques'));
+    Route::get('/manager/budget', function (\App\Services\BudgetReportService $service) {
+        return view('manager.budget', $service->stats());
     })->name('manager.budget');
+
+    // ── Export du rapport budgétaire (mêmes données que l'écran) ──────────
+    Route::get('/manager/budget/export/csv', [\App\Http\Controllers\Manager\BudgetExportController::class, 'exportCsv'])
+        ->name('manager.budget.export.csv');
+    Route::get('/manager/budget/export/pdf', [\App\Http\Controllers\Manager\BudgetExportController::class, 'exportPdf'])
+        ->name('manager.budget.export.pdf');
 
     Route::get('/manager/analytics', fn () => view('manager.analytics'))->name('manager.analytics');
     Route::get('/manager/map', MapController::class)->name('manager.map');
