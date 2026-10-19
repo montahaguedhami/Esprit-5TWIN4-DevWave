@@ -21,6 +21,9 @@
         <p class="text-cyan-100/55 text-sm mt-1">Découvrez les projets d'amélioration du réseau d'eau dans votre région</p>
     </div>
 
+    <!-- ── Recommandés pour vous ─────────────────────────────────────────── -->
+    @include('citizen.recommandations._section', ['compact' => true])
+
     <!-- Filters & Search -->
     <div class="glass rounded-2xl p-4">
         <form method="GET" action="{{ route('citizen.projets.index') }}" class="flex flex-wrap gap-3">
@@ -62,14 +65,28 @@
         @foreach($projets as $projet)
         @php $ss = $statusStyle[$projet->statut]; @endphp
         <article class="glass rounded-2xl p-5 hover-lift cursor-pointer" onclick="window.location='{{ route('citizen.projets.show', $projet) }}'">
-            <!-- Status Badge -->
+            <!-- Status Badge + Favourite -->
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $ss['bg'] }} {{ $ss['text'] }}">
                     {{ $ss['label'] }}
                 </span>
-                @if($projet->hasGeolocation())
-                <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400" title="Géolocalisé"></i>
-                @endif
+                <div class="flex items-center gap-1.5">
+                    @if($projet->hasGeolocation())
+                    <i data-lucide="map-pin" class="w-4 h-4 text-cyan-400" title="Géolocalisé"></i>
+                    @endif
+                    {{-- ── Favori : s'arrête à lui-même, sinon il déclencherait ── --}}
+                    {{--     le clic de la carte et naviguerait vers le détail.      --}}
+                    <button type="button"
+                            class="favori-toggle w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-colors {{ ($favoris[$projet->id] ?? false) ? 'bg-amber-400/15 border-amber-400/40 text-amber-300' : 'bg-white/5 border-white/10 text-cyan-100/50 hover:text-white' }}"
+                            data-projet-id="{{ $projet->id }}"
+                            data-url="{{ route('citizen.projets.favori.basculer', $projet) }}"
+                            data-etat="{{ ($favoris[$projet->id] ?? false) ? '1' : '0' }}"
+                            aria-pressed="{{ ($favoris[$projet->id] ?? false) ? 'true' : 'false' }}"
+                            aria-label="{{ ($favoris[$projet->id] ?? false) ? 'Retirer ce projet de vos favoris' : 'Ajouter ce projet à vos favoris' }}"
+                            title="{{ ($favoris[$projet->id] ?? false) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}">
+                        <i data-lucide="star" class="w-4 h-4 {{ ($favoris[$projet->id] ?? false) ? 'fill-current' : '' }}"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Project Name -->
@@ -184,9 +201,96 @@
 
 @push('scripts')
 <script>
-    // Refresh Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
+    // ── Favoris : bascule AJAX ────────────────────────────────────────────────
+    // Un seul écouteur, délégué au document : les boutons ajoutés
+    // dynamiquement (pagination, recommandations) fonctionnent sans être
+    // ré-attachés. Aucune dépendance externe.
+    (function () {
+        const ENVOI = new Map();   // projetId → promesse, pour ignorer un double clic
+
+        document.addEventListener('click', async function (evenement) {
+            const bouton = evenement.target.closest('.favori-toggle');
+            if (!bouton) { return; }
+
+            // Stoppe la propagation : sur une carte, le clic ouvre le détail.
+            evenement.preventDefault();
+            evenement.stopPropagation();
+
+            const projetId = bouton.dataset.projetId;
+            if (ENVOI.has(projetId)) { return; }   // requête déjà en vol
+            ENVOI.set(projetId, true);
+
+            const etaitFavori = bouton.dataset.etat === '1';
+
+            try {
+                // PATCH = bascule : le serveur décide lui-même de l'état final,
+                // ce qui évite qu'un état affiché périmécré déclenche deux fois
+                // le même effet.
+                const reponse = await fetch(bouton.dataset.url, {
+                    method: 'PATCH',
+                    headers: {
+                        'Accept':       'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                });
+
+                if (!reponse.ok) { throw new Error('HTTP ' + reponse.status); }
+
+                const donnees = await reponse.json();
+
+                appliquerEtat(bouton, donnees.favori);
+                notifier(donnees.message, donnees.favori);
+
+                // Sur la page « Mes favoris », un retrait retire la carte.
+                if (bouton.dataset.retour === 'page' && !donnees.favori) {
+                    const carte = bouton.closest('article');
+                    if (carte) {
+                        carte.style.transition = 'opacity .2s';
+                        carte.style.opacity = '0';
+                        setTimeout(() => window.location.reload(), 220);
+                        return;
+                    }
+                }
+            } catch (erreur) {
+                // L'état n'a pas changé côté serveur : on restaure l'affichage
+                // plutôt que de laisser un bouton mentir.
+                appliquerEtat(bouton, etaitFavori);
+                notifier('Action impossible pour le moment.', false);
+            } finally {
+                ENVOI.delete(projetId);
+            }
+        });
+
+        function appliquerEtat(bouton, estFavori) {
+            bouton.dataset.etat = estFavori ? '1' : '0';
+            bouton.setAttribute('aria-pressed', estFavori ? 'true' : 'false');
+
+            bouton.classList.toggle('bg-amber-400/15', estFavori);
+            bouton.classList.toggle('border-amber-400/40', estFavori);
+            bouton.classList.toggle('text-amber-300', estFavori);
+            bouton.classList.toggle('bg-white/5',      !estFavori);
+            bouton.classList.toggle('border-white/10', !estFavori);
+            bouton.classList.toggle('text-cyan-100/50',!estFavori);
+
+            const etoile = bouton.querySelector('[data-lucide="star"]');
+            if (etoile) { etoile.classList.toggle('fill-current', estFavori); }
+            if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+        }
+
+        function notifier(message, succes) {
+            if (!message) { return; }
+            const zone = document.getElementById('fo-flash');
+            if (!zone) { return; }
+            zone.innerHTML =
+                '<div class="rounded-xl px-4 py-3 text-sm font-semibold ' +
+                (succes ? 'bg-teal-500/15 text-teal-300 border border-teal-400/25'
+                        : 'bg-amber-500/15 text-amber-300 border border-amber-400/25') +
+                '">' + message + '</div>';
+            setTimeout(() => { zone.innerHTML = ''; }, 3200);
+        }
+    })();
+
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 </script>
 @endpush

@@ -8,6 +8,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Validation\ValidationException;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -91,5 +93,49 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
             'rol' => $this->roles->first()?->slug ?? null,
             'aud' => 'aquasecure-api',
         ];
+    }
+
+    /* ── Recommandation de projets (V1 à règles) ─────────────────────────── */
+
+    /**
+     * Favourite rows saved by this citizen.
+     */
+    public function favoris(): HasMany
+    {
+        return $this->hasMany(Favori::class);
+    }
+
+    /**
+     * The projects this citizen saved, most recent first.
+     *
+     * Eager-loads the zones so a favourite list never issues one query per
+     * card.
+     */
+    public function projetsFavoris(): BelongsToMany
+    {
+        return $this->belongsToMany(Projet::class, 'favoris', 'user_id', 'projet_id')
+            ->withTimestamps()
+            ->orderByDesc('favoris.created_at')
+            ->orderByDesc('projets.id');
+    }
+
+    /**
+     * Consultation rows recorded for this citizen.
+     */
+    public function consultations(): HasMany
+    {
+        return $this->hasMany(ConsultationProjet::class);
+    }
+
+    /**
+     * Confirmed fundings made by this citizen.
+     *
+     * Only rows carrying a `user_id` are citizen fundings: a funding entered
+     * manually by a manager has no author and must never feed a personal
+     * profile.
+     */
+    public function financements(): HasMany
+    {
+        return $this->hasMany(Financement::class);
     }
 }

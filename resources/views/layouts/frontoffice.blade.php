@@ -64,6 +64,16 @@
                     <i data-lucide="briefcase"></i>
                     <span>Projets</span>
                 </a>
+                <a href="{{ route('citizen.favoris') }}"
+                   class="fo-nav-link {{ request()->routeIs('citizen.favoris') ? 'is-active' : '' }}">
+                    <i data-lucide="star"></i>
+                    <span>Mes favoris</span>
+                </a>
+                <a href="{{ route('citizen.recommandations') }}"
+                   class="fo-nav-link {{ request()->routeIs('citizen.recommandations') ? 'is-active' : '' }}">
+                    <i data-lucide="sparkles"></i>
+                    <span>Recommandations</span>
+                </a>
                 <a href="{{ route('citizen.portefeuille') }}"
                    class="fo-nav-link {{ request()->routeIs('citizen.portefeuille') ? 'is-active' : '' }}">
                     <i data-lucide="wallet"></i>
@@ -94,6 +104,8 @@
                             <a href="{{ route('citizen.zones.index') }}"      class="fo-nav-link" style="border-radius:8px;">Zones</a>
                             <a href="{{ route('citizen.infrastructures.index') }}" class="fo-nav-link" style="border-radius:8px;">Infrastructure</a>
                             <a href="{{ route('citizen.projets.index') }}"   class="fo-nav-link" style="border-radius:8px;">Projets</a>
+                            <a href="{{ route('citizen.favoris') }}"         class="fo-nav-link" style="border-radius:8px;">Mes favoris</a>
+                            <a href="{{ route('citizen.recommandations') }}" class="fo-nav-link" style="border-radius:8px;">Recommandations</a>
                             <a href="{{ route('citizen.portefeuille') }}"    class="fo-nav-link" style="border-radius:8px;">Mon portefeuille</a>
                             <a href="{{ route('citizen.notifications') }}"   class="fo-nav-link" style="border-radius:8px;">Alertes &amp; coupures</a>
                             <a href="{{ route('profile.show') }}"            class="fo-nav-link" style="border-radius:8px;">Profil</a>
@@ -113,6 +125,22 @@
 
     {{-- ══ MAIN CONTENT ═══════════════════════════════════════════════════════ --}}
     <main class="fo-main" id="main-content">
+
+        {{-- Zone de messages flash. Conteneur vierge : il ne s'affiche que
+             s'il est rempli, donc aucun changement visuel pour les écrans qui
+             n'en envoient pas. --}}
+        <div id="fo-flash" class="space-y-2 mb-4" aria-live="polite"></div>
+        @if (session('success'))
+        <div class="rounded-xl px-4 py-3 mb-4 text-sm font-semibold bg-teal-500/15 text-teal-300 border border-teal-400/25">
+            {{ session('success') }}
+        </div>
+        @endif
+        @if (session('error'))
+        <div class="rounded-xl px-4 py-3 mb-4 text-sm font-semibold bg-amber-500/15 text-amber-300 border border-amber-400/25">
+            {{ session('error') }}
+        </div>
+        @endif
+
         @yield('frontoffice-content')
         @yield('content')
     </main>

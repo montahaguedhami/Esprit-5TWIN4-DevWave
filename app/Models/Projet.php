@@ -78,6 +78,12 @@ class Projet extends Model
      */
     public function getMontantReserveAttribute(): float
     {
+        // Set by the recommendation engine, which already fetched this figure
+        // in SQL for every project. Using it avoids one query per project.
+        if ($this->montantReservePreCalcule !== null) {
+            return $this->montantReservePreCalcule;
+        }
+
         return (float) $this->demandesFinancement()
             ->where('statut', DemandeFinancement::ACCEPTEE)
             ->sum('montant');
@@ -108,7 +114,41 @@ class Projet extends Model
      */
     public function getTotalFinanceAttribute(): float
     {
+        // Pre-fetched in SQL by the recommendation engine. Without it, a list
+        // of N projects would cost N extra queries (N+1).
+        if ($this->totalFinancePreCalcule !== null) {
+            return $this->totalFinancePreCalcule;
+        }
+
         return (float) $this->financements()->sum('montant');
+    }
+
+    /* ── Valeurs déjà agrégées en SQL (anti N+1, voir RecommandationService) ── */
+
+    private ?float $totalFinancePreCalcule = null;
+    private ?float $montantReservePreCalcule = null;
+
+    /**
+     * Supply the financed total already fetched in SQL.
+     *
+     * Purely additive: when this is never called, every accessor keeps
+     * behaving exactly as before.
+     */
+    public function setTotalFinanceCalc(float $montant): self
+    {
+        $this->totalFinancePreCalcule = $montant;
+
+        return $this;
+    }
+
+    /**
+     * Supply the reserved amount already fetched in SQL.
+     */
+    public function setMontantReserveCalc(float $montant): self
+    {
+        $this->montantReservePreCalcule = $montant;
+
+        return $this;
     }
 
     /**
@@ -136,5 +176,46 @@ class Projet extends Model
     public function hasGeolocation(): bool
     {
         return !is_null($this->latitude) && !is_null($this->longitude);
+    }
+
+    /* ── Recommandation de projets (V1 à règles) ─────────────────────────── */
+
+    /**
+     * Favourite rows pointing at this projet.
+     */
+    public function favoris(): HasMany
+    {
+        return $this->hasMany(Favori::class);
+    }
+
+    /**
+     * How many citizens saved this projet.
+     *
+     * Used as an aggregate signal only — never to expose who saved what.
+     */
+    public function getNombreFavorisAttribute(): int
+    {
+        return $this->relationLoaded('favoris')
+            ? $this->favoris->count()
+            : $this->favoris()->count();
+    }
+
+    /**
+     * Has the given user saved this projet?
+     *
+     * Returns false for a null user so the check is safe on public pages.
+     */
+    public function estFavoriDe(?User $user): bool
+    {
+        if (! $user instanceof User) {
+            return false;
+        }
+
+        if ($this->relationLoaded('favoris')) {
+            return $this->favoris
+                ->contains(fn (Favori $favori): bool => $favori->user_id === $user->id);
+        }
+
+        return $this->favoris()->where('user_id', $user->id)->exists();
     }
 }

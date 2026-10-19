@@ -62,6 +62,18 @@
                 </p>
                 @endif
             </div>
+
+            {{-- ── Favori : action explicite du citoyen ────────────────────── --}}
+            <button type="button"
+                    class="favori-toggle flex-shrink-0 w-11 h-11 rounded-xl inline-flex items-center justify-center border transition-colors {{ ($estFavori ?? false) ? 'bg-amber-400/15 border-amber-400/40 text-amber-300' : 'bg-white/5 border-white/10 text-cyan-100/60 hover:text-white hover:border-cyan-400/40' }}"
+                    data-projet-id="{{ $projet->id }}"
+                    data-url="{{ route('citizen.projets.favori.basculer', $projet) }}"
+                    data-etat="{{ ($estFavori ?? false) ? '1' : '0' }}"
+                    aria-pressed="{{ ($estFavori ?? false) ? 'true' : 'false' }}"
+                    title="{{ ($estFavori ?? false) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}"
+                    aria-label="{{ ($estFavori ?? false) ? 'Retirer ce projet de vos favoris' : 'Ajouter ce projet à vos favoris' }}">
+                <i data-lucide="star" class="w-5 h-5 {{ ($estFavori ?? false) ? 'fill-current' : '' }}"></i>
+            </button>
         </div>
     </div>
 

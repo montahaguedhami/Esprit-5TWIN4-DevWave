@@ -566,7 +566,32 @@ Route::middleware('role:citoyen')->group(function () {
     Route::prefix('citizen/projets')->name('citizen.projets.')->group(function () {
         Route::get('/',        [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
         Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
+
+        // ── Favoris : le citoyen sauvegarde des projets ────────────────────
+        // POST/PATCH/DELETE, donc protégés CSRF comme toutes les autres
+        // mutations du dépôt. Aucun identifiant citoyen n'est accepté depuis
+        // l'URL : le propriétaire vient toujours de la session.
+        Route::post('/{projet}/favori',    [App\Http\Controllers\Citizen\FavoriController::class, 'store'])->name('favori.store');
+        Route::delete('/{projet}/favori',  [App\Http\Controllers\Citizen\FavoriController::class, 'destroy'])->name('favori.destroy');
+        // Bascule : bouton des cartes, qui ignore l'état courant.
+        Route::patch('/{projet}/favori',   [App\Http\Controllers\Citizen\FavoriController::class, 'basculer'])->name('favori.basculer');
     });
+
+    // ── Mes favoris ──────────────────────────────────────────────────────────
+    Route::get(
+        '/citizen/favoris',
+        [App\Http\Controllers\Citizen\FavoriController::class, 'index']
+    )->name('citizen.favoris');
+
+    // ── Recommandations personnalisées (moteur V1 à règles, sans ML) ───────
+    Route::get(
+        '/citizen/recommandations',
+        [App\Http\Controllers\Citizen\RecommandationController::class, 'index']
+    )->name('citizen.recommandations');
+    Route::get(
+        '/citizen/recommandations/api',
+        [App\Http\Controllers\Citizen\RecommandationController::class, 'api']
+    )->name('citizen.recommandations.api');
 
     // ── Mon portefeuille et mon impact ─────────────────────────────────────
     Route::get(
