@@ -2,79 +2,51 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\CollectWaterDataJob;
-use App\Services\ExternalData\ExternalSyncService;
+use App\Models\MesureQualite;
+use App\Models\PointMesure;
+use App\Services\WaterQualityService;
 use Illuminate\Console\Command;
 
-/**
- * Artisan command for water data collection.
- *
- * Usage:
- *   php artisan water:sync                           # runs all providers
- *   php artisan water:sync --provider=simulation     # run one provider
- *   php artisan water:sync --no-simulation           # skip simulated fill
- *   php artisan water:sync --queue                   # dispatch as background job
- *   php artisan water:sync --provider=csv --file=/path/to/data.csv
- *
- * The command is idempotent: re-running it for the same day will skip
- * already-imported observations (deduplicated by provider + external_id).
- */
 class SyncWater extends Command
 {
-    protected $signature = 'water:sync
-                            {--provider=* : Provider slug(s) to run (simulation, data_gov_tn, csv). Default: all}
-                            {--no-simulation : Skip the synthetic simulation fill step}
-                            {--queue : Dispatch as a background queue job instead of running synchronously}
-                            {--file= : File path for the CSV/XLSX import provider}';
+    protected $signature = 'water:sync {--reference= : Référence de la mesure à importer}';
 
-    protected $description = 'Collect and import water quality data from configured providers';
+    protected $description = 'Synchronise une mesure de qualité de l’eau depuis les données de démonstration';
 
-    public function handle(ExternalSyncService $syncService): int
+    public function handle(WaterQualityService $waterQualityService): int
     {
-        $providers     = $this->option('provider') ?: [];
-        $fillSimulated = !$this->option('no-simulation');
-        $useQueue      = $this->option('queue');
-        $filePath      = $this->option('file');
+        $reference = $this->option('reference') ?: 'WQR-'.now()->format('YmdHis');
+        $point = PointMesure::query()->where('statut', 'actif')->first();
 
-        if ($useQueue) {
-            CollectWaterDataJob::dispatch(
-                triggeredByUserId: null,
-                providers:         $providers,
-                fillSimulated:     $fillSimulated,
-            );
-            $this->info('Collection job dispatched to queue.');
-            return self::SUCCESS;
+        if (! $point) {
+            $this->error('Aucun point de mesure actif n’est disponible.');
+
+            return self::FAILURE;
         }
 
-        // Handle CSV file path injection for the csv provider
-        if ($filePath) {
-            /** @var \App\Services\ExternalData\CsvImportProvider $csvProvider */
-            $csvProvider = app(\App\Services\ExternalData\CsvImportProvider::class);
-            $csvProvider->setFilePath($filePath, 'artisan_import');
-            // Force csv provider
-            $providers = ['csv'];
-        }
+        $values = [
+            'ph' => 7.4,
+            'turbidite' => 0.4,
+            'chlore_residuel' => 0.8,
+            'plomb' => 2.0,
+            'nitrates' => 15.2,
+        ];
+        $assessment = $waterQualityService->assess($values);
 
-        $this->info('Starting water data collection...');
-        $results = $syncService->runAll($providers, $fillSimulated);
+        $mesure = MesureQualite::updateOrCreate(
+            ['reference' => $reference],
+            $values + [
+                'point_mesure_id' => $point->id,
+                'date_mesure' => now(),
+                'is_verified' => false,
+                'verifier' => 'API interne',
+                'status' => $assessment['status'],
+                'overall_compliance' => $assessment['overall_compliance'],
+            ]
+        );
 
-        $totalImported = 0;
-        $totalSkipped  = 0;
-        $totalFailed   = 0;
+        $this->info("Mesure {$mesure->reference} synchronisée ({$assessment['status']}).");
 
-        foreach ($results as $result) {
-            $icon = $result['failed'] > 0 ? '⚠' : '✓';
-            $this->line("{$icon} [{$result['provider']}] imported={$result['imported']} skipped={$result['skipped']} failed={$result['failed']}");
-            if (!empty($result['error'])) {
-                $this->warn("  Error: {$result['error']}");
-            }
-            $totalImported += $result['imported'];
-            $totalSkipped  += $result['skipped'];
-            $totalFailed   += $result['failed'];
-        }
-
-        $this->info("Done — imported: {$totalImported}, skipped: {$totalSkipped}, failed: {$totalFailed}");
-
-        return $totalFailed > 0 ? self::FAILURE : self::SUCCESS;
+        return self::SUCCESS;
     }
 }

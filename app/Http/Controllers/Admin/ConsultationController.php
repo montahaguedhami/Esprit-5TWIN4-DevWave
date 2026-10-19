@@ -34,7 +34,7 @@ class ConsultationController extends Controller
 
     public function qualite(Request $request): View
     {
-        $mesures = MesureQualite::with('pointMesure')
+        $mesures = MesureQualite::with('pointMesure.infrastructure')
             ->when($request->filled('q'), function ($query) use ($request): void {
                 $search = (string) $request->string('q');
                 $query->where('reference', 'like', "%{$search}%")

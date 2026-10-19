@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Technician;
 
 use App\Http\Controllers\Controller;
 use App\Models\Zone;
+use App\Models\PointMesure;
 use App\Services\TechnicianScopeService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,6 +18,7 @@ class ZoneController extends Controller
     {
         $technicien = TechnicianScopeService::currentTechnicien();
         abort_unless($technicien, 403, 'Compte technicien introuvable.');
+
         $query = TechnicianScopeService::zonesQuery($technicien);
 
         if ($search = $request->input('q')) {
@@ -40,6 +42,7 @@ class ZoneController extends Controller
         $technicien = TechnicianScopeService::currentTechnicien();
         abort_unless($technicien, 403, 'Compte technicien introuvable.');
         abort_unless(TechnicianScopeService::canAccessZone($technicien, $zone), 403, 'Accès à cette zone refusé.');
+
         $zone->load('responsable');
 
         // Récupérer les infrastructures de cette zone assignées à ce technicien
@@ -63,11 +66,25 @@ class ZoneController extends Controller
             ->orderBy('date')
             ->get();
 
+        $qualityPoints = PointMesure::query()
+            ->where('statut', 'actif')
+            ->where(function ($query) use ($zone): void {
+                $query->where('zone_id', $zone->id)
+                    ->orWhere(function ($fallback) use ($zone): void {
+                        $fallback->whereNull('zone_id')->where('zone', $zone->nom);
+                    })
+                    ->orWhereHas('infrastructure', fn ($infrastructure) => $infrastructure->where('zone_id', $zone->id));
+            })
+            ->with(['infrastructure', 'derniereMesure', 'mesuresQualites' => fn ($query) => $query->latest('date_mesure')->limit(5)])
+            ->orderBy('nom')
+            ->get();
+
         return view('technician.zones.show', [
             'technicien' => $technicien,
             'zone' => $zone,
             'infrastructures' => $infrastructures,
             'interventions' => $interventions,
+            'qualityPoints' => $qualityPoints,
         ]);
     }
 }

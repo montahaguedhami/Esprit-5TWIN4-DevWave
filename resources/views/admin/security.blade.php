@@ -169,10 +169,13 @@
                     </h3>
 
                     <div class="space-y-2">
+                        <form method="POST" action="{{ route('admin.security.renew-sessions') }}" onsubmit="return confirm('Révoquer toutes les sessions, sauf la vôtre ?')">
+                        @csrf
                         <button class="w-full btn btn-secondary text-sm justify-start">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             Forcer renouvellement sessions
                         </button>
+                        </form>
                         <button class="w-full btn btn-secondary text-sm justify-start">
                             <i data-lucide="shield-off" class="w-4 h-4"></i>
                             Bloquer IP suspecte

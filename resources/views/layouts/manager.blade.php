@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @php
-    $isTech = in_array(session('user.role'), ['technician', 'technicien'], true);
+    $isTech = (session('user.role') === 'technician');
     $role   = $isTech ? 'technician' : 'manager';
     $dashRoute = $isTech ? route('technician.dashboard') : route('manager.dashboard');
     $roleLabel = $isTech ? 'Espace Technicien' : 'Espace Gestionnaire';
@@ -134,14 +134,6 @@
                    class="sidebar-link {{ request()->routeIs('manager.budget*', 'manager.financements.*') ? 'is-active' : '' }}">
                     <i data-lucide="credit-card"></i><span>Budget</span>
                 </a>
-                <a href="{{ route('manager.teams') }}"
-                   class="sidebar-link {{ request()->routeIs('manager.teams') ? 'is-active' : '' }}">
-                    <i data-lucide="users"></i><span>Équipes</span>
-                </a>
-                <a href="{{ route('manager.analytics') }}"
-                   class="sidebar-link {{ request()->routeIs('manager.analytics') ? 'is-active' : '' }}">
-                    <i data-lucide="line-chart"></i><span>Analyses et rapports</span>
-                </a>
             </div>
             @endif
 
@@ -176,7 +168,6 @@
         {{-- Topbar --}}
         <header class="app-topbar">
             <div class="topbar-left">
-                <x-back-button :fallback="$dashRoute" class="icon-btn" />
                 <button class="icon-btn sidebar-toggle" id="mgr-menu-btn" onclick="toggleSidebar('mgr')"
                         aria-label="Ouvrir la navigation" aria-expanded="false">
                     <i data-lucide="menu" class="sidebar-toggle-icon sidebar-toggle-icon--closed"></i>
@@ -200,6 +191,14 @@
                 <button class="theme-toggle" onclick="toggleTheme()" aria-label="Changer de thème">
                     <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
                     <svg class="icon-sun"  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </button>
+                <button type="button" class="theme-toggle aq-topbar-acc-btn" onclick="openAccessibilityModal()" aria-label="Paramètres d'accessibilité" title="Accessibilité (Alt+A)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="4.5" r="2.2"/>
+                        <path d="M12 7v6.5"/>
+                        <path d="m5 10 7 1.5 7-1.5"/>
+                        <path d="m7.5 21 4.5-7.5 4.5 7.5"/>
+                    </svg>
                 </button>
                 <x-notification-center />
                 <x-user-menu />

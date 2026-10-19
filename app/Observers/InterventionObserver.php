@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\InterventionAssignee;
 use App\Notifications\InterventionModifiee;
 use App\Notifications\InterventionTerminee;
+use App\Services\FailureRiskService;
 use App\Services\InterventionPlanningService;
 use App\Services\PreventiveMaintenanceService;
 use Carbon\Carbon;
@@ -17,6 +18,14 @@ use Illuminate\Support\Facades\Notification as NotificationFacade;
 
 class InterventionObserver
 {
+    public function updating(Intervention $intervention): void
+    {
+        if ($intervention->isDirty('infrastructure_id')) {
+            $oldInfrastructureId = $intervention->getOriginal('infrastructure_id');
+            $intervention->ancienneInfrastructureId = $oldInfrastructureId === null ? null : (int) $oldInfrastructureId;
+        }
+    }
+
     /**
      * Interventions dont l'enregistrement en cours est une création.
      * (wasRecentlyCreated reste vrai pour toute la vie de l'objet, il ne distingue pas une mise à jour qui suit)
@@ -56,8 +65,34 @@ class InterventionObserver
             }
         }
 
+        // Recalcul du risque de panne de l'équipement (module Infrastructures)
+        $this->recomputeRisk(
+            app(FailureRiskService::class),
+            $intervention->infrastructure_id === null ? null : (int) $intervention->infrastructure_id,
+            $intervention->ancienneInfrastructureId,
+        );
+        $intervention->ancienneInfrastructureId = null;
+
         // Après la mise à jour de l'infrastructure, pour que les notifications portent la nouvelle échéance
         $this->notifier($intervention);
+    }
+
+    public function deleted(Intervention $intervention): void
+    {
+        $this->recomputeRisk(
+            app(FailureRiskService::class),
+            $intervention->infrastructure_id === null ? null : (int) $intervention->infrastructure_id,
+        );
+    }
+
+    private function recomputeRisk(FailureRiskService $riskService, ?int ...$infrastructureIds): void
+    {
+        foreach (array_unique(array_filter($infrastructureIds)) as $infrastructureId) {
+            $infrastructure = Infrastructure::find($infrastructureId);
+            if ($infrastructure) {
+                $riskService->recompute($infrastructure);
+            }
+        }
     }
 
     /**

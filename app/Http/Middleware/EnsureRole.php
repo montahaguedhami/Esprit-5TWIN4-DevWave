@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Role;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +26,7 @@ class EnsureRole
             return redirect()->route('auth.login');
         }
 
-        $userRole = $user['role'] ?? null;
+        $userRole = Role::normalizeSlug($user['role'] ?? null);
 
         // Éclater les rôles possibles (séparés par virgules ou paramètres multiples)
         $allowedRoles = [];
@@ -33,7 +34,7 @@ class EnsureRole
             foreach (explode(',', $role) as $r) {
                 $trimmed = trim($r);
                 if ($trimmed !== '') {
-                    $allowedRoles[] = $trimmed;
+                    $allowedRoles[] = Role::normalizeSlug($trimmed);
                 }
             }
         }

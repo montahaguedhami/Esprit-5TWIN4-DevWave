@@ -16,21 +16,23 @@ class FinancementController extends Controller
      */
     public function index(Request $request)
     {
-        if (! \App\Models\Role::sessionMatches(
-            \App\Models\Role::MANAGER,
-            \App\Models\Role::ADMINISTRATEUR
-        )) {
+        // Vérification session manager
+        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
             return redirect()->route('auth.login');
         }
 
         $query = Financement::with('projet');
 
+        // Filtre par projet
         if ($request->filled('projet_id')) {
             $query->where('projet_id', $request->projet_id);
         }
 
+        // Pagination
         $financements = $query->latest()->paginate(15);
-        $projets      = Projet::orderBy('nom')->get();
+
+        // Projets pour le filtre
+        $projets = Projet::orderBy('nom')->get();
 
         return view('manager.financements.index', compact('financements', 'projets'));
     }
@@ -40,15 +42,15 @@ class FinancementController extends Controller
      */
     public function create(Request $request)
     {
-        if (! \App\Models\Role::sessionMatches(
-            \App\Models\Role::MANAGER,
-            \App\Models\Role::ADMINISTRATEUR
-        )) {
+        // Vérification session manager
+        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
             return redirect()->route('auth.login');
         }
 
+        // Récupérer tous les projets pour le select
         $projets = Projet::orderBy('nom')->get();
 
+        // Pré-sélection si projet_id fourni dans l'URL
         $projetId = $request->query('projet_id');
 
         return view('manager.financements.create', compact('projets', 'projetId'));
@@ -71,13 +73,12 @@ class FinancementController extends Controller
      */
     public function show(Financement $financement)
     {
-        if (! \App\Models\Role::sessionMatches(
-            \App\Models\Role::MANAGER,
-            \App\Models\Role::ADMINISTRATEUR
-        )) {
+        // Vérification session manager
+        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
             return redirect()->route('auth.login');
         }
 
+        // Charger le projet associé
         $financement->load('projet');
 
         return view('manager.financements.show', compact('financement'));
@@ -88,13 +89,12 @@ class FinancementController extends Controller
      */
     public function edit(Financement $financement)
     {
-        if (! \App\Models\Role::sessionMatches(
-            \App\Models\Role::MANAGER,
-            \App\Models\Role::ADMINISTRATEUR
-        )) {
+        // Vérification session manager
+        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
             return redirect()->route('auth.login');
         }
 
+        // Récupérer tous les projets pour le select
         $projets = Projet::orderBy('nom')->get();
 
         return view('manager.financements.edit', compact('financement', 'projets'));
@@ -117,10 +117,8 @@ class FinancementController extends Controller
      */
     public function destroy(Financement $financement)
     {
-        if (! \App\Models\Role::sessionMatches(
-            \App\Models\Role::MANAGER,
-            \App\Models\Role::ADMINISTRATEUR
-        )) {
+        // Vérification session manager
+        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
             return redirect()->route('auth.login');
         }
 

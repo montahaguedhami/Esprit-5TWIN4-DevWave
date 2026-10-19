@@ -51,25 +51,15 @@ class TechnicianScopeService
      */
     public static function zonesQuery(Technicien $technicien): Builder
     {
-        $hasScopedZones = \App\Models\Zone::whereHas('infrastructures.interventions', function (Builder $query) use ($technicien): void {
-            $query->where('technicien_id', $technicien->id);
-        })->exists();
-
-        // Si le technicien a des infrastructures assignées, limiter à ses zones, sinon afficher les zones actives
-        $builder = \App\Models\Zone::query();
-        if ($hasScopedZones) {
-            $builder->whereHas('infrastructures.interventions', function (Builder $query) use ($technicien): void {
+        return \App\Models\Zone::query()
+            ->whereHas('infrastructures.interventions', function (Builder $query) use ($technicien): void {
                 $query->where('technicien_id', $technicien->id);
-            });
-        }
-
-        return $builder->withCount(['infrastructures' => function (Builder $query) use ($technicien, $hasScopedZones): void {
-            if ($hasScopedZones) {
-                $query->whereHas('interventions', function (Builder $q) use ($technicien): void {
-                    $q->where('technicien_id', $technicien->id);
+            })
+            ->withCount(['infrastructures' => function (Builder $query) use ($technicien): void {
+                $query->whereHas('interventions', function (Builder $interventions) use ($technicien): void {
+                    $interventions->where('technicien_id', $technicien->id);
                 });
-            }
-        }]);
+            }]);
     }
 
     /**
@@ -77,7 +67,7 @@ class TechnicianScopeService
      */
     public static function canAccessZone(Technicien $technicien, \App\Models\Zone $zone): bool
     {
-        return true; // En consultation terrain, toutes les zones sectorielles sont lisibles
+        return self::zonesQuery($technicien)->whereKey($zone->getKey())->exists();
     }
 
     /**

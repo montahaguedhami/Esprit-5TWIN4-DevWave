@@ -59,15 +59,9 @@
             <form method="POST" action="{{ route('login.post') }}" class="auth-login__form">
                 @csrf
 
-                @if (session('success'))
-                    <div role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                @if (session('error') || $errors->any())
+                @if ($errors->any())
                     <div role="alert" class="auth-login__error">
-                        {{ session('error') ?? $errors->first() }}
+                        {{ $errors->first() }}
                     </div>
                 @endif
 
@@ -78,7 +72,7 @@
                             <path d="M3 6.75A1.75 1.75 0 014.75 5h14.5A1.75 1.75 0 0121 6.75v10.5A1.75 1.75 0 0119.25 19H4.75A1.75 1.75 0 013 17.25V6.75z" stroke="currentColor" stroke-width="1.7"/>
                             <path d="m4 6 8 6 8-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="admin@aquasecure.tn" autocomplete="email">
+                        <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="admin@aquasecure.tn" autocomplete="username">
                     </div>
                 </div>
 
@@ -112,12 +106,6 @@
                     </svg>
                 </button>
             </form>
-
-            <aside class="auth-login__demo">
-                <strong>Compte de démonstration</strong>
-                <span>Email : <b>admin@aquasecure.tn</b></span>
-                <span>Utilisez le mot de passe associé à ce compte.</span>
-            </aside>
         </section>
     </div>
 </div>
@@ -352,7 +340,7 @@
     .auth-login__input-wrap input {
         width: 100%;
         min-height: 3.15rem;
-        padding: .8rem 3rem .8rem 2.9rem;
+        padding: .8rem 3rem .8rem 2.9rem !important;
         border: 1px solid #dce7ec;
         border-radius: .85rem;
         outline: none;
@@ -364,6 +352,14 @@
 
     .auth-login__input-wrap input::placeholder { color: #a4b3bf; }
     .auth-login__input-wrap input:focus { border-color: #45bfd0; background: #fff; box-shadow: 0 0 0 4px rgba(6, 174, 202, .11); }
+
+    .auth-login__input-wrap input:-webkit-autofill,
+    .auth-login__input-wrap input:-webkit-autofill:hover,
+    .auth-login__input-wrap input:-webkit-autofill:focus {
+        padding-left: 2.9rem !important;
+        -webkit-text-fill-color: #18334b;
+        -webkit-box-shadow: 0 0 0 1000px #fbfdfe inset;
+    }
 
     .auth-login__password-toggle {
         position: absolute;
@@ -421,22 +417,6 @@
         background: #fff5f4;
         font-size: .82rem;
     }
-
-    .auth-login__demo {
-        display: flex;
-        flex-direction: column;
-        gap: .35rem;
-        margin-top: 1.5rem;
-        padding: .95rem 1rem;
-        border: 1px solid #d8f0f3;
-        border-radius: .85rem;
-        color: #62798b;
-        background: #f3fbfc;
-        font-size: .72rem;
-    }
-
-    .auth-login__demo strong { margin-bottom: .1rem; color: #167f93; font-size: .76rem; }
-    .auth-login__demo b { color: #34556c; font-weight: 700; }
 
     @media (max-width: 767px) {
         .auth-login { min-height: 100vh; padding: 6rem 1rem 2rem; }
