@@ -261,6 +261,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/two-factor', [\App\Http\Controllers\TwoFactorController::class, 'disable'])->name('profile.two-factor.disable');
     Route::post('/profile/two-factor/recovery', [\App\Http\Controllers\TwoFactorController::class, 'regenerateRecoveryCodes'])->name('profile.two-factor.regenerate');
     Route::get('/profile/two-factor/recovery', [\App\Http\Controllers\TwoFactorController::class, 'showRecoveryCodes'])->name('profile.two-factor.recovery');
+
+    // Explicit "link my Google account". Reached only from the profile page,
+    // never from the login form — the login button is a plain sign-in.
+    Route::get('/profile/link/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'linkRedirect'])
+        ->name('profile.google.link');
 });
 
 // Logout
@@ -463,6 +468,34 @@ Route::middleware('role:citoyen')->group(function () {
         Route::get('/',        [App\Http\Controllers\Citizen\ProjetController::class, 'index'])->name('index');
         Route::get('/{projet}', [App\Http\Controllers\Citizen\ProjetController::class, 'show'])->name('show');
     });
+
+    // ── Mon portefeuille et mon impact ─────────────────────────────────────
+    Route::get(
+        '/citizen/portefeuille',
+        [App\Http\Controllers\Citizen\PortefeuilleController::class, 'index']
+    )->name('citizen.portefeuille');
+
+    // ── Demandes de financement citoyen ───────────────────────────────────
+    Route::prefix('citizen/demandes')->name('citizen.demandes.')->group(function () {
+        Route::get('/',                       [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'index'])->name('index');
+        Route::get('/create',                 [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'create'])->name('create');
+        Route::post('/',                      [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'store'])->name('store');
+        Route::get('/{demande}',              [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'show'])->name('show');
+        Route::get('/{demande}/recapitulatif', [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'recap'])->name('recap');
+
+        // Sensitive: this is the only route that records money. Throttled so a
+        // script cannot replay it, and CSRF protected as any other POST.
+        Route::post('/{demande}/confirmer',   [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'confirmer'])
+            ->middleware('throttle:10,1')
+            ->name('confirmer');
+        Route::post('/{demande}/annuler',     [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'annuler'])->name('annuler');
+    });
+
+    // ── Opérations de paiement simulées (résultat & reçu) ─────────────────
+    Route::prefix('citizen/paiements')->name('citizen.demandes.paiement.')->group(function () {
+        Route::get('/{paiement}',             [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'resultat'])->name('resultat');
+        Route::get('/{paiement}/recu',        [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'recu'])->name('recu');
+    });
 });
 
 // ── Projets & Financements (manager CRUD) ─────────────────────────────────────
@@ -485,6 +518,14 @@ Route::middleware('role:manager')->prefix('manager/financements')->name('manager
     Route::get('/{financement}/edit', [App\Http\Controllers\Manager\FinancementController::class, 'edit'])->name('edit');
     Route::put('/{financement}',   [App\Http\Controllers\Manager\FinancementController::class, 'update'])->name('update');
     Route::delete('/{financement}',[App\Http\Controllers\Manager\FinancementController::class, 'destroy'])->name('destroy');
+});
+
+// ── Demandes de financement citoyen (validation manager) ──────────────────────
+Route::middleware('role:manager')->prefix('manager/demandes')->name('manager.demandes.')->group(function () {
+    Route::get('/',                          [App\Http\Controllers\Manager\DemandeFinancementController::class, 'index'])->name('index');
+    Route::get('/{demande}',                 [App\Http\Controllers\Manager\DemandeFinancementController::class, 'show'])->name('show');
+    Route::post('/{demande}/accepter',       [App\Http\Controllers\Manager\DemandeFinancementController::class, 'accepter'])->name('accepter');
+    Route::post('/{demande}/refuser',        [App\Http\Controllers\Manager\DemandeFinancementController::class, 'refuser'])->name('refuser');
 });
 
 Route::middleware('role:manager')->group(function () {

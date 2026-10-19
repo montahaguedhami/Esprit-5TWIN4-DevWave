@@ -147,6 +147,40 @@
         @endif
     </div>
 
+    {{-- ── Bouton Contribuer à ce projet ── --}}
+    @if($projet->estEligibleAuFinancementCitoyen())
+    <div class="glass rounded-2xl p-6 border border-cyan-400/20">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="hand-coins" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-bold text-white text-base mb-0.5">Soutenez ce projet</h3>
+                <p class="text-cyan-100/55 text-sm">
+                    Il reste <strong class="text-cyan-300">{{ number_format((float)$projet->budget_disponible, 0, ',', ' ') }} TND</strong>
+                    à financer. Votre contribution fait la différence.
+                </p>
+                <p class="text-amber-300/70 text-[11px] mt-1.5 flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                    Contribution simulée à des fins académiques — aucun argent réel n'est transféré.
+                </p>
+            </div>
+            <a href="{{ route('citizen.demandes.create', ['projet_id' => $projet->id]) }}"
+               class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[.98] transition-all flex-shrink-0 whitespace-nowrap">
+                <i data-lucide="hand-coins" class="w-4 h-4"></i>
+                Contribuer à ce projet
+            </a>
+        </div>
+    </div>
+    @elseif(in_array($projet->statut, ['planifie', 'en_cours']) && $projet->budget_disponible <= 0)
+    <div class="glass rounded-2xl p-4 border border-teal-400/20">
+        <p class="text-teal-300 text-sm flex items-center gap-2">
+            <i data-lucide="badge-check" class="w-4 h-4"></i>
+            Ce projet est entièrement financé. Merci à tous les contributeurs !
+        </p>
+    </div>
+    @endif
+
     <!-- Funding Sources -->
     @if($projet->financements->count() > 0)
     <div class="glass rounded-2xl p-6">

@@ -28,6 +28,18 @@ use Laravel\Socialite\Facades\Socialite;
 class GoogleAuthController extends Controller
 {
     /**
+     * Session key holding the intent behind the current OAuth round trip.
+     *
+     * The callback must never guess. The login page button and the profile
+     * "link Google account" button both travel through Google, and treating a
+     * plain sign-in as an account link used to drop the visitor on the profile
+     * page instead of the dashboard of their role.
+     */
+    private const INTENT_KEY = 'google_oauth_intent';
+
+    private const INTENT_LINK = 'link';
+
+    /**
      * Are the Google OAuth credentials available?
      */
     public static function configured(): bool
@@ -47,7 +59,31 @@ class GoogleAuthController extends Controller
                 ->with('error', $this->notConfiguredMessage());
         }
 
-        // remember=1 keeps the "link provider" intent across the round trip.
+        // The login page button is always a plain sign-in: forget any link
+        // intent left over from an earlier round trip.
+        $request->session()->forget(self::INTENT_KEY);
+
+        return Socialite::driver('google')
+            ->with(['prompt' => 'select_account'])
+            ->redirect();
+    }
+
+    /**
+     * Explicit "link my Google account" started from the profile page.
+     *
+     * Only this entry point may end in a link; it is the sole difference from
+     * the sign-in button above, and it is what keeps the round trip from being
+     * misread by the callback.
+     */
+    public function linkRedirect(Request $request): RedirectResponse
+    {
+        if (! self::configured()) {
+            return redirect()->route('profile.show')
+                ->with('error', $this->notConfiguredMessage());
+        }
+
+        $request->session()->put(self::INTENT_KEY, self::INTENT_LINK);
+
         return Socialite::driver('google')
             ->with(['prompt' => 'select_account'])
             ->redirect();
@@ -90,8 +126,18 @@ class GoogleAuthController extends Controller
                 ->with('error', 'Google n\'a pas retourné d\'identifiant valide.');
         }
 
-        // An authenticated user asking to link a Google account to their profile.
-        if ($request->session()->has('user.id')) {
+        // Only a round trip started from the profile page may end in a link.
+        // Everything else is a sign-in, even when a session already exists:
+        // guessing the other way sent the visitor to the profile instead of
+        // the dashboard of their role.
+        $wantsLink = $request->session()->pull(self::INTENT_KEY) === self::INTENT_LINK;
+
+        if ($wantsLink) {
+            if (! Auth::check()) {
+                return redirect()->route('auth.login')
+                    ->with('error', 'Votre session a expiré. Connectez-vous pour lier votre compte Google.');
+            }
+
             return $this->linkToCurrentAccount($request, $providerId, $providerEmail);
         }
 
@@ -198,7 +244,10 @@ class GoogleAuthController extends Controller
      */
     private function linkToCurrentAccount(Request $request, string $providerId, ?string $providerEmail): RedirectResponse
     {
-        $current = User::find($request->session()->get('user.id'));
+        // The caller guarantees an authenticated session, so the guard is read
+        // from the authenticator itself rather than from the duplicated
+        // "user.id" session key, which is not set by every entry point.
+        $current = Auth::user();
 
         if (! $current) {
             return redirect()->route('auth.login')->with('error', 'Session expirée. Reconnectez-vous.');

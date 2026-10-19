@@ -55,11 +55,52 @@ class Projet extends Model
     }
 
     /**
-      * Get the zones associated with the projet.
-      */
+     * Get the zones associated with the projet.
+     */
     public function zones(): BelongsToMany
     {
          return $this->belongsToMany(Zone::class, 'projet_zone')->withTimestamps();
+    }
+
+    /**
+     * Citizen funding requests submitted against this projet.
+     */
+    public function demandesFinancement(): HasMany
+    {
+        return $this->hasMany(DemandeFinancement::class);
+    }
+
+    /**
+     * Amount already approved by a manager but not yet paid.
+     *
+     * These funds are committed: without this reservation, several requests
+     * could be accepted in parallel and jointly exceed the remaining budget.
+     */
+    public function getMontantReserveAttribute(): float
+    {
+        return (float) $this->demandesFinancement()
+            ->where('statut', DemandeFinancement::ACCEPTEE)
+            ->sum('montant');
+    }
+
+    /**
+     * Budget still open to new citizen contributions.
+     *
+     * Remaining budget minus what managers already approved but which has not
+     * been paid yet.
+     */
+    public function getBudgetDisponibleAttribute(): float
+    {
+        return (float) ($this->budget - $this->total_finance - $this->montant_reserve);
+    }
+
+    /**
+     * Can this projet still accept a citizen funding request?
+     */
+    public function estEligibleAuFinancementCitoyen(): bool
+    {
+        return in_array($this->statut, DemandeFinancement::STATUTS_PROJET_ELIGIBLE, true)
+            && $this->budget_disponible > 0;
     }
 
     /**

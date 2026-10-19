@@ -11,10 +11,12 @@ use App\Observers\InterventionObserver;
 use App\Observers\ZoneObserver;
 use App\Policies\MesureQualitePolicy;
 use App\Policies\UserPolicy;
+use App\Services\Payments\SimulatedPaymentProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,7 +25,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Payment simulation: a LOCAL provider only. The `PAYMENT_DRIVER` value
+        // is deliberately whitelisted so no real gateway can ever be enabled.
+        $this->app->singleton(SimulatedPaymentProvider::class, function () {
+            $driver = (string) config('financement.driver', 'simulated');
+
+            if ($driver !== 'simulated') {
+                throw new RuntimeException(
+                    'PAYMENT_DRIVER inconnu : "'.$driver.'". Ce projet académique n\'accepte que "simulated"; '
+                    .'aucune passerelle de paiement externe n\'est intégrée.'
+                );
+            }
+
+            // The scenario picker is a development/demo affordance only.
+            $choix = (bool) config('financement.scenario_choix', false)
+                && app()->environment(['local', 'testing']);
+
+            return new SimulatedPaymentProvider($choix);
+        });
     }
 
     /**

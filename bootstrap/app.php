@@ -33,8 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'refresh_token',
         ]);
 
-        $middleware->alias([
-            'role'       => \App\Http\Middleware\CheckRole::class,
+        // No route is exempt from CSRF: there is no payment provider, so no
+        // server-to-server callback exists that would need it.
+        $middleware->alias([            'role'       => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'jwt.auth'   => \App\Http\Middleware\JwtAuthenticate::class,
             'jwt.role'   => \App\Http\Middleware\JwtCheckRole::class,

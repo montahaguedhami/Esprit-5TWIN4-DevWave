@@ -319,6 +319,36 @@
                     </div>
                 </div>
 
+                {{-- Google account --}}
+                <div class="pro-card">
+                    <div class="pro-card-body">
+                        <h3 class="pro-card-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                            Compte Google
+                        </h3>
+
+                        @if(($user->provider ?? null) === 'google')
+                            <p style="font-size:.8125rem;color:var(--text-secondary, #52677d);margin-bottom:.75rem;">
+                                Votre compte est lié à Google : vous pouvez vous connecter
+                                directement avec Google, sans mot de passe.
+                            </p>
+                        @elseif(\App\Http\Controllers\Auth\GoogleAuthController::configured())
+                            <p style="font-size:.8125rem;color:var(--text-secondary, #52677d);margin-bottom:.75rem;">
+                                Aucun compte Google lié. Vous pouvez connecter Google pour vous
+                                authentifier sans mot de passe.
+                            </p>
+                            <a href="{{ route('profile.google.link') }}" class="pro-quick-btn" style="text-decoration:none;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                                Lier mon compte Google
+                            </a>
+                        @else
+                            <p style="font-size:.8125rem;color:var(--text-secondary, #52677d);margin-bottom:0;">
+                                La connexion Google n'est pas configurée sur ce serveur.
+                            </p>
+                        @endif
+                    </div>
+                </div>
+
                 {{-- Quick actions --}}
                 <div class="pro-card">
                     <div class="pro-card-body">
