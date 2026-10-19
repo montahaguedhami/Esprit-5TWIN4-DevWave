@@ -22,6 +22,8 @@ class MapController extends Controller
         }
 
         $user = session('user', ['name' => 'Gestionnaire', 'role' => 'manager']);
+        $isAdmin = in_array($user['role'] ?? null, ['admin', 'administrateur'], true);
+        $routePrefix = $isAdmin ? 'admin' : 'manager';
 
         // Zones réelles géolocalisées
         $realZones = Zone::with(['responsable', 'infrastructures'])
@@ -52,7 +54,7 @@ class MapController extends Controller
                     'technician' => $zone->responsable?->name ?? 'Équipe locale',
                     'emoji' => '📍',
                     'color' => '#06b6d4',
-                    'show_url' => route('manager.zones.show', $zone),
+                    'show_url' => route($routePrefix . '.zones.show', $zone),
                 ];
             })->values()->toArray()
             : array_map(function ($z) {
@@ -96,7 +98,7 @@ class MapController extends Controller
                     'date_derniere_maintenance' => $infra->date_derniere_maintenance?->format('d/m/Y') ?? 'Aucune',
                     'date_prochaine_maintenance' => $infra->date_prochaine_maintenance?->format('d/m/Y') ?? 'Non planifiée',
                     'is_maintenance_retard' => (bool) ($infra->date_prochaine_maintenance && $infra->date_prochaine_maintenance->isPast()),
-                    'show_url' => route('manager.infrastructures.show', $infra),
+                    'show_url' => route($routePrefix . '.infrastructures.show', $infra),
                 ];
             })->values()->toArray();
 
@@ -157,6 +159,9 @@ class MapController extends Controller
         $focusInfrastructure = $request->query('infrastructure');
 
         return view('manager.map', [
+            'layout' => $isAdmin ? 'layouts.admin' : 'layouts.manager',
+            'contentSection' => $isAdmin ? 'admin-content' : 'manager-content',
+            'dashboardRoute' => $isAdmin ? 'admin.dashboard' : 'manager.dashboard',
             'zones' => $zonesData,
             'infrastructures' => $realInfrastructures,
             'pipelines' => $pipelines,

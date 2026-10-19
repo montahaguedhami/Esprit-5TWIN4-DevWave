@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\MesureQualite;
+use App\Models\PointMesure;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,8 +18,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(RbacSeeder::class);
-
         // Créer les utilisateurs de démo (version équipe)
         User::firstOrCreate(['email' => 'test@example.com'], [
             'name' => 'Test User',
@@ -125,25 +125,27 @@ class DatabaseSeeder extends Seeder
         foreach ($syntheticMeasurements as [$pointCode, $reference, $date, $ph, $turbidite, $chloreResiduel, $plomb, $nitrates, $status]) {
             $point = PointMesure::where('code', $pointCode)->firstOrFail();
 
-            MesureQualite::create([
-                'reference'          => $reference,
-                'point_mesure_id'   => $point->id,
-                'date_mesure'       => $date,
-                'ph'                => $ph,
-                'turbidite'         => $turbidite,
-                'chlore_residuel'   => $chloreResiduel,
-                'plomb'             => $plomb,
-                'nitrates'          => $nitrates,
-                'source_donnee'     => 'simule',
-                'source_type'       => 'simulated',
-                'status'            => $status,
-                'overall_compliance' => match ($status) {
-                    'Compliant'      => 100.0,
-                    'Alert'          => 60.0,
-                    'Non-Compliant'  => 0.0,
-                    default           => null,
-                },
-            ]);
+            MesureQualite::firstOrCreate(
+                ['reference' => $reference],
+                [
+                    'point_mesure_id'   => $point->id,
+                    'date_mesure'       => $date,
+                    'ph'                => $ph,
+                    'turbidite'         => $turbidite,
+                    'chlore_residuel'   => $chloreResiduel,
+                    'plomb'             => $plomb,
+                    'nitrates'          => $nitrates,
+                    'source_donnee'     => 'simule',
+                    'source_type'       => 'simulated',
+                    'status'            => $status,
+                    'overall_compliance' => match ($status) {
+                        'Compliant'      => 100.0,
+                        'Alert'          => 60.0,
+                        'Non-Compliant'  => 0.0,
+                        default           => null,
+                    },
+                ]
+            );
         }
 
         // === MODULE PROJETS/FINANCEMENTS (Ghada) ===

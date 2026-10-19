@@ -1,10 +1,10 @@
-@extends('layouts.manager')
+@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', $infrastructure->nom.' — AquaSecure')
 
-@section('manager-content')
+@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
 @php
-    $inventoryRoutePrefix = 'manager';
+    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
 @endphp
 <div class="mx-auto max-w-5xl space-y-6">
     {{-- En-tête de page --}}
@@ -26,7 +26,7 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            @if(!request()->routeIs('admin.*') && $infrastructure->latitude && $infrastructure->longitude)
+            @if($infrastructure->latitude && $infrastructure->longitude)
                 <a href="{{ route('manager.map', ['infrastructure' => $infrastructure->id]) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-2 text-sm font-medium text-cyan-200 hover:bg-cyan-500/20 transition">
                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -106,10 +106,17 @@
         </div>
     @endif
 
+    @include('components.infrastructure.risk-card', [
+        'risk' => $risk,
+        'history' => $riskHistory,
+        'infrastructure' => $infrastructure,
+        'routePrefix' => $inventoryRoutePrefix,
+    ])
+
     {{-- Grille Santé & Action Rapide --}}
     <div class="grid gap-6 md:grid-cols-3">
         {{-- Carte Score de Santé --}}
-        <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 shadow-sm md:col-span-2 space-y-4">
+        <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/35 p-5 shadow-sm md:col-span-2 space-y-4">
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-base font-semibold text-white">Score d’état de santé</h2>
@@ -149,7 +156,7 @@
         </div>
 
         {{-- Action rapide : Changer l'état --}}
-        <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 shadow-sm space-y-4">
+        <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/35 p-5 shadow-sm space-y-4">
             <div>
                 <h2 class="text-base font-semibold text-white">Changer l'état</h2>
                 <p class="text-xs text-cyan-100/60">Mise à jour rapide avec journalisation automatique</p>
@@ -183,7 +190,7 @@
     </div>
 
     {{-- Caractéristiques détaillées --}}
-    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 shadow-sm space-y-4">
+    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/35 p-5 shadow-sm space-y-4">
         <h2 class="text-base font-semibold text-white">Fiche technique & maintenance</h2>
         <dl class="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
             <div>
@@ -257,7 +264,7 @@
 
     {{-- Mini-carte Leaflet si coordonnées disponibles --}}
     @if($infrastructure->latitude && $infrastructure->longitude)
-        <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 shadow-sm space-y-3">
+        <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/35 p-5 shadow-sm space-y-3">
             <div class="flex items-center justify-between">
                 <h2 class="text-base font-semibold text-white">Localisation géographique</h2>
                 <span class="text-xs text-cyan-300 font-mono">{{ $infrastructure->latitude }}, {{ $infrastructure->longitude }}</span>
@@ -298,7 +305,7 @@
     @endif
 
     {{-- Timeline : Historique des changements d'état --}}
-    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 shadow-sm space-y-4">
+    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/35 p-5 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-base font-semibold text-white">Historique des états</h2>
@@ -362,10 +369,8 @@
         @endif
     </div>
 
-    @if(!request()->routeIs('admin.*'))
-    {{-- Suivi opérationnel réservé au gestionnaire --}}
     {{-- Section : Interventions de maintenance & Coût global --}}
-    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 shadow-sm space-y-4">
+    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/35 p-5 shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h2 class="text-base font-semibold text-white">Interventions de maintenance</h2>
@@ -423,7 +428,7 @@
     </div>
 
     {{-- Section : Incidents ouverts sur cet équipement --}}
-    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 shadow-sm space-y-4">
+    <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/35 p-5 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-base font-semibold text-white">Incidents signalés</h2>
@@ -479,24 +484,37 @@
             </div>
         @endif
     </div>
-    @endif
 </div>
 
 @push('scripts')
 <script>
     function confirmDeleteInfraShow() {
-        window.openAquaConfirm({
-            variant: 'danger',
-            title: 'Supprimer l\'infrastructure',
-            message: 'Êtes-vous certain de vouloir supprimer cet équipement du réseau ?',
-            badge: '{{ addslashes($infrastructure->nom) }} @if($infrastructure->reference) [{{ addslashes($infrastructure->reference) }}] @endif',
-            hint: 'L\'infrastructure sera archivée (Soft Delete). Ses mesures de qualité associées, son historique et ses interventions passées restent conservés en base.',
-            confirmText: 'Supprimer l\'équipement',
-            cancelText: 'Annuler',
-            onConfirm: function () {
-                document.getElementById('delete-infra-form-show').submit();
-            }
-        });
+        const infraNom = '{{ addslashes($infrastructure->nom) }}';
+        const infraRef = @if($infrastructure->reference) '{{ addslashes($infrastructure->reference) }}' @else '' @endif;
+        const badgeText = infraRef ? infraNom + ' [' + infraRef + ']' : infraNom;
+        const impactHtml = '<div class="flex items-start gap-2 mb-1"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-emerald-400"></span><span class="text-emerald-200/90 font-medium">Archivage logique (Soft Delete)</span></div><div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-cyan-400"></span><span class="text-cyan-200/90">Historique d\'audit, interventions et mesures de qualité conservés.</span></div>';
+        const hint = 'L\'infrastructure sera archivée et retirée de la supervision active. Aucune donnée n\'est définitivement effacée.';
+
+        if (typeof window.openAquaConfirm === 'function') {
+            window.openAquaConfirm({
+                variant: 'danger',
+                title: 'Supprimer l\'infrastructure',
+                message: 'Êtes-vous certain de vouloir supprimer « ' + infraNom + ' » du réseau ?',
+                badge: badgeText,
+                impact: impactHtml,
+                hint: hint,
+                confirmText: 'Supprimer l\'équipement',
+                cancelText: 'Annuler',
+                footerLeft: 'Archivage logique',
+                onConfirm: function () {
+                    const form = document.getElementById('delete-infra-form-show');
+                    if (form) form.submit();
+                }
+            });
+        } else if (confirm('Êtes-vous certain de vouloir supprimer « ' + infraNom + ' » du réseau ?')) {
+            const form = document.getElementById('delete-infra-form-show');
+            if (form) form.submit();
+        }
     }
 
     function confirmSubmitEtat(e) {
@@ -504,27 +522,41 @@
         const select = document.getElementById('action_etat');
         const newState = select.value;
         const currentState = "{{ $infrastructure->etat->value }}";
+        const infraNom = '{{ addslashes($infrastructure->nom) }}';
+        const currentLabel = "{{ $infrastructure->etat->label() }}";
+        const newLabel = select.options[select.selectedIndex].text.trim();
 
         if (newState === currentState) {
             window.openAquaConfirm({
                 variant: 'info',
                 title: 'État inchangé',
                 message: 'L\'équipement se trouve déjà à l\'état « ' + currentState + ' ». Choisissez un nouvel état si vous souhaitez modifier son statut.',
-                badge: '{{ addslashes($infrastructure->nom) }}',
+                badge: infraNom,
                 confirmText: 'Compris',
+                cancelText: 'Fermer',
                 onConfirm: function () {}
             });
             return;
         }
 
+        let variant = 'warning';
+        const lowerNew = newState.toLowerCase();
+        if (lowerNew === 'enservice' || lowerNew === 'en_service') variant = 'success';
+        else if (lowerNew === 'horsservice' || lowerNew === 'hors_service' || lowerNew === 'à_l\'arret' || lowerNew === 'à_larret') variant = 'danger';
+
         window.openAquaConfirm({
-            variant: 'warning',
+            variant: variant,
             title: 'Confirmer le changement d\'état',
             message: 'Souhaitez-vous modifier l\'état opérationnel de cette infrastructure ?',
-            badge: '{{ addslashes($infrastructure->nom) }} : de « {{ $infrastructure->etat->label() }} » vers « ' + select.options[select.selectedIndex].text.trim() + ' »',
-            hint: 'Cette mise à jour créera automatiquement une entrée dans la chronologie d\'audit avec votre motif.',
-            confirmText: 'Enregistrer l\'état',
+            badge: infraNom + ' : « ' + currentLabel + ' » → « ' + newLabel + ' »',
+            impact: '<div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-cyan-400"></span><span class="text-cyan-200/90">La transition sera enregistrée avec votre compte dans l\'historique d\'audit.</span></div>',
+            hint: 'Cette mise à jour mettra à jour le statut opérationnel et pourra déclencher une réévaluation du score de santé.',
+            confirmText: 'Enregistrer « ' + newLabel + ' »',
             cancelText: 'Annuler',
+            secondaryText: 'Garder « ' + currentLabel + ' »',
+            onSecondary: function () {
+                select.value = currentState;
+            },
             onConfirm: function () {
                 document.getElementById('quick-etat-form').submit();
             }
@@ -533,13 +565,15 @@
 
     function confirmResoudreAlerte(id, message) {
         window.openAquaConfirm({
-            variant: 'info',
+            variant: 'success',
             title: 'Résoudre l\'alerte technique',
             message: 'Confirmez-vous la résolution de cette alerte opérationnelle ?',
             badge: message,
-            hint: 'L\'alerte sera archivée et le score d\'état de santé de l\'ouvrage sera réévalué positivement.',
+            impact: '<div class="flex items-start gap-2 mb-1"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-emerald-400"></span><span class="text-emerald-200/90 font-medium">Alerte archivée</span></div><div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-cyan-400"></span><span class="text-cyan-200/90">Le score d\'état de santé de l\'ouvrage sera réévalué positivement.</span></div>',
+            hint: 'L\'alerte sera marquée comme résolue et disparaîtra de la liste des alertes actives.',
             confirmText: 'Marquer comme résolue',
             cancelText: 'Annuler',
+            footerLeft: 'Action réversible',
             onConfirm: function () {
                 document.getElementById('resoudre-alerte-form-' + id).submit();
             }

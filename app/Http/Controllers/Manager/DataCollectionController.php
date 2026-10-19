@@ -119,16 +119,26 @@ class DataCollectionController extends Controller
     public function importCsv(Request $request): JsonResponse
     {
         $user = auth()->user();
+        $sessionRole = session('user.role');
         if ($user && !$user->hasRole(['manager', 'administrateur'])) {
+            return response()->json(['message' => 'Accès refusé.'], 403);
+        } elseif (!$user && !in_array($sessionRole, ['manager', 'administrateur', 'admin'], true)) {
             return response()->json(['message' => 'Accès refusé.'], 403);
         }
 
         $request->validate([
-            'file'        => ['required', 'file', 'mimes:csv,txt,xlsx,xls', 'max:10240'],
+            'file'        => ['required', 'file', 'max:10240'],
             'source_name' => ['sometimes', 'string', 'max:100'],
         ]);
 
-        $file       = $request->file('file');
+        $file = $request->file('file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['csv', 'txt', 'xlsx', 'xls'], true)) {
+            return response()->json([
+                'message' => 'Format de fichier non pris en charge. Veuillez fournir un fichier CSV, TXT ou XLSX.',
+            ], 422);
+        }
+
         $sourceName = $request->input('source_name', 'import_manuel');
 
         $path = $file->storeAs('imports', $file->getClientOriginalName(), 'local');
@@ -141,6 +151,7 @@ class DataCollectionController extends Controller
         try {
             $result = $this->syncService->runProvider($csvProvider);
         } catch (\Throwable $e) {
+            @unlink($fullPath);
             return response()->json([
                 'message' => "Erreur lors de l'import des données : {$e->getMessage()}",
                 'result'  => null,
@@ -150,9 +161,59 @@ class DataCollectionController extends Controller
         // Clean up uploaded file
         @unlink($fullPath);
 
+        $imported = $result['imported'] ?? 0;
+        $skipped  = $result['skipped'] ?? 0;
+        $failed   = $result['failed'] ?? 0;
+
+        if ($imported === 0 && $skipped === 0 && $failed === 0) {
+            return response()->json([
+                'message' => "Aucune mesure valide n'a été détectée dans le fichier. Vérifiez les noms des colonnes (code/point, nom, date, pH, turbidité, chlore, plomb, nitrates) ou utilisez le modèle CSV fourni.",
+                'result'  => $result,
+            ], 422);
+        }
+
+        $messages = [];
+        if ($imported > 0) $messages[] = "{$imported} mesure(s) importée(s) avec succès";
+        if ($skipped > 0) $messages[] = "{$skipped} mesure(s) déjà existante(s) ignorée(s)";
+        if ($failed > 0) $messages[] = "{$failed} ligne(s) en échec";
+
         return response()->json([
-            'message'  => "Import terminé : {$result['imported']} importé(s), {$result['skipped']} ignoré(s).",
+            'message'  => implode(' · ', $messages) . '.',
             'result'   => $result,
+        ]);
+    }
+
+    /**
+     * Download a sample CSV template for water quality import.
+     */
+    public function downloadTemplateCsv(): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $filename = 'modele_import_qualite_eau.csv';
+
+        return response()->streamDownload(function (): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF"); // BOM UTF-8 for Excel
+
+            // Headers
+            fputcsv($handle, [
+                'code',
+                'nom',
+                'zone',
+                'date_mesure',
+                'ph',
+                'turbidite',
+                'chlore_residuel',
+                'plomb',
+                'nitrates',
+            ], ';');
+
+            // Example rows
+            fputcsv($handle, ['PT-001', 'Station Nord', 'Zone Nord', '2026-10-18 09:00:00', '7.2', '0.4', '0.8', '2.0', '10.5'], ';');
+            fputcsv($handle, ['PT-002', 'Réservoir Sud', 'Zone Sud', '2026-10-18 10:30:00', '7.4', '0.6', '0.5', '1.5', '12.0'], ';');
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 
@@ -168,12 +229,14 @@ class DataCollectionController extends Controller
             return response()->json(['message' => 'Accès refusé.'], 403);
         }
 
-        $days = min((int) $request->input('days', 30), 365);
+        $allHistory = $request->boolean('all', false);
+        $days = min(max(1, (int) $request->input('days', 30)), 365);
 
-        $analysis = $this->ragService->analysePoint($point, $days);
+        $analysis = $this->ragService->analysePoint($point, $days, $allHistory);
 
         return response()->json([
             'point'    => ['id' => $point->id, 'code' => $point->code, 'nom' => $point->nom],
+            'period'   => $allHistory ? 'Toutes les mesures disponibles' : "{$days} derniers jours",
             'analysis' => $analysis,
         ]);
     }

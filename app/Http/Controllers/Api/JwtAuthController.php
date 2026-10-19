@@ -19,6 +19,8 @@ class JwtAuthController extends Controller
      */
     private function issueTokenPair(User $user, Request $request): array
     {
+        $refreshTtl = max(1, (int) config('jwt.refresh_ttl', 10080));
+
         // Access token (60 min via config)
         $accessToken = auth('api')->login($user);
 
@@ -35,7 +37,7 @@ class JwtAuthController extends Controller
         JwtRefreshToken::create([
             'user_id'    => $user->id,
             'jti'        => $hashed,
-            'expires_at' => now()->addDays(7),
+            'expires_at' => now()->addMinutes($refreshTtl),
             'revoked'    => false,
             'ip_address' => $request->ip(),
             'user_agent' => substr($request->userAgent() ?? '', 0, 512),
@@ -46,6 +48,7 @@ class JwtAuthController extends Controller
             'access_token'  => $accessToken,
             'expires_in'    => (int) config('jwt.ttl', 60) * 60, // seconds — driven by JWT_TTL env
             'refresh_token' => $rawRefresh,
+            'refresh_expires_in' => $refreshTtl * 60,
         ];
     }
 
@@ -63,9 +66,12 @@ class JwtAuthController extends Controller
                 ->withCookie(cookie()->forget('refresh_token'));
         }
 
+        $accessTtl = max(1, (int) config('jwt.ttl', 60));
+        $refreshTtl = max(1, (int) config('jwt.refresh_ttl', 10080));
+
         return $response
-            ->withCookie(cookie('access_token',  $tokenData['access_token'],  60,    '/',                    null, $secure, true, false, 'lax'))
-            ->withCookie(cookie('refresh_token', $tokenData['refresh_token'], 10080, '/api/auth/refresh', null, $secure, true, false, 'lax'));
+            ->withCookie(cookie('access_token',  $tokenData['access_token'],  $accessTtl, '/', null, $secure, true, false, 'lax'))
+            ->withCookie(cookie('refresh_token', $tokenData['refresh_token'], $refreshTtl, '/api/auth/refresh', null, $secure, true, false, 'lax'));
     }
 
     /**
@@ -213,6 +219,19 @@ class JwtAuthController extends Controller
             'is_active'   => $user->is_active,
             'roles'       => $user->roles->pluck('slug'),
             'permissions' => $user->roles->flatMap(fn($r) => $r->permissions->pluck('name'))->unique()->values(),
+        ]);
+    }
+
+    public function permissions(): JsonResponse
+    {
+        $user = auth('api')->user()->load('roles.permissions');
+
+        return response()->json([
+            'roles' => $user->roles->pluck('slug')->values(),
+            'permissions' => $user->roles
+                ->flatMap(fn ($role) => $role->permissions->pluck('name'))
+                ->unique()
+                ->values(),
         ]);
     }
 }

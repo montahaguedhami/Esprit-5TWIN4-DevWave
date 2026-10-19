@@ -1,20 +1,39 @@
-@extends('layouts.manager')
+@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', 'Modifier une zone — AquaSecure')
 
-@section('manager-content')
 @php
-    $inventoryRoutePrefix = 'manager';
+    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
 @endphp
-<div class="mx-auto max-w-3xl space-y-5">
-    <div>
-        <a href="{{ route($inventoryRoutePrefix . '.zones.show', $zone) }}" class="text-sm text-cyan-300 hover:text-cyan-200">← Retour à la zone</a>
-        <h1 class="mt-2 text-2xl font-semibold text-white">Modifier la zone</h1>
+
+@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
+<div style="max-width:800px;margin:0 auto;">
+
+    {{-- Page header --}}
+    <div style="margin-bottom:20px;">
+        <a href="{{ route($inventoryRoutePrefix . '.zones.show', $zone) }}"
+           style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--role-accent,#0891b2);
+                  text-decoration:none;margin-bottom:10px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Retour à la zone
+        </a>
+        <h1 class="page-title">Modifier la zone</h1>
+        <p style="font-size:13px;color:var(--text-muted,#94a3b8);margin-top:4px;">
+            Modification de <strong>{{ $zone->nom }}</strong>
+        </p>
     </div>
+
     @include('manager.shared.flash')
-    <form method="POST" action="{{ route($inventoryRoutePrefix . '.zones.update', $zone) }}" class="space-y-4 rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-5 text-cyan-50 shadow-sm">
-        @method('PUT')
-        @include('manager.zones._form', ['zone' => $zone])
-    </form>
+
+    {{-- Form card --}}
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ route($inventoryRoutePrefix . '.zones.update', $zone) }}" novalidate>
+                @method('PUT')
+                @include('manager.zones._form', ['zone' => $zone, 'inventoryRoutePrefix' => $inventoryRoutePrefix])
+            </form>
+        </div>
+    </div>
+
 </div>
 @endsection

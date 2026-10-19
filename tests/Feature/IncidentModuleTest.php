@@ -135,17 +135,17 @@ class IncidentModuleTest extends TestCase
         $this->assertTrue(Incident::where('user_id', $citizen->id)->exists());
     }
 
-    public function test_login_uses_existing_accounts_and_their_roles(): void
+    public function test_demo_login_resolves_the_existing_citizen_account(): void
     {
         $this->seed();
         $citizen = User::where('email', 'citoyen@aquasecure.tn')->firstOrFail();
-        $this->post('/login', ['email' => $citizen->email, 'password' => 'password123'])->assertRedirect(route('citizen.dashboard'));
+        $this->post('/login', ['email' => $citizen->email])->assertRedirect(route('citizen.dashboard'));
         $this->get('/incidents')->assertOk()->assertViewHas('incidents', function ($incidents) use ($citizen) {
             return $incidents->count() > 0 && $incidents->every(fn ($incident) => $incident->user_id === $citizen->id);
         });
         $this->post('/logout')->assertRedirect(route('landing'));
         $this->get('/incidents')->assertRedirect(route('auth.login'));
-        $this->post('/login', ['email' => 'gestionnaire@aquasecure.tn', 'password' => 'password123'])->assertRedirect(route('manager.dashboard'));
+        $this->post('/login', ['email' => 'gestionnaire@aquasecure.tn'])->assertRedirect(route('manager.dashboard'));
         $this->get('/manager/incidents')->assertOk();
     }
 

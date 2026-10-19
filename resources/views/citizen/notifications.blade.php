@@ -9,7 +9,7 @@
 @endphp
 
 @section('content')
-<div class="space-y-6 citizen-notifications">
+<div class="space-y-6">
     <!-- Header with Back Navigation -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-3">
@@ -71,13 +71,13 @@
         <div class="lg:col-span-3">
             <!-- Search -->
             <div class="mb-6">
-                <x-ui.search-input name="notification-search" placeholder="Rechercher dans les notifications..." />
+                <x-ui.search-input placeholder="Rechercher dans les notifications..." />
             </div>
 
             <!-- Notifications -->
             <div class="space-y-3">
                 @forelse($notifications as $notification)
-                <x-ui.card hover padding="none" class="notification-item {{ $notification['read'] ? 'is-read' : 'is-unread' }}" data-type="{{ $notification['type'] }}" data-read="{{ $notification['read'] ? 'true' : 'false' }}">
+                <x-ui.card hover padding="none" class="notification-item {{ $notification['read'] ? 'opacity-75' : '' }}" data-type="{{ $notification['type'] }}" data-read="{{ $notification['read'] ? 'true' : 'false' }}">
                     <div class="flex gap-4 p-5">
                         <!-- Icon -->
                         <div class="w-12 h-12 rounded-xl bg-{{ $notification['color'] }}-500/10 flex items-center justify-center flex-shrink-0">
@@ -87,12 +87,12 @@
                         <!-- Content -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-3 mb-2">
-                                <h4 class="notification-title font-semibold text-white">{{ $notification['title'] }}</h4>
+                                <h4 class="font-semibold text-white">{{ $notification['title'] }}</h4>
                                 @if(!$notification['read'])
                                 <span class="w-2 h-2 rounded-full bg-cyan-400 flex-shrink-0 mt-1.5"></span>
                                 @endif
                             </div>
-                            <p class="notification-message text-sm text-cyan-100/70 mb-3">{{ $notification['message'] }}</p>
+                            <p class="text-sm text-cyan-100/70 mb-3">{{ $notification['message'] }}</p>
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-cyan-100/40">
                                     <i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1"></i>
@@ -144,43 +144,23 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         document.querySelectorAll('.filter-btn').forEach(b => {
             b.classList.remove('bg-cyan-500/10', 'text-white');
             b.classList.add('text-cyan-100/60');
-            b.classList.remove('is-active');
         });
         this.classList.add('bg-cyan-500/10', 'text-white');
         this.classList.remove('text-cyan-100/60');
-        this.classList.add('is-active');
         
         // Filter notifications
         document.querySelectorAll('.notification-item').forEach(item => {
             const type = item.dataset.type;
             const read = item.dataset.read === 'true';
-            const query = document.getElementById('notification-search')?.value.trim().toLocaleLowerCase() || '';
-            const searchableText = `${item.querySelector('.notification-title')?.textContent || ''} ${item.querySelector('.notification-message')?.textContent || ''}`.toLocaleLowerCase();
-            const matchesSearch = searchableText.includes(query);
-            let matchesFilter = true;
             
             if (filter === 'all') {
-                matchesFilter = true;
+                item.classList.remove('hidden');
             } else if (filter === 'unread') {
-                matchesFilter = !read;
+                item.classList.toggle('hidden', read);
             } else {
-                matchesFilter = type === filter;
+                item.classList.toggle('hidden', type !== filter);
             }
-            item.classList.toggle('hidden', !matchesFilter || !matchesSearch);
         });
-    });
-});
-
-const notificationSearch = document.getElementById('notification-search');
-notificationSearch?.addEventListener('input', function () {
-    const activeFilter = document.querySelector('.filter-btn.is-active')?.dataset.filter || 'all';
-    document.querySelectorAll('.notification-item').forEach(item => {
-        const read = item.dataset.read === 'true';
-        const type = item.dataset.type;
-        const query = this.value.trim().toLocaleLowerCase();
-        const text = `${item.querySelector('.notification-title')?.textContent || ''} ${item.querySelector('.notification-message')?.textContent || ''}`.toLocaleLowerCase();
-        const matchesFilter = activeFilter === 'all' || (activeFilter === 'unread' ? !read : type === activeFilter);
-        item.classList.toggle('hidden', !matchesFilter || !text.includes(query));
     });
 });
 </script>

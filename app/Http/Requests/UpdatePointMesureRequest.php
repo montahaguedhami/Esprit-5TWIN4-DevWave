@@ -13,21 +13,6 @@ class UpdatePointMesureRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $this->merge([
-            'code'        => is_string($this->code) ? trim($this->code) : $this->code,
-            'nom'         => is_string($this->nom) ? trim($this->nom) : $this->nom,
-            'zone'        => is_string($this->zone) ? (trim($this->zone) ?: null) : null,
-            'adresse'     => is_string($this->adresse) ? (trim($this->adresse) ?: null) : null,
-            'latitude'    => ($this->latitude !== null && $this->latitude !== '') ? $this->latitude : null,
-            'longitude'   => ($this->longitude !== null && $this->longitude !== '') ? $this->longitude : null,
-            'type'        => is_string($this->type) ? trim($this->type) : $this->type,
-            'statut'      => is_string($this->statut) ? trim($this->statut) : $this->statut,
-            'description' => is_string($this->description) ? (trim($this->description) ?: null) : null,
-        ]);
-    }
-
     public function rules(): array
     {
         $pointMesure = $this->route('point_mesure');
@@ -39,6 +24,7 @@ class UpdatePointMesureRequest extends FormRequest
             'code'        => ['sometimes', 'string', 'min:2', 'max:50', Rule::unique('point_mesures', 'code')->ignore($pointMesureId)],
             'nom'         => ['required', 'string', 'min:2', 'max:255'],
             'zone'        => ['nullable', 'string', 'max:255'],
+            'infrastructure_id' => ['nullable', 'integer', Rule::exists('infrastructures', 'id')->whereNull('deleted_at')],
             'adresse'     => ['nullable', 'string', 'max:255'],
             'latitude'    => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'   => ['nullable', 'numeric', 'between:-180,180'],
