@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Technicien extends Model
@@ -20,11 +21,20 @@ class Technicien extends Model
     ];
 
     protected $fillable = [
+        'user_id',
         'nom',
         'specialite',
         'telephone',
         'disponibilite',
     ];
+
+    /**
+     * Compte utilisateur (rôle technicien) qui se connecte avec cette fiche.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Un technicien réalise plusieurs interventions.

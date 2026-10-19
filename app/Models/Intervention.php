@@ -15,8 +15,15 @@ class Intervention extends Model
 
     public const STATUTS = ['Planifiée', 'En cours', 'Terminée', 'Annulée'];
 
+    public const TYPE_CORRECTIVE = 'Corrective';
+
+    public const TYPE_PREVENTIVE = 'Préventive';
+
+    public const TYPES = [self::TYPE_CORRECTIVE, self::TYPE_PREVENTIVE];
+
     protected $attributes = [
         'statut' => 'Planifiée',
+        'type' => self::TYPE_CORRECTIVE,
     ];
 
     protected $fillable = [
@@ -25,8 +32,14 @@ class Intervention extends Model
         'date',
         'description',
         'statut',
+        'type',
         'cout',
     ];
+
+    public function estPreventive(): bool
+    {
+        return $this->type === self::TYPE_PREVENTIVE;
+    }
 
     protected function casts(): array
     {

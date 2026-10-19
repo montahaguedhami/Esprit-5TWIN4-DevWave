@@ -60,6 +60,11 @@
                             <tr class="hover:bg-white/[.03] transition-colors">
                                 <td class="px-5 py-3">
                                     <a href="{{ route('manager.techniciens.show', $technicien) }}" class="font-semibold text-white hover:text-cyan-300">{{ $technicien->nom }}</a>
+                                    @if($technicien->user)
+                                        <span class="block text-xs text-emerald-400/90 mt-0.5 flex items-center gap-1"><i data-lucide="user-check" class="w-3 h-3"></i>{{ $technicien->user->email }}</span>
+                                    @else
+                                        <span class="block text-xs text-cyan-100/40 mt-0.5">Sans compte</span>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-3 text-cyan-100/80">{{ $technicien->specialite }}</td>
                                 <td class="px-5 py-3 text-cyan-100/80 whitespace-nowrap">{{ $technicien->telephone }}</td>

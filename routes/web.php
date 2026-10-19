@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -6,6 +5,10 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\IncidentController;
 use App\Http\Controllers\ActionCorrectiveController;
 use App\Http\Controllers\InterventionController;
+use App\Http\Controllers\InterventionIaController;
+use App\Http\Controllers\MaintenanceDashboardController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PlanningController;
 use App\Http\Controllers\TechnicienController;
 use App\Http\Controllers\TravauxController;
 use App\Http\Controllers\Manager\MapController;
@@ -177,6 +180,7 @@ Route::middleware('role:technician')->prefix('technician')->name('technician.')-
     Route::post('/interventions/{id}/start', [\App\Http\Controllers\Technician\InterventionController::class, 'start'])->name('interventions.start');
     Route::get('/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'report'])->name('interventions.report');
     Route::post('/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'storeReport'])->name('interventions.report.store');
+    Route::post('/interventions/{id}/report/ia', [\App\Http\Controllers\Technician\InterventionController::class, 'assistantRapport'])->name('interventions.report.ia');
 
     Route::get('/equipment', function () {
         return view('technician.equipment');
@@ -431,7 +435,9 @@ Route::middleware('role:administrateur,manager,technicien,citoyen')->group(funct
     Route::delete('/settings/sessions/{sessionId}', [\App\Http\Controllers\Settings\SessionController::class, 'revoke'])->name('settings.sessions.revoke');
     Route::post('/settings/sessions/revoke-others', [\App\Http\Controllers\Settings\SessionController::class, 'revokeOthers'])->name('settings.sessions.revoke-others');
     Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
-    Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
+    Route::get('/notifications',             [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/tout-lire',  [NotificationController::class, 'toutLire'])->name('notifications.tout-lire');
+    Route::get('/notifications/{id}/ouvrir', [NotificationController::class, 'ouvrir'])->name('notifications.ouvrir');
 });
 
 Route::get('/admin/security', function () {
@@ -470,13 +476,6 @@ Route::get('/settings/notifications', function () {
     return view('settings.notifications');
 })->name('settings.notifications');
 
-Route::get('/notifications', function () {
-    if (!session('user')) {
-        return redirect()->route('auth.login');
-    }
-    return view('notifications.index');
-})->name('notifications.index');
-
 // AI Assistant Demo (Public)
 Route::get('/ai-demo', function () {
     return view('ai-demo');
@@ -491,6 +490,18 @@ Route::get('/weather', function () {
 Route::middleware('manager')->prefix('manager')->name('manager.')->group(function () {
     Route::resource('techniciens', TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
+    Route::get('interventions/{intervention}/pdf', [InterventionController::class, 'pdf'])->name('interventions.pdf');
+    Route::post('interventions/recommandation-ia', [InterventionIaController::class, 'recommander'])->name('interventions.recommandation');
+
+    // Statistiques et rapport mensuel du module Maintenance
+    Route::get('maintenance/statistiques',    [MaintenanceDashboardController::class, 'index'])->name('maintenance.statistiques');
+    Route::get('maintenance/rapport-mensuel', [MaintenanceDashboardController::class, 'rapportMensuel'])->name('maintenance.rapport-mensuel');
+
+    // Planning des interventions (calendrier + détection de conflits)
+    Route::get('planning',                              [PlanningController::class, 'index'])->name('planning.index');
+    Route::get('planning/evenements',                   [PlanningController::class, 'evenements'])->name('planning.evenements');
+    Route::patch('planning/interventions/{intervention}', [PlanningController::class, 'deplacer'])->name('planning.deplacer');
+    Route::post('planning/preventive',                  [PlanningController::class, 'preventive'])->name('planning.preventive');
 });
 
 // Module Maintenance (Front Office) : travaux visibles par les citoyens
