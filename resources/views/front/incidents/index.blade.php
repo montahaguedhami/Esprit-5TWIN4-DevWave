@@ -52,6 +52,12 @@
                             <span class="citizen-incident-status-dot"></span>{{ $incidentStatusLabel }}
                         </span>
                     </div>
+                    <p class="mt-2 text-xs text-slate-600">
+                        <i data-lucide="map-pin" class="mr-1 inline h-3.5 w-3.5"></i>{{ $incident->localisation }}
+                        @if($incident->infrastructure)
+                            <span class="mx-1">·</span>{{ $incident->infrastructure->nom }}
+                        @endif
+                    </p>
                 </div>
                 <a href="{{ route('incidents.show', $incident) }}" class="citizen-incident-open" aria-label="Consulter l’incident : {{ $incident->titre }}">
                     <i data-lucide="arrow-up-right"></i>

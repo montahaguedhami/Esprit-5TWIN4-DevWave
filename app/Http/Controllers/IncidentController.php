@@ -30,6 +30,7 @@ class IncidentController extends Controller
     {
         $zones = \App\Models\Zone::orderBy('nom')->get(['id', 'nom']);
         $infrastructures = \App\Models\Infrastructure::orderBy('nom')->get(['id', 'nom', 'zone_id']);
+
         return view('front.incidents.create', compact('zones', 'infrastructures'));
     }
 
@@ -57,6 +58,7 @@ class IncidentController extends Controller
         $this->authorizeOwner($request, $incident);
         $zones = \App\Models\Zone::orderBy('nom')->get(['id', 'nom']);
         $infrastructures = \App\Models\Infrastructure::orderBy('nom')->get(['id', 'nom', 'zone_id']);
+
         return view('front.incidents.edit', compact('incident', 'zones', 'infrastructures'));
     }
 

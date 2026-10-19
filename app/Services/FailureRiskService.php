@@ -81,7 +81,9 @@ class FailureRiskService
      */
     public function recompute(Infrastructure $infrastructure, ?CarbonInterface $computedAt = null): array
     {
-        $computedAt ??= now();
+        // Seconde entière : MySQL arrondit les fractions des colonnes DATETIME, ce qui faisait échouer
+        // updateOrCreate (recherche sur 12.7 s, ligne stockée à 13 s → doublon sur la clé unique)
+        $computedAt = ($computedAt ?? now())->copy()->startOfSecond();
         $prediction = $this->predict($infrastructure);
         $previous = InfrastructureRiskPrediction::query()
             ->where('infrastructure_id', $infrastructure->id)

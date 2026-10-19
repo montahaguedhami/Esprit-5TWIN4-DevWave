@@ -55,15 +55,15 @@ class Projet extends Model
     }
 
     /**
-     * Get the zones associated with the projet.
-     */
+      * Get the zones associated with the projet.
+      */
     public function zones(): BelongsToMany
     {
-        return $this->belongsToMany(Zone::class, 'projet_zone')->withTimestamps();
+         return $this->belongsToMany(Zone::class, 'projet_zone')->withTimestamps();
     }
 
     /**
-     * Get the total amount financed for this projet.
+      * Get the total amount financed for this projet.
      */
     public function getTotalFinanceAttribute(): float
     {

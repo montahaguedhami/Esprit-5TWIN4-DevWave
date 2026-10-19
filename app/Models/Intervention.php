@@ -36,6 +36,14 @@ class Intervention extends Model
         'cout',
     ];
 
+    /**
+     * Statut vide (null) : « Planifiée » par défaut, la colonne n'accepte pas null.
+     */
+    public function setStatutAttribute(?string $value): void
+    {
+        $this->attributes['statut'] = $value ?? 'Planifiée';
+    }
+
     public function estPreventive(): bool
     {
         return $this->type === self::TYPE_PREVENTIVE;

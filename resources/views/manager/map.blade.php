@@ -163,6 +163,9 @@
                 <i data-lucide="layers" class="w-4 h-4"></i>
                 <span>Filtres & Couches</span>
             </button>
+            <span class="glass px-3 py-2 rounded-xl text-teal-300 text-sm font-medium">
+                {{ $measurementPoints->count() }} points de mesure
+            </span>
             <button onclick="flyToTunisia()"
                     class="glass px-3 py-1.5 rounded-xl text-cyan-300 hover:text-white text-xs sm:text-sm font-medium flex items-center gap-2 transition-all hover:border-cyan-400/40">
                 <i data-lucide="locate" class="w-4 h-4"></i>
@@ -341,8 +344,9 @@
 <script>
 // ── Données injectées depuis PHP ─────────────────────────────────────────────
 const ZONES = @json($zones);
-const INFRASTRUCTURES = @json($infrastructures);
+const PIPELINES = @json($pipelines);
 const MEASUREMENT_POINTS = @json($measurementPoints);
+const INFRASTRUCTURES = @json($infrastructures);
 const FOCUS_ZONE_ID = @json($focusZone);
 const FOCUS_INFRA_ID = @json($focusInfrastructure);
 
@@ -406,6 +410,14 @@ function buildZonePopup(zone) {
         <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:8px;margin-bottom:10px;font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
             <div><span style="color:#64748b;">Responsable:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.responsable)}</strong></div>
             <div><span style="color:#64748b;">Équipements:</span><br><strong style="color:#f1f5f9;">${zone.infrastructures_count} unités</strong></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:10px;font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div><span style="color:#64748b;">Qualité:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.quality)}%</strong></div>
+            <div><span style="color:#64748b;">Pression:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.pressure)} bar</strong></div>
+            <div><span style="color:#64748b;">Débit:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.flowRate)} m³/h</strong></div>
+            <div><span style="color:#64748b;">Population:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.population)}</strong></div>
+            <div><span style="color:#64748b;">Incidents:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.incidents)}</strong></div>
+            <div><span style="color:#64748b;">Technicien:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.technician)}</strong></div>
         </div>
         <div style="text-align:right;">
             <a href="${zone.show_url}" style="font-size:11px;font-weight:700;color:#38bdf8;text-decoration:none;">Ouvrir la fiche zone →</a>
@@ -550,6 +562,31 @@ function applyInfrastructureFilters() {
         }
     });
 }
+
+// ── Pipeline polylines ────────────────────────────────────────────────────────
+const pipeColors = { normal: '#2dd4bf', alert: '#fbbf24', critical: '#ef4444' };
+
+PIPELINES.forEach(pipe => {
+    const from = zoneById[pipe.from];
+    const to   = zoneById[pipe.to];
+    if (!from || !to) return;
+
+    L.polyline(
+        [[from.lat, from.lng], [to.lat, to.lng]],
+        {
+            color: pipeColors[pipe.status] ?? '#2dd4bf',
+            weight: pipe.status === 'critical' ? 3 : 2,
+            opacity: 0.55,
+            dashArray: pipe.status === 'normal' ? null : '6,4',
+        }
+    ).addTo(map).bindTooltip(
+        `<span style="font-size:11px;color:#f0fdff">
+            ${from.name} → ${to.name}<br>
+            Ø${pipe.diameter}mm · ${pipe.pressure} bar · ${pipe.flow} m³/h
+        </span>`,
+        { sticky: true, className: '' }
+    );
+});
 
 function toggleAllTypes(checkAll) {
     document.querySelectorAll('input[name="infra_type"]').forEach(cb => cb.checked = checkAll);

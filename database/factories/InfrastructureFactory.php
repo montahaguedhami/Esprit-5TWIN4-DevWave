@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class InfrastructureFactory extends Factory
 {
+    public const TYPES = ['Canalisation', 'Réservoir', 'Station de pompage', 'Station de traitement'];
+
+    public const ETATS = ['En service', 'En service', 'En service', 'En maintenance', 'Hors service'];
+
     /**
      * Define the model's default state.
      *

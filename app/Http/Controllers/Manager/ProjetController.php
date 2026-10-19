@@ -15,32 +15,30 @@ class ProjetController extends Controller
      */
     public function index(Request $request)
     {
-        // Vérification session manager
-        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
         $query = Projet::with('financements');
 
-        // Recherche par nom
         if ($request->filled('search')) {
             $query->where('nom', 'like', '%' . $request->search . '%');
         }
 
-        // Filtre par statut
         if ($request->filled('statut')) {
             $query->where('statut', $request->statut);
         }
 
-        // Pagination
         $projets = $query->latest()->paginate(15);
 
-        // Statistiques
         $stats = [
-            'total' => Projet::count(),
-            'en_cours' => Projet::where('statut', 'en_cours')->count(),
-            'termine' => Projet::where('statut', 'termine')->count(),
-            'planifie' => Projet::where('statut', 'planifie')->count(),
+            'total'     => Projet::count(),
+            'en_cours'  => Projet::where('statut', 'en_cours')->count(),
+            'termine'   => Projet::where('statut', 'termine')->count(),
+            'planifie'  => Projet::where('statut', 'planifie')->count(),
         ];
 
         return view('manager.projets.index', compact('projets', 'stats'));
@@ -51,8 +49,10 @@ class ProjetController extends Controller
      */
     public function create()
     {
-        // Vérification session manager
-        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -76,12 +76,13 @@ class ProjetController extends Controller
      */
     public function show(Projet $projet)
     {
-        // Vérification session manager
-        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
-        // Charger les financements avec eager loading
         $projet->load('financements');
 
         return view('manager.projets.show', compact('projet'));
@@ -92,8 +93,10 @@ class ProjetController extends Controller
      */
     public function edit(Projet $projet)
     {
-        // Vérification session manager
-        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -117,8 +120,10 @@ class ProjetController extends Controller
      */
     public function destroy(Projet $projet)
     {
-        // Vérification session manager
-        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
@@ -135,12 +140,13 @@ class ProjetController extends Controller
      */
     public function map()
     {
-        // Vérification session manager
-        if (!session('user') || !in_array(session('user.role'), ['manager', 'admin'])) {
+        if (! \App\Models\Role::sessionMatches(
+            \App\Models\Role::MANAGER,
+            \App\Models\Role::ADMINISTRATEUR
+        )) {
             return redirect()->route('auth.login');
         }
 
-        // Récupérer uniquement les projets géolocalisés
         $projets = Projet::whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->with('financements')

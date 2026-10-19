@@ -3,7 +3,6 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\EnsureManager;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,11 +12,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Exclude JWT cookies from Laravel's cookie encryption — tymon reads raw JWTs
+        $middleware->encryptCookies(except: [
+            'access_token',
+            'refresh_token',
+        ]);
+
         $middleware->alias([
-            'manager' => EnsureManager::class,
-            'role' => \App\Http\Middleware\EnsureRole::class,
-            'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
-            'jwt.role' => \App\Http\Middleware\JwtCheckRole::class,
+            'role'       => \App\Http\Middleware\CheckRole::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
+            'jwt.authenticate' => \App\Http\Middleware\JwtAuthenticate::class,
+            'jwt.auth'   => \App\Http\Middleware\JwtAuthenticate::class,
+            'jwt.role'   => \App\Http\Middleware\JwtCheckRole::class,
+            'manager'    => \App\Http\Middleware\EnsureManager::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

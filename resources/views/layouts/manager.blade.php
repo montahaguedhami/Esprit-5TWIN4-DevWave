@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @php
-    $isTech = (session('user.role') === 'technician');
+    $isTech = in_array(session('user.role'), ['technician', 'technicien'], true);
     $role   = $isTech ? 'technician' : 'manager';
     $dashRoute = $isTech ? route('technician.dashboard') : route('manager.dashboard');
     $roleLabel = $isTech ? 'Espace Technicien' : 'Espace Gestionnaire';
@@ -134,6 +134,14 @@
                    class="sidebar-link {{ request()->routeIs('manager.budget*', 'manager.financements.*') ? 'is-active' : '' }}">
                     <i data-lucide="credit-card"></i><span>Budget</span>
                 </a>
+                <a href="{{ route('manager.teams') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.teams') ? 'is-active' : '' }}">
+                    <i data-lucide="users"></i><span>Équipes</span>
+                </a>
+                <a href="{{ route('manager.analytics') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.analytics') ? 'is-active' : '' }}">
+                    <i data-lucide="line-chart"></i><span>Analyses et rapports</span>
+                </a>
             </div>
             @endif
 
@@ -168,6 +176,7 @@
         {{-- Topbar --}}
         <header class="app-topbar">
             <div class="topbar-left">
+                <x-back-button :fallback="$dashRoute" class="icon-btn" />
                 <button class="icon-btn sidebar-toggle" id="mgr-menu-btn" onclick="toggleSidebar('mgr')"
                         aria-label="Ouvrir la navigation" aria-expanded="false">
                     <i data-lucide="menu" class="sidebar-toggle-icon sidebar-toggle-icon--closed"></i>

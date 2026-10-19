@@ -96,6 +96,11 @@
         <!-- Register Form -->
         <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4" autocomplete="off">
             @csrf
+        @if (session('error') || $errors->any())
+                <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
+                    {{ session('error') ?? $errors->first() }}
+                </div>
+            @endif
             
             <div>
                 <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
@@ -212,31 +217,9 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Profil</label>
-                    <div class="relative">
-                        <select name="role" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400/50 appearance-none cursor-pointer">
-                            <option value="citizen">Citoyen</option>
-                            <option value="technician">Technicien</option>
-                            <option value="manager">Gestionnaire</option>
-                        </select>
-                        <i data-lucide="user-circle" class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-cyan-100/30 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                    </div>
-                </div>
-                <div>
-                    <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Zone</label>
-                    <div class="relative">
-                        <select name="zone" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400/50 appearance-none cursor-pointer">
-                            @foreach(App\Data\PlaceholderData::zones() as $zone)
-                            <option>{{ $zone['name'] }}</option>
-                            @endforeach
-                        </select>
-                        <i data-lucide="map-pin" class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-cyan-100/30 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                    </div>
-                </div>
+            <div class="rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-3 text-xs text-cyan-100/70">
+                L'inscription publique crée un compte <span class="font-semibold text-cyan-200">citoyen</span>.
+                Les comptes technicien, gestionnaire et administrateur sont créés par un administrateur.
             </div>
 
             <!-- Terms Checkbox -->

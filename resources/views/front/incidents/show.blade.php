@@ -24,6 +24,17 @@
         </div>
         <p class="mt-5 whitespace-pre-line wrap-break-word text-slate-700 leading-relaxed">{{ $incident->description }}</p>
         <div class="text-sm text-slate-600 mt-4">Localisation : {{ $incident->localisation }}</div>
+        @if($incident->zone)
+            <div class="text-sm text-slate-600 mt-1">Zone : {{ $incident->zone->nom }}</div>
+        @endif
+        @if($incident->infrastructure)
+            <div class="text-sm text-slate-600 mt-1">
+                Équipement concerné :
+                <a href="{{ route('citizen.infrastructures.show', $incident->infrastructure) }}" class="font-semibold text-cyan-700 hover:text-cyan-900">
+                    {{ $incident->infrastructure->nom }}
+                </a>
+            </div>
+        @endif
         <div class="text-xs text-slate-500 mt-1">Signalé : {{ optional($incident->date_signalement)->format('Y-m-d H:i') }}</div>
     </div>
 

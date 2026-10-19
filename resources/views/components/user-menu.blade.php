@@ -1,16 +1,14 @@
 @php
-    $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => 'citizen']);
-    $roleLabels = [
-        'admin' => 'Administrateur',
-        'manager' => 'Gestionnaire',
-        'technician' => 'Technicien',
-        'citizen' => 'Citoyen',
-    ];
+    use App\Models\Role;
+
+    $user = session('user', ['name' => 'Utilisateur', 'email' => 'user@aquasecure.tn', 'role' => Role::CITOYEN]);
+    $roleSlug  = Role::normalizeSlug($user['role'] ?? null);
+    $roleLabel = Role::label($roleSlug);
     $roleColors = [
-        'admin' => 'purple',
-        'manager' => 'blue',
-        'technician' => 'cyan',
-        'citizen' => 'emerald',
+        Role::ADMINISTRATEUR => 'purple',
+        Role::MANAGER        => 'blue',
+        Role::TECHNICIEN     => 'cyan',
+        Role::CITOYEN        => 'emerald',
     ];
 @endphp
 
@@ -26,7 +24,7 @@
             <div class="truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-cyan-700">
                 {{ $user['name'] }}
             </div>
-            <div class="text-xs text-slate-500">{{ $roleLabels[$user['role']] ?? 'Utilisateur' }}</div>
+            <div class="text-xs text-cyan-100/60">{{ $roleLabel }}</div>
         </div>
         <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-cyan-700 transition-all group-hover:rotate-180"></i>
     </button>
@@ -45,9 +43,9 @@
                     <p class="text-xs text-slate-500 truncate">{{ $user['email'] }}</p>
                 </div>
             </div>
-            <x-ui.status-badge 
-                :status="$roleColors[$user['role']] ?? 'cyan'" 
-                :label="$roleLabels[$user['role']] ?? 'Utilisateur'" 
+            <x-ui.status-badge
+                :status="$roleColors[$roleSlug] ?? 'cyan'"
+                :label="$roleLabel"
             />
         </div>
 
@@ -86,8 +84,6 @@
                 </div>
             </a>
 
-            <!-- Divider -->
-            <div class="my-2 border-t border-slate-100"></div>
             <!-- Divider -->
             <div class="my-2 border-t border-slate-100"></div>
 
