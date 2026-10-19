@@ -125,18 +125,42 @@
         </p>
     </div>
 
-    {{-- ── Actions ── --}}
-    <div class="flex flex-col sm:flex-row gap-3 no-print">
+    {{-- ── Actions : le citoyen choisit entre imprimer et télécharger ── --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 no-print">
+        {{-- 1. Impression via le navigateur (imprimante ou « Enregistrer en PDF ») --}}
         <button type="button" onclick="window.print()"
-                class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2">
+                class="py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2">
             <i data-lucide="printer" class="w-4 h-4"></i>
-            Imprimer / sauvegarder en PDF
+            Imprimer
         </button>
-        <a href="{{ route('citizen.demandes.index') }}"
-           class="flex-1 py-2.5 rounded-xl text-center text-sm font-semibold glass text-cyan-300 hover:text-white border border-white/10 transition-colors">
-            Mes demandes
+
+        {{-- 2. Fichier PDF généré par le serveur, sans passer par l'impression --}}
+        <a href="{{ route('citizen.demandes.paiement.recu.pdf', $paiement) }}"
+           download
+           class="py-2.5 rounded-xl text-sm font-semibold text-center glass text-cyan-300 hover:text-white border border-white/10 hover:border-cyan-400/40 transition-colors inline-flex items-center justify-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Télécharger le PDF
         </a>
     </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 no-print">
+        <a href="{{ route('citizen.demandes.index') }}"
+           class="flex-1 py-2.5 rounded-xl text-center text-sm font-semibold glass text-cyan-300 hover:text-white border border-white/10 transition-colors inline-flex items-center justify-center gap-2">
+            <i data-lucide="list-checks" class="w-4 h-4"></i>
+            Mes demandes
+        </a>
+        <a href="{{ route('citizen.demandes.paiement.resultat', $paiement) }}"
+           class="flex-1 py-2.5 rounded-xl text-center text-sm font-semibold glass text-cyan-300 hover:text-white border border-white/10 transition-colors inline-flex items-center justify-center gap-2">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Résultat de la simulation
+        </a>
+    </div>
+
+    <p class="no-print text-center text-xs text-cyan-100/40">
+        « Imprimer » ouvre la fenêtre d'impression du navigateur (où vous pouvez aussi choisir
+        « Enregistrer au format PDF »). « Télécharger le PDF » enregistre directement le fichier,
+        sans fenêtre d'impression.
+    </p>
 
 </div>
 @endsection

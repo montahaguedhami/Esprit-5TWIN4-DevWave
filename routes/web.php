@@ -594,6 +594,7 @@ Route::middleware('role:citoyen')->group(function () {
     Route::prefix('citizen/paiements')->name('citizen.demandes.paiement.')->group(function () {
         Route::get('/{paiement}',             [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'resultat'])->name('resultat');
         Route::get('/{paiement}/recu',        [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'recu'])->name('recu');
+        Route::get('/{paiement}/recu/pdf',    [App\Http\Controllers\Citizen\DemandeFinancementController::class, 'recuPdf'])->name('recu.pdf');
     });
 });
 

@@ -12,7 +12,9 @@ use App\Services\FinancementException;
 use App\Services\FinancementService;
 use App\Services\Payments\SimulationResult;
 use App\Services\Payments\SimulatedPaymentProvider;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
  * Citizen side of the funding flow.
@@ -199,6 +201,32 @@ class DemandeFinancementController extends Controller
         $paiement->load(['demande.projet', 'citoyen']);
 
         return view('citizen.demandes.recu', compact('paiement'));
+    }
+
+    /**
+     * The very same receipt as a downloadable PDF file.
+     *
+     * The screen keeps its own "Imprimer" button; this route gives the citizen
+     * the other half of the choice — save the document directly, without going
+     * through the browser's print dialog.
+     *
+     * Ownership and role are re-checked here exactly like in recu(): having
+     * the URL is not enough to fetch someone else's receipt.
+     */
+    public function recuPdf(Request $request, Paiement $paiement): Response
+    {
+        $this->verifierPaiementProprietaire($request, $paiement);
+
+        $paiement->load(['demande.projet', 'demande.decideur', 'citoyen']);
+
+        $pdf = Pdf::loadView('citizen.demandes.recu-pdf', [
+            'paiement'    => $paiement,
+            'generatedAt' => now()->format('d/m/Y à H:i'),
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            sprintf('recu-contribution-%s.pdf', $paiement->reference_interne)
+        );
     }
 
     /* ── Contrôles d'accès ───────────────────────────────────────────────── */
