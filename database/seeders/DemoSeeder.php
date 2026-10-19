@@ -60,10 +60,10 @@ class DemoSeeder extends Seeder
                 Intervention::create([
                     'infrastructure_id' => $infra->id,
                     'technicien_id' => $technicien->id,
-                    'date' => now()->subDays(rand(5, 60)),
+                    'date' => now()->subDays(random_int(5, 60)),
                     'description' => 'Maintenance préventive : purge, graissage et vérification des raccords hydrauliques sur ' . $infra->nom,
                     'statut' => 'Terminée',
-                    'cout' => rand(250, 1850),
+                    'cout' => random_int(250, 1850),
                 ]);
             }
         }
@@ -75,7 +75,7 @@ class DemoSeeder extends Seeder
                 $zone = $zones->random();
                 $incident->zone_id = $zone->id;
 
-                if ($zone->infrastructures->isNotEmpty() && rand(0, 1) === 1) {
+                if ($zone->infrastructures->isNotEmpty() && random_int(0, 1) === 1) {
                     $incident->infrastructure_id = $zone->infrastructures->random()->id;
                 }
 
@@ -105,7 +105,7 @@ class DemoSeeder extends Seeder
             foreach ($projets as $projet) {
                 if ($projet->zones()->count() === 0) {
                     // Rattacher 1 à 2 zones à chaque projet
-                    $selectedZones = $zones->random(min(rand(1, 2), $zones->count()));
+                    $selectedZones = $zones->random(min(random_int(1, 2), $zones->count()));
                     $projet->zones()->syncWithoutDetaching($selectedZones->pluck('id'));
                 }
             }
