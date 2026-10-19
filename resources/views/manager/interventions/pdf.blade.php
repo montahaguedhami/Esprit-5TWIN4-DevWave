@@ -12,8 +12,8 @@
         .meta { float: right; text-align: right; color: #64748b; font-size: 9.5px; }
         h2 { font-size: 12px; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin: 16px 0 8px; }
         table { width: 100%; border-collapse: collapse; }
-        .info td { padding: 4px 6px; vertical-align: top; }
-        .info td.label { width: 30%; color: #64748b; }
+        .info td, .info th { padding: 4px 6px; vertical-align: top; }
+        .info th.label { width: 30%; color: #64748b; text-align: left; font-weight: normal; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 9.5px; font-weight: bold; }
         .b-planifiee { background: #e0f2fe; color: #0369a1; }
         .b-en-cours { background: #fef3c7; color: #b45309; }
@@ -47,33 +47,33 @@
 
 <h2>Intervention</h2>
 <table class="info">
-    <tr><td class="label">Date</td><td>{{ $intervention->date->locale('fr')->translatedFormat('l d F Y') }}</td></tr>
+    <tr><th scope="row" class="label">Date</th><td>{{ $intervention->date->locale('fr')->translatedFormat('l d F Y') }}</td></tr>
     <tr>
-        <td class="label">Type / statut</td>
+        <th scope="row" class="label">Type / statut</th>
         <td>
             <span class="badge {{ $intervention->estPreventive() ? 'b-preventive' : 'b-corrective' }}">{{ $intervention->type }}</span>
             <span class="badge {{ $classeStatut }}">{{ $intervention->statut }}</span>
         </td>
     </tr>
-    <tr><td class="label">Coût</td><td>{{ number_format((float) $intervention->cout, 2, ',', ' ') }} DT</td></tr>
+    <tr><th scope="row" class="label">Coût</th><td>{{ number_format((float) $intervention->cout, 2, ',', ' ') }} DT</td></tr>
 </table>
 
 <h2>Technicien</h2>
 <table class="info">
-    <tr><td class="label">Nom</td><td>{{ $intervention->technicien?->nom ?? '—' }}</td></tr>
-    <tr><td class="label">Spécialité</td><td>{{ $intervention->technicien?->specialite ?? '—' }}</td></tr>
-    <tr><td class="label">Téléphone</td><td>{{ $intervention->technicien?->telephone ?? '—' }}</td></tr>
+    <tr><th scope="row" class="label">Nom</th><td>{{ $intervention->technicien?->nom ?? '—' }}</td></tr>
+    <tr><th scope="row" class="label">Spécialité</th><td>{{ $intervention->technicien?->specialite ?? '—' }}</td></tr>
+    <tr><th scope="row" class="label">Téléphone</th><td>{{ $intervention->technicien?->telephone ?? '—' }}</td></tr>
 </table>
 
 <h2>Équipement</h2>
 @if($infra)
     <table class="info">
-        <tr><td class="label">Nom / référence</td><td>{{ $infra->nom }}{{ $infra->reference ? ' ('.$infra->reference.')' : '' }}</td></tr>
-        <tr><td class="label">Type</td><td>{{ $infra->type?->value ?? '—' }}</td></tr>
-        <tr><td class="label">Zone</td><td>{{ $infra->zone?->nom ?? '—' }}{{ $infra->localisation ? ' — '.$infra->localisation : '' }}</td></tr>
-        <tr><td class="label">Criticité</td><td>{{ $infra->niveau_criticite?->value ? ucfirst($infra->niveau_criticite->value) : '—' }}</td></tr>
+        <tr><th scope="row" class="label">Nom / référence</th><td>{{ $infra->nom }}{{ $infra->reference ? ' ('.$infra->reference.')' : '' }}</td></tr>
+        <tr><th scope="row" class="label">Type</th><td>{{ $infra->type?->value ?? '—' }}</td></tr>
+        <tr><th scope="row" class="label">Zone</th><td>{{ $infra->zone?->nom ?? '—' }}{{ $infra->localisation ? ' — '.$infra->localisation : '' }}</td></tr>
+        <tr><th scope="row" class="label">Criticité</th><td>{{ $infra->niveau_criticite?->value ? ucfirst($infra->niveau_criticite->value) : '—' }}</td></tr>
         <tr>
-            <td class="label">Maintenance</td>
+            <th scope="row" class="label">Maintenance</th>
             <td>
                 dernière : {{ $infra->date_derniere_maintenance?->format('d/m/Y') ?? '—' }}
                 · prochaine : {{ $infra->date_prochaine_maintenance?->format('d/m/Y') ?? '—' }}
@@ -108,7 +108,7 @@
 @endif
 
 <h2>Validation</h2>
-<table class="signatures">
+<table class="signatures" role="presentation">
     <tr>
         <td>Le technicien<div class="sign-box"></div></td>
         <td>Le gestionnaire<div class="sign-box"></div></td>

@@ -183,7 +183,7 @@ class DatabaseSeeder extends Seeder
                     $montant = fake()->numberBetween((int)$montantMin, (int)$montantMax);
                     
                     // Date de financement : entre date début du projet et maintenant (ou date début si future)
-                    $dateFinancementStart = $projet->date_debut > now() ? $projet->date_debut : $projet->date_debut;
+                    $dateFinancementStart = $projet->date_debut;
                     $dateFinancementEnd = $projet->date_debut > now() ? $projet->date_debut : 'now';
                     
                     // Créer le financement

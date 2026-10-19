@@ -91,11 +91,13 @@
                 <div class="flex-1 min-w-[200px]">
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher par nom ou email..." class="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                        <label for="search" class="sr-only">Rechercher par nom ou email</label>
+                        <input id="search" type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher par nom ou email..." class="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
                     </div>
                 </div>
                 
-                <select name="role" class="w-48 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                <label for="role-2" class="sr-only">role</label>
+                <select id="role-2" name="role" class="w-48 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
                     <option value="">Tous les rôles</option>
                     <option value="administrateur" {{ request('role') === 'administrateur' ? 'selected' : '' }}>Administrateur</option>
                     <option value="manager" {{ request('role') === 'manager' ? 'selected' : '' }}>Gestionnaire</option>
@@ -103,7 +105,8 @@
                     <option value="citoyen" {{ request('role') === 'citoyen' ? 'selected' : '' }}>Citoyen</option>
                 </select>
 
-                <select name="status" class="w-40 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                <label for="status" class="sr-only">status</label>
+                <select id="status" name="status" class="w-40 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
                     <option value="">Tous les statuts</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Actif</option>
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactif</option>
@@ -268,23 +271,23 @@
         <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4">
             @csrf
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Nom complet</label>
-                <input type="text" name="name" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                <label for="name" class="block text-sm font-medium text-slate-300 mb-1">Nom complet</label>
+                <input id="name" type="text" name="name" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Adresse email</label>
-                <input type="email" name="email" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                <label for="email" class="block text-sm font-medium text-slate-300 mb-1">Adresse email</label>
+                <input id="email" type="email" name="email" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Mot de passe provisoire (min. 8 car.)</label>
-                <input type="password" name="password" required minlength="8" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                <label for="password" class="block text-sm font-medium text-slate-300 mb-1">Mot de passe provisoire (min. 8 car.)</label>
+                <input id="password" type="password" name="password" required minlength="8" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Rôle officiel RBAC</label>
-                <select name="role" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                <label for="role" class="block text-sm font-medium text-slate-300 mb-1">Rôle officiel RBAC</label>
+                <select id="role" name="role" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
                     <option value="administrateur">Administrateur (Accès complet & sécurité)</option>
                     <option value="manager">Gestionnaire (Supervision réseau & validation)</option>
                     <option value="technicien">Technicien (Saisie terrain des mesures)</option>
@@ -321,22 +324,22 @@
             @csrf
             @method('PUT')
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Nom complet</label>
+                <label for="edit_name" class="block text-sm font-medium text-slate-300 mb-1">Nom complet</label>
                 <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Adresse email</label>
+                <label for="edit_email" class="block text-sm font-medium text-slate-300 mb-1">Adresse email</label>
                 <input type="email" id="edit_email" name="email" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Nouveau mot de passe (laisser vide pour inchangé)</label>
-                <input type="password" name="password" minlength="8" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
+                <label for="password-2" class="block text-sm font-medium text-slate-300 mb-1">Nouveau mot de passe (laisser vide pour inchangé)</label>
+                <input id="password-2" type="password" name="password" minlength="8" placeholder="••••••••" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Rôle officiel</label>
+                <label for="edit_role" class="block text-sm font-medium text-slate-300 mb-1">Rôle officiel</label>
                 <select id="edit_role" name="role" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:border-cyan-400 focus:outline-none">
                     <option value="administrateur">Administrateur</option>
                     <option value="manager">Gestionnaire</option>

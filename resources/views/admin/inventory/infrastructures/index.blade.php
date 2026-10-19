@@ -7,9 +7,12 @@
 <div class="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
     <header><p class="text-sm font-semibold text-violet-600">Consultation du réseau</p><h1 class="mt-1 text-2xl font-bold text-slate-900">Infrastructures</h1><p class="mt-1 text-sm text-slate-500">Vue en lecture seule des équipements et de leur état opérationnel.</p></header>
     <form method="GET" action="{{ route('admin.infrastructures.index') }}" class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-4">
-        <input name="q" value="{{ $filters['q'] }}" placeholder="Rechercher…" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800">
-        <select name="zone_id" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800"><option value="">Toutes les zones</option>@foreach($zones as $zone)<option value="{{ $zone->id }}" @selected($filters['zone_id'] == $zone->id)>{{ $zone->nom }}</option>@endforeach</select>
-        <select name="type" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800"><option value="">Tous les types</option>@foreach($types as $type)<option value="{{ $type->value }}" @selected($filters['type'] === $type->value)>{{ $type->label() }}</option>@endforeach</select>
+        <label for="q" class="sr-only">Rechercher</label>
+        <input id="q" name="q" value="{{ $filters['q'] }}" placeholder="Rechercher…" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800">
+        <label for="zone-id" class="sr-only">zone id</label>
+        <select id="zone-id" name="zone_id" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800"><option value="">Toutes les zones</option>@foreach($zones as $zone)<option value="{{ $zone->id }}" @selected($filters['zone_id'] == $zone->id)>{{ $zone->nom }}</option>@endforeach</select>
+        <label for="type" class="sr-only">type</label>
+        <select id="type" name="type" class="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800"><option value="">Tous les types</option>@foreach($types as $type)<option value="{{ $type->value }}" @selected($filters['type'] === $type->value)>{{ $type->label() }}</option>@endforeach</select>
         <button class="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white">Filtrer</button>
     </form>
     <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"><table class="w-full text-left text-sm">

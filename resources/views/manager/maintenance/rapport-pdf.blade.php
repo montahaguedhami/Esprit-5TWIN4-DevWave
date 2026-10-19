@@ -30,7 +30,7 @@
     <div class="doc-title">Rapport mensuel de maintenance — {{ ucfirst($mois->locale('fr')->translatedFormat('F Y')) }}</div>
 </div>
 
-<table class="kpis">
+<table class="kpis" role="presentation">
     <tr>
         <td><div class="kpi-value">{{ $interventions->count() }}</div><div class="kpi-label">Interventions</div></td>
         @foreach($par_statut as $statut => $nombre)

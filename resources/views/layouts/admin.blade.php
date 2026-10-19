@@ -67,7 +67,7 @@
     </aside>
 
     {{-- Mobile overlay --}}
-    <div class="sidebar-overlay" id="admin-overlay" onclick="closeSidebar('admin')"></div>
+    <button type="button" class="sidebar-overlay" id="admin-overlay" onclick="closeSidebar('admin')" aria-label="Fermer le menu"></button>
 
     {{-- ══ MAIN COLUMN ════════════════════════════════════════════════════ --}}
     <div class="main-col">

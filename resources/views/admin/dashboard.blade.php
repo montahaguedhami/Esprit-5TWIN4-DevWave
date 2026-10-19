@@ -254,6 +254,7 @@
                     @php $ps = $priorityStyle[$rec['priority']]; $ss = $statusStyle[$rec['status']]; @endphp
                     <tr class="rec-row hover:bg-white/[.025] transition-colors cursor-pointer"
                         data-status="{{ $rec['status'] }}" data-priority="{{ $rec['priority'] }}"
+                        role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                         onclick="openRecDetail({{ $loop->index }})">
                         <td class="px-4 py-3">
                             <span class="text-[10px] font-mono font-bold text-cyan-400">{{ $rec['id'] }}</span>
@@ -786,9 +787,8 @@
 </div>{{-- /max-w-7xl --}}
 
 {{-- ══ MODAL DÉTAIL INCIDENT ══════════════════════════════ --}}
-<div id="inc-modal" class="hidden fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/65 backdrop-blur-sm"
-     onclick="if(event.target===this) closeIncModal()">
-    <div class="glass-strong rounded-2xl w-full max-w-lg overflow-hidden animate-scale-in" onclick="event.stopPropagation()">
+<div id="inc-modal" role="dialog" aria-modal="true" class="hidden fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-4 bg-black/65 backdrop-blur-sm">
+    <div class="glass-strong rounded-2xl w-full max-w-lg overflow-hidden animate-scale-in">
         <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <h3 class="text-white font-display font-bold" id="inc-modal-title">Détail incident</h3>
             <button onclick="closeIncModal()" class="text-cyan-100/50 hover:text-white transition-colors">
@@ -1001,6 +1001,13 @@ function closeIncModal(){
     document.getElementById('inc-modal').classList.add('hidden');
     document.body.style.overflow='';
 }
+// Fermeture : clic sur le fond ou touche Échap
+document.getElementById('inc-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeIncModal();
+});
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !document.getElementById('inc-modal').classList.contains('hidden')) closeIncModal();
+});
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeIncModal(); });
 
 /* ── Init Lucide ─────────────────────────────────────────── */

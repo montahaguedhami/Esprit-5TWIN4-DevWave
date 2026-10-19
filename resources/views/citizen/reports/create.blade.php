@@ -103,8 +103,8 @@
                         />
 
                         <div>
-                            <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Point de repère (optionnel)</label>
-                            <input 
+                            <label for="landmark" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Point de repère (optionnel)</label>
+                            <input id="landmark" 
                                 type="text" 
                                 name="landmark" 
                                 placeholder="Ex: À côté de la pharmacie centrale"
@@ -140,9 +140,9 @@
                         />
 
                         <div>
-                            <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
+                            <p class="text-xs font-semibold text-cyan-100/70 mb-2 block">
                                 Niveau d'urgence
-                            </label>
+                            </p>
                             <div class="grid grid-cols-3 gap-3">
                                 @foreach([
                                     ['value' => 'low', 'label' => 'Faible', 'color' => 'emerald'],
@@ -161,7 +161,7 @@
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
+                            <label for="photos" class="text-xs font-semibold text-cyan-100/70 mb-2 block">
                                 Photos (optionnel)
                             </label>
                             <div class="glass p-6 rounded-xl border-2 border-dashed border-cyan-400/20 hover:border-cyan-400/40 transition-colors">

@@ -26,7 +26,8 @@
         <form method="GET" action="{{ route('citizen.projets.index') }}" class="flex flex-wrap gap-3">
             <!-- Search -->
             <div class="flex-1 min-w-[200px]">
-                <input type="text" 
+                <label for="search" class="sr-only">Rechercher un projet</label>
+                <input id="search" type="text" 
                        name="search" 
                        value="{{ request('search') }}"
                        placeholder="Rechercher un projet..."
@@ -34,7 +35,8 @@
             </div>
             
             <!-- Status Filter -->
-            <select name="statut" 
+            <label for="statut" class="sr-only">statut</label>
+            <select id="statut" name="statut" 
                     class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-400/50 focus:outline-none transition-colors">
                 <option value="">Tous les statuts</option>
                 <option value="planifie" {{ request('statut') === 'planifie' ? 'selected' : '' }}>Planifié</option>
@@ -61,7 +63,7 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @foreach($projets as $projet)
         @php $ss = $statusStyle[$projet->statut]; @endphp
-        <article class="glass rounded-2xl p-5 hover-lift cursor-pointer" onclick="window.location='{{ route('citizen.projets.show', $projet) }}'">
+        <article class="glass rounded-2xl p-5 hover-lift cursor-pointer relative">
             <!-- Status Badge -->
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $ss['bg'] }} {{ $ss['text'] }}">
@@ -74,7 +76,8 @@
 
             <!-- Project Name -->
             <h2 class="text-white font-display font-bold text-base leading-snug mb-2">
-                {{ $projet->nom }}
+                {{-- Lien étendu à toute la carte (after:inset-0) : carte cliquable et accessible au clavier --}}
+                <a href="{{ route('citizen.projets.show', $projet) }}" class="after:absolute after:inset-0 after:rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">{{ $projet->nom }}</a>
             </h2>
 
             <!-- Location -->

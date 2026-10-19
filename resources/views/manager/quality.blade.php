@@ -553,16 +553,16 @@
         <div class="p-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
             <form method="GET" action="{{ route('manager.quality') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 items-end">
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Recherche (Réf., point, zone)</label>
+                    <label for="search" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Recherche (Réf., point, zone)</label>
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ex: WQR-2026, Grand Tunis..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        <input id="search" type="text" name="search" value="{{ request('search') }}" placeholder="Ex: WQR-2026, Grand Tunis..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Station / Point</label>
-                    <select name="point_mesure_id" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
+                    <label for="point-mesure-id" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Station / Point</label>
+                    <select id="point-mesure-id" name="point_mesure_id" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
                         <option value="">Tous les points</option>
                         @foreach($allPointsForFilter ?? [] as $pt)
                             <option value="{{ $pt->id }}" @selected((string) request('point_mesure_id') === (string) $pt->id)>
@@ -573,8 +573,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Conformité</label>
-                    <select name="status" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
+                    <label for="status" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Conformité</label>
+                    <select id="status" name="status" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
                         <option value="">Tous les états</option>
                         <option value="Compliant"     @selected(request('status') === 'Compliant')>Conforme</option>
                         <option value="Alert"         @selected(request('status') === 'Alert')>Alerte</option>
@@ -583,8 +583,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Provenance</label>
-                    <select name="source_donnee" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
+                    <label for="source-donnee" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Provenance</label>
+                    <select id="source-donnee" name="source_donnee" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
                         <option value="">Toutes sources</option>
                         <option value="manuel"      @selected(request('source_donnee') === 'manuel')>Manuel (terrain)</option>
                         <option value="laboratoire" @selected(request('source_donnee') === 'laboratoire')>Laboratoire</option>

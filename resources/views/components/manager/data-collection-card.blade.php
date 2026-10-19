@@ -239,10 +239,10 @@
 
                 <form id="csv-import-form" class="space-y-3.5">
                     <div class="dc-file-dropzone">
-                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+                        <label for="file" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                             Fichier source (CSV, TXT, XLSX)
                         </label>
-                        <input type="file" name="file" accept=".csv,.txt,.xlsx,.xls" class="dc-custom-file-input" required>
+                        <input id="file" type="file" name="file" accept=".csv,.txt,.xlsx,.xls" class="dc-custom-file-input" required>
                     </div>
 
                     <div class="text-[11px] text-slate-400 flex items-center gap-1.5">

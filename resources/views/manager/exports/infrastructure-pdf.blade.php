@@ -141,7 +141,7 @@
     </div>
 
     {{-- Synthèse Générale --}}
-    <table class="grid">
+    <table class="grid" role="presentation">
         <tr>
             <td style="width: 40%;">
                 <div class="label">Désignation de l'équipement</div>
@@ -202,7 +202,7 @@
 
     {{-- Score de Santé Réseau --}}
     <div class="section-title">Diagnostic & Santé Multi-critères</div>
-    <table class="kpi-table">
+    <table class="kpi-table" role="presentation">
         <tr>
             <td>
                 <div class="kpi-lbl">Score Global Santé</div>
