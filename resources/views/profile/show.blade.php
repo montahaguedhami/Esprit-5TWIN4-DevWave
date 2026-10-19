@@ -352,7 +352,7 @@
                                 Informations personnelles
                             </h3>
                             <button style="display:inline-flex;align-items:center;gap:.375rem;font-size:.75rem;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #bae6fd;border-radius:.5rem;padding:.35rem .75rem;cursor:pointer;transition:background .15s"
-                                    onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'">
+                                    onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onfocus="this.style.background='#bae6fd'" onblur="this.style.background='#e0f2fe'">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 Modifier
                             </button>
@@ -360,24 +360,24 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="pro-field">
-                                <label>Nom complet</label>
-                                <input type="text" value="{{ $name }}" readonly>
+                                <label for="nom-complet">Nom complet</label>
+                                <input id="nom-complet" type="text" value="{{ $name }}" readonly>
                             </div>
                             <div class="pro-field">
-                                <label>Adresse email</label>
-                                <input type="email" value="{{ $email }}" readonly>
+                                <label for="adresse-email">Adresse email</label>
+                                <input id="adresse-email" type="email" value="{{ $email }}" readonly>
                             </div>
                             <div class="pro-field">
-                                <label>Téléphone</label>
-                                <input type="text" value="+216 98 765 432" readonly>
+                                <label for="telephone">Téléphone</label>
+                                <input id="telephone" type="text" value="+216 98 765 432" readonly>
                             </div>
                             <div class="pro-field">
-                                <label>Rôle</label>
-                                <input type="text" value="{{ $roleLabel }}" readonly>
+                                <label for="role">Rôle</label>
+                                <input id="role" type="text" value="{{ $roleLabel }}" readonly>
                             </div>
                             <div class="pro-field sm:col-span-2">
-                                <label>Adresse</label>
-                                <input type="text" value="42 Avenue Habib Bourguiba, Tunis 1000" readonly>
+                                <label for="adresse">Adresse</label>
+                                <input id="adresse" type="text" value="42 Avenue Habib Bourguiba, Tunis 1000" readonly>
                             </div>
                         </div>
                     </div>
@@ -429,7 +429,7 @@
                                     </div>
                                 </div>
                                 <label class="pro-toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" checked aria-label="Notifications par email">
                                     <span class="pro-toggle-track"></span>
                                 </label>
                             </div>

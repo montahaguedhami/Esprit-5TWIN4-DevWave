@@ -274,6 +274,7 @@
 
             {{-- Tab Content: LISTE DES ZONES --}}
             <div id="tab-content-zones" class="hidden flex-1 overflow-y-auto p-3 space-y-2">
+                <label for="zone-search" class="sr-only">Rechercher une zone</label>
                 <input id="zone-search" type="text" placeholder="Rechercher une zone…"
                        class="w-full bg-slate-950/40 border border-cyan-400/15 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 mb-2"
                        oninput="filterZoneList(this.value)">
@@ -281,6 +282,7 @@
                 @foreach($zones as $zone)
                 <div class="zone-item rounded-xl border border-white/5 bg-slate-950/50 p-3 hover:border-cyan-400/40 cursor-pointer transition"
                      data-name="{{ strtolower($zone['name']) }}"
+                     role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                      onclick="focusZone('{{ $zone['id'] }}', {{ $zone['lat'] }}, {{ $zone['lng'] }})">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-white text-xs">{{ $zone['name'] }}</h3>
@@ -299,6 +301,7 @@
 
             {{-- Tab Content: LISTE DES ÉQUIPEMENTS --}}
             <div id="tab-content-infras" class="hidden flex-1 overflow-y-auto p-3 space-y-2">
+                <label for="infra-search" class="sr-only">Rechercher un équipement</label>
                 <input id="infra-search" type="text" placeholder="Rechercher un équipement…"
                        class="w-full bg-slate-950/40 border border-cyan-400/15 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 mb-2"
                        oninput="filterInfraList(this.value)">
@@ -308,6 +311,7 @@
                      data-name="{{ strtolower($infra['nom']) }}"
                      data-type="{{ $infra['type_key'] }}"
                      data-etat="{{ $infra['etat_key'] }}"
+                     role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                      onclick="focusInfrastructure('{{ $infra['id'] }}', {{ $infra['lat'] }}, {{ $infra['lng'] }})">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-white text-xs">{{ $infra['nom'] }}</h3>

@@ -12,7 +12,8 @@
     </header>
 
     <form method="GET" action="{{ route('admin.zones.index') }}" class="flex flex-wrap gap-2">
-        <input name="q" value="{{ $filters['q'] }}" placeholder="Rechercher une zone…" class="min-w-60 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800">
+        <label for="q" class="sr-only">Rechercher une zone</label>
+        <input id="q" name="q" value="{{ $filters['q'] }}" placeholder="Rechercher une zone…" class="min-w-60 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800">
         <button class="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white">Rechercher</button>
         @if($filters['q'] !== '')<a href="{{ route('admin.zones.index') }}" class="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600">Effacer</a>@endif
     </form>

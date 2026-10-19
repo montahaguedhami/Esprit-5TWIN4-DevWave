@@ -50,6 +50,7 @@
                 <span class="text-xs font-bold text-white">Assistant de rédaction IA</span>
                 <span class="text-[11px] text-cyan-100/50">— notez en vrac ce que vous avez fait, l'IA pré-remplit le rapport</span>
             </div>
+            <label for="ia-notes" class="sr-only">Notes rapides pour l'assistant de rédaction IA</label>
             <textarea id="ia-notes" rows="3" maxlength="2000"
                       placeholder="ex. joint pompe 2 HS changé, 2 joints DN100, fuite stoppée, pression OK 4 bar, revoir dans 1 semaine"
                       class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-white/20 text-white text-xs placeholder-cyan-100/40 focus:ring-2 focus:ring-violet-400"></textarea>
@@ -65,9 +66,9 @@
 
         {{-- Résultat de l'intervention --}}
         <div>
-            <label class="block text-xs font-semibold text-cyan-100/80 mb-2.5">
+            <p class="block text-xs font-semibold text-cyan-100/80 mb-2.5">
                 Résultat opérationnel de l'intervention <span class="text-rose-400">*</span>
-            </label>
+            </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 @foreach([
                     ['val' => 'resolved', 'label' => 'Problème résolu', 'desc' => 'Remise en service complète', 'icon' => 'check-circle', 'color' => 'emerald'],
@@ -155,7 +156,7 @@
         {{-- Pièces détachées utilisées (Sans coût) --}}
         <div>
             <div class="flex items-center justify-between mb-2">
-                <label class="block text-xs font-semibold text-cyan-100/80">
+                <label for="parts-0-name" class="block text-xs font-semibold text-cyan-100/80">
                     Pièces détachées remplacées (Optionnel)
                 </label>
                 <button type="button" onclick="addPartRow()" class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1">
@@ -166,8 +167,9 @@
 
             <div id="parts-container" class="space-y-2">
                 <div class="flex items-center gap-2">
-                    <input type="text" name="parts[0][name]" placeholder="Désignation de la pièce (ex: Joint torique DN100)" class="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-white/20 text-white text-xs">
-                    <input type="number" name="parts[0][qty]" value="1" min="1" class="w-20 px-3 py-2 rounded-xl bg-slate-900 border border-white/20 text-white text-xs text-center" placeholder="Qté">
+                    <input id="parts-0-name" type="text" name="parts[0][name]" placeholder="Désignation de la pièce (ex: Joint torique DN100)" class="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-white/20 text-white text-xs">
+                    <label for="parts-0-qty" class="sr-only">Qté</label>
+                    <input id="parts-0-qty" type="number" name="parts[0][qty]" value="1" min="1" class="w-20 px-3 py-2 rounded-xl bg-slate-900 border border-white/20 text-white text-xs text-center" placeholder="Qté">
                 </div>
             </div>
         </div>

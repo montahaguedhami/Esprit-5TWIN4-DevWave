@@ -53,7 +53,8 @@
                 <p class="text-slate-400 text-xs mt-1">Track capital investment, contractor progress, milestone deadlines, and budget expenditure.</p>
             </div>
             <div class="flex items-center gap-2">
-                <input type="text" placeholder="Filter projects by keyword or zone..." class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-400 outline-none">
+                <label for="filter-projects-by-keyword-or-zone" class="sr-only">Filter projects by keyword or zone</label>
+                <input id="filter-projects-by-keyword-or-zone" type="text" placeholder="Filter projects by keyword or zone..." class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-400 outline-none">
             </div>
         </div>
 

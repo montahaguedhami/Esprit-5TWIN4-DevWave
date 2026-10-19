@@ -72,7 +72,8 @@
         <form method="GET" action="{{ route('manager.projets.index') }}" class="flex flex-wrap gap-3">
             <!-- Search -->
             <div class="flex-1 min-w-[200px]">
-                <input type="text" 
+                <label for="search" class="sr-only">Rechercher un projet</label>
+                <input id="search" type="text" 
                        name="search" 
                        value="{{ request('search') }}"
                        placeholder="Rechercher un projet..."
@@ -80,7 +81,8 @@
             </div>
             
             <!-- Status Filter -->
-            <select name="statut" 
+            <label for="statut" class="sr-only">statut</label>
+            <select id="statut" name="statut" 
                     class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-400/50 focus:outline-none transition-colors">
                 <option value="">Tous les statuts</option>
                 <option value="planifie" {{ request('statut') === 'planifie' ? 'selected' : '' }}>Planifié</option>

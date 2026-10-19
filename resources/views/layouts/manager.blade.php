@@ -168,7 +168,7 @@
     </aside>
 
     {{-- Mobile overlay --}}
-    <div class="sidebar-overlay" id="mgr-overlay" onclick="closeSidebar('mgr')"></div>
+    <button type="button" class="sidebar-overlay" id="mgr-overlay" onclick="closeSidebar('mgr')" aria-label="Fermer le menu"></button>
 
     {{-- ══ MAIN COLUMN ════════════════════════════════════════════════════ --}}
     <div class="main-col">

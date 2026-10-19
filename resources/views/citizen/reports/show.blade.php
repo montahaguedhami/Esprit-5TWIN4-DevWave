@@ -178,7 +178,8 @@
                         size="md"
                     />
                     <div class="flex-1">
-                        <textarea 
+                        <label for="ajouter-un-commentaire" class="sr-only">Ajouter un commentaire</label>
+                        <textarea id="ajouter-un-commentaire" 
                             placeholder="Ajouter un commentaire..."
                             rows="3"
                             class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl px-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors resize-none"
