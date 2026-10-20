@@ -284,6 +284,23 @@ Route::middleware('role:citoyen')->group(function () {
     Route::post('/citizen/reports',         fn () => redirect()->route('citizen.dashboard')->with('success', 'Déclaration envoyée avec succès'))->name('citizen.reports.store');
     Route::get('/citizen/reports/{id}',     fn ($id) => view('citizen.reports.show', ['id' => $id]))->name('citizen.reports.show');
     Route::get('/citizen/notifications',    fn () => view('citizen.notifications'))->name('citizen.notifications');
+    // Polling alertes en temps réel (main)
+    Route::get('/citizen/alerts/poll', function () {
+        $user = auth()->user();
+        if (! $user) {
+            return response()->json(['unread_count' => 0, 'notifications' => []]);
+        }
+        $notifications = $user->notifications()->latest()->limit(8)->get();
+        return response()->json([
+            'unread_count'  => $user->notifications()->whereNull('read_at')->count(),
+            'notifications' => $notifications->map(fn ($n) => [
+                'id'      => $n->id,
+                'message' => $n->data['message'] ?? '',
+                'read'    => ! is_null($n->read_at),
+                'url'     => $n->data['url'] ?? null,
+            ]),
+        ]);
+    })->name('citizen.alerts.poll');
     Route::get('/citizen/invoices',         fn () => view('citizen.invoices.index'))->name('citizen.invoices.index');
     Route::get('/citizen/invoices/{id}',    fn ($id) => view('citizen.invoices.show', ['id' => $id]))->name('citizen.invoices.show');
 });
@@ -291,6 +308,9 @@ Route::middleware('role:citoyen')->group(function () {
 // ── Technicien ────────────────────────────────────────────────────────────────
 Route::middleware('role:technicien')->group(function () {
     Route::get('/technician/dashboard',              fn () => view('technician.dashboard'))->name('technician.dashboard');
+    // Incidents technicien (main)
+    Route::get('/technician/incidents/actions', [\App\Http\Controllers\Technician\ActionCorrectiveController::class, 'index'])->name('technician.incidents.index');
+    Route::patch('/technician/incidents/actions/{action}/status', [\App\Http\Controllers\Technician\ActionCorrectiveController::class, 'updateStatus'])->name('technician.incidents.actions.status');
     Route::get('/technician/interventions', [\App\Http\Controllers\Technician\InterventionController::class, 'index'])->name('technician.interventions.index');
     Route::get('/technician/interventions/{id}', [\App\Http\Controllers\Technician\InterventionController::class, 'show'])->name('technician.interventions.show');
     Route::post('/technician/interventions/{id}/start', [\App\Http\Controllers\Technician\InterventionController::class, 'start'])->name('technician.interventions.start');
@@ -320,11 +340,17 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(
     Route::put('/incidents/{incident}',       [IncidentController::class, 'update'])->name('incidents.update');
     Route::delete('/incidents/{incident}',    [IncidentController::class, 'destroy'])->name('incidents.destroy');
     Route::get('/incidents/{incident}',       [IncidentController::class, 'show'])->name('incidents.show');
+    // IA conseil citoyen (main)
+    Route::post('/incidents/ai-advice/preview',          [\App\Http\Controllers\IncidentAiController::class, 'citizenPreview'])->name('incidents.ai.preview');
+    Route::post('/incidents/{incident}/ai-advice',       [\App\Http\Controllers\IncidentAiController::class, 'citizenAdvice'])->name('incidents.ai.advice');
 });
 
 Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
     Route::get('/manager/incidents',                          [IncidentController::class, 'managerIndex'])->name('manager.incidents');
     Route::get('/manager/incidents/{incident}',               [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
+    // IA analyse incident (main)
+    Route::post('/manager/incidents/{incident}/ai-analysis',  [\App\Http\Controllers\IncidentAiController::class, 'managerAnalysis'])
+        ->middleware('throttle:10,1')->name('manager.incidents.ai.analysis');
     Route::get('/manager/incidents/{incident}/actions',       [ActionCorrectiveController::class, 'index'])->name('manager.actions.index');
     Route::get('/manager/incidents/{incident}/actions/create',[ActionCorrectiveController::class, 'create'])->name('manager.actions.create');
     Route::post('/manager/incidents/{incident}/actions',      [ActionCorrectiveController::class, 'store'])->name('incidents.actions.store');
@@ -410,6 +436,10 @@ Route::middleware('role:manager')->group(function () {
     Route::post('/manager/quality/mesures/{mesure}/validate', [WaterQualityController::class, 'validateMeasurement'])
         ->name('manager.quality.mesures.validate');
 
+    // Suppression en masse des mesures (main)
+    Route::delete('/manager/quality/mesures', [WaterQualityController::class, 'bulkDestroy'])
+        ->name('manager.quality.mesures.bulk-destroy');
+
     Route::get('/manager/teams', fn () => view('manager.teams'))->name('manager.teams');
     Route::get('/manager/reports', fn () => view('manager.reports'))->name('manager.reports');
 });
@@ -423,6 +453,9 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
     Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
     Route::resource('infrastructures', InfrastructureController::class);
+    // Recalcul risque infrastructure (main)
+    Route::post('infrastructures/{infrastructure}/risk/recompute', [\App\Http\Controllers\InfrastructureRiskController::class, 'recompute'])->name('infrastructures.risk.recompute');
+    Route::post('infrastructures/risk/recompute-all', [\App\Http\Controllers\InfrastructureRiskController::class, 'recomputeAll'])->name('infrastructures.risk.recompute-all');
 });
 
 Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group(function () {
@@ -435,8 +468,8 @@ Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group
     Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
     Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
-    Route::resource('zones', ZoneController::class)->only(['index', 'show']);
-    Route::resource('infrastructures', InfrastructureController::class)->only(['index', 'show']);
+    Route::resource('zones', ZoneController::class)->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::resource('infrastructures', InfrastructureController::class)->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
 });
 
 Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
@@ -457,6 +490,9 @@ Route::middleware('role:technicien')->prefix('technician')->name('technician.')-
     Route::get('/tournee', [\App\Http\Controllers\Technician\TourneeController::class, 'index'])->name('tournee');
     Route::get('/incidents/create', [\App\Http\Controllers\Technician\IncidentController::class, 'create'])->name('incidents.create');
     Route::post('/incidents', [\App\Http\Controllers\Technician\IncidentController::class, 'store'])->name('incidents.store');
+    // Qualité eau technicien (main)
+    Route::get('/zones/{zone}/mesures/create', [\App\Http\Controllers\Technician\WaterQualityController::class, 'create'])->name('quality.create');
+    Route::post('/zones/{zone}/mesures', [\App\Http\Controllers\Technician\WaterQualityController::class, 'store'])->name('quality.store');
 });
 
 if (app()->environment(['local', 'testing'])) {
@@ -538,10 +574,24 @@ Route::middleware('role:administrateur')->group(function () {
         ));
     })->name('admin.dashboard');
 
-    // Route manquante pour les paramètres du modèle de risque
+    // Route paramètres du modèle de risque infrastructure
     Route::get('/admin/settings/infrastructure-risk',
         [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'index']
     )->name('admin.settings.infrastructure-risk');
+    Route::put('/admin/settings/infrastructure-risk',
+        [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'update']
+    )->name('admin.settings.infrastructure-risk.update');
+    Route::post('/admin/settings/infrastructure-risk/recompute',
+        [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'recomputeAll']
+    )->name('admin.settings.infrastructure-risk.recompute');
+    // Recalcul risque individuel depuis admin
+    Route::post('/admin/infrastructures/{infrastructure}/risk/recompute',
+        [\App\Http\Controllers\InfrastructureRiskController::class, 'recompute']
+    )->name('admin.infrastructures.risk.recompute');
+    // Recalcul risque global depuis admin
+    Route::post('/admin/infrastructures/risk/recompute-all',
+        [\App\Http\Controllers\InfrastructureRiskController::class, 'recomputeAll']
+    )->name('admin.infrastructures.risk.recompute-all');
     Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
@@ -551,6 +601,9 @@ Route::middleware('role:administrateur')->group(function () {
     Route::get('/admin/system',      fn () => view('admin.system'))->name('admin.system');
     Route::get('/admin/security',    fn () => view('admin.security'))->name('admin.security');
     Route::get('/admin/backups',     fn () => view('admin.backups'))->name('admin.backups');
+    // Routes admin manquantes (main)
+    Route::get('/admin/roles',       fn () => view('admin.roles'))->name('admin.roles');
+    Route::get('/admin/map',         fn () => view('admin.map'))->name('admin.map');
 });
 
 // ── All authenticated roles ───────────────────────────────────────────────────
@@ -558,6 +611,9 @@ Route::middleware('role:administrateur,manager,technicien,citoyen')->group(funct
     Route::get('/settings',               fn () => view('settings.index'))->name('settings.index');
     Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
     Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
+    // Notifications CRUD (main)
+    Route::post('/notifications/tout-lire',  [\App\Http\Controllers\NotificationController::class, 'toutLire'])->name('notifications.tout-lire');
+    Route::get('/notifications/{id}/ouvrir', [\App\Http\Controllers\NotificationController::class, 'ouvrir'])->name('notifications.ouvrir');
 });
 
 // ── Chatbot IA (module Projets et Financements) ──
@@ -576,6 +632,20 @@ Route::get('/weather',  fn () => response()->file(public_path('weather.html')))-
 Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(function () {
     Route::resource('techniciens',   TechnicienController::class);
     Route::resource('interventions', InterventionController::class);
+    // PDF rapport intervention (main)
+    Route::get('interventions/{intervention}/pdf', [InterventionController::class, 'pdf'])
+        ->name('interventions.pdf');
+    // Recommandation IA manager (main)
+    Route::post('interventions/{intervention}/recommandation', [\App\Http\Controllers\InterventionIaController::class, 'recommander'])
+        ->name('interventions.recommandation');
+    // Statistiques & rapport mensuel maintenance (main)
+    Route::get('maintenance/statistiques',    [\App\Http\Controllers\MaintenanceDashboardController::class, 'index'])->name('maintenance.statistiques');
+    Route::get('maintenance/rapport-mensuel', [\App\Http\Controllers\MaintenanceDashboardController::class, 'rapportMensuel'])->name('maintenance.rapport-mensuel');
+    // Planning (main)
+    Route::get('planning',                              [\App\Http\Controllers\PlanningController::class, 'index'])->name('planning.index');
+    Route::get('planning/evenements',                   [\App\Http\Controllers\PlanningController::class, 'evenements'])->name('planning.evenements');
+    Route::patch('planning/interventions/{intervention}', [\App\Http\Controllers\PlanningController::class, 'deplacer'])->name('planning.deplacer');
+    Route::post('planning/preventive',                  [\App\Http\Controllers\PlanningController::class, 'preventive'])->name('planning.preventive');
 });
 
 // ── Travaux (citizen read-only) ───────────────────────────────────────────────
@@ -678,5 +748,7 @@ Route::middleware('role:manager')->group(function () {
     Route::post('/manager/data-collection/import-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'importCsv'])->name('manager.data-collection.import-csv');
     Route::get('/manager/data-collection/status',      [\App\Http\Controllers\Manager\DataCollectionController::class, 'status'])->name('manager.data-collection.status');
     Route::get('/manager/data-collection/history',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'history'])->name('manager.data-collection.history');
+    // Téléchargement template CSV (main)
+    Route::get('/manager/data-collection/template-csv', [\App\Http\Controllers\Manager\DataCollectionController::class, 'downloadTemplateCsv'])->name('manager.data-collection.template-csv');
     Route::get('/manager/quality/{point}/analyse',     [\App\Http\Controllers\Manager\DataCollectionController::class, 'analysePoint'])->name('manager.quality.analyse');
 });

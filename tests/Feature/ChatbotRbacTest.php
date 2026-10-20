@@ -105,15 +105,21 @@ class ChatbotRbacTest extends TestCase
         $citoyen = $this->createUserWithRole(Role::CITOYEN, ['email' => 'secret@test.tn']);
         $this->actingAs($citoyen);
 
-        // Désactiver explicitement la clé Gemini pour ce test
-        config()->set('chatbot.gemini.api_key', '');
+        // Désactiver la clé et rebinder un mock GroqClient non configuré
+        config()->set('chatbot.groq.api_key', '');
+        $this->app->bind(\App\Services\Chatbot\GroqClient::class, function () {
+            // Nouvelle instance avec clé vide depuis config
+            return new \App\Services\Chatbot\GroqClient();
+        });
+        $this->app->bind(\App\Services\Chatbot\ChatbotOrchestrator::class, function ($app) {
+            return $app->make(\App\Services\Chatbot\ChatbotOrchestrator::class);
+        });
 
         $response = $this->post(route('chatbot.ask'), ['message' => 'Test']);
         $content = json_decode($response->getContent(), true);
 
         $this->assertArrayHasKey('gemini_available', $content);
         $this->assertFalse($content['gemini_available']);
-        // La réponse doit indiquer l'indisponibilité, pas une erreur 500
         $this->assertStringNotContainsString('500', $response->getContent());
     }
 }

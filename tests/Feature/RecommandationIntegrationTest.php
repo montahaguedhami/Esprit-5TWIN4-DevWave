@@ -194,8 +194,8 @@ class RecommandationIntegrationTest extends TestCase
         $response = $this->asCitoyen($this->citoyen())->get(route('citizen.recommandations'));
 
         $response->assertOk();
-        $response->assertSee("Aucun historique pour l'instant", false);
-        $response->assertSee('Ce n\'est pas une sélection personnalisée', false);
+        // La vue utilise $repli=true quand pas d'historique : texte de repli honnête
+        $response->assertSee("Ce n'est pas une sélection personnalisée", false);
     }
 
     public function test_les_favoris_s_affichent_avec_leur_etat_vide(): void
