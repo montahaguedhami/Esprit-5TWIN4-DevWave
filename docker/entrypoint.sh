@@ -40,9 +40,6 @@ if [ "${SEED_DEMO_DATA:-true}" = "true" ]; then
     fi
 fi
 
-php artisan storage:link --force > /dev/null 2>&1 || true
 php artisan optimize
-
-chown -R www-data:www-data storage bootstrap/cache
 
 exec "$@"
