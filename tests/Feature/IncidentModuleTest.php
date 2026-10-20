@@ -44,6 +44,42 @@ class IncidentModuleTest extends TestCase
         ]);
     }
 
+    public function test_admin_consults_incidents_and_actions_in_the_admin_interface(): void
+    {
+        $role = Role::firstOrCreate(['slug' => Role::ADMINISTRATEUR], ['name' => 'Administrateur']);
+        $admin = User::factory()->create();
+        $admin->assignRole($role);
+        $incident = Incident::factory()->create();
+        $action = ActionCorrective::factory()->for($incident)->create(['titre' => 'Action visible par admin']);
+
+        $this->withSession(['user' => [
+            'id' => $admin->id,
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'role' => 'administrateur',
+        ]]);
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+
+        $this->get(route('admin.incidents'))->assertOk()
+            ->assertSee('id="admin-shell"', false)
+            ->assertSee('href="'.route('admin.incidents').'"', false)
+            ->assertSee($incident->titre)
+            ->assertSee($action->titre)
+            ->assertDontSee('/manager/incidents', false)
+            ->assertDontSee('name="_method"', false);
+        $this->get('/manager/incidents')->assertForbidden();
+
+        $zone = \App\Models\Zone::factory()->create();
+        $infrastructure = \App\Models\Infrastructure::factory()->create(['zone_id' => $zone->id]);
+        $incident->update(['zone_id' => $zone->id, 'infrastructure_id' => $infrastructure->id, 'statut' => 'signale']);
+        foreach ([route('admin.zones.show', $zone), route('admin.infrastructures.show', $infrastructure)] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee('id="admin-shell"', false)
+                ->assertSee(route('admin.incidents', ['q' => $incident->titre]))
+                ->assertDontSee('/manager/incidents', false);
+        }
+    }
+
     public function test_citizen_cannot_access_another_citizens_incident(): void
     {
         $owner = User::factory()->create();

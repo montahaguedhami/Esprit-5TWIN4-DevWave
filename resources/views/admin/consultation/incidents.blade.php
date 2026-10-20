@@ -73,6 +73,7 @@
                     <th scope="col" class="px-5 py-3">Zone / infrastructure</th>
                     <th scope="col" class="px-5 py-3">Déclaré par</th>
                     <th scope="col" class="px-5 py-3">Date</th>
+                    <th scope="col" class="px-5 py-3">Actions correctives</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-slate-700">
@@ -87,9 +88,33 @@
                         <td class="px-5 py-4">{{ $incident->zone?->nom ?? $incident->infrastructure?->nom ?? $incident->localisation }}</td>
                         <td class="px-5 py-4">{{ $incident->user?->name ?? '—' }}</td>
                         <td class="whitespace-nowrap px-5 py-4">{{ $incident->date_signalement?->format('d/m/Y H:i') }}</td>
+                        <td class="px-5 py-4">
+                            <details>
+                                <summary class="cursor-pointer font-semibold text-cyan-700">Actions ({{ $incident->actions->count() }})</summary>
+                                <ul class="mt-3 min-w-64 space-y-4">
+                                    @forelse($incident->actions as $action)
+                                        <li class="border-t border-slate-200 pt-3">
+                                            <p class="font-semibold text-slate-900">{{ $action->titre }}</p>
+                                            <p class="mt-1 whitespace-pre-line">{{ $action->description }}</p>
+                                            <dl class="mt-2 space-y-1 text-xs text-slate-500">
+                                                <div><dt class="inline font-semibold">Statut :</dt> <dd class="inline">{{ ['a_faire' => 'À faire', 'en_cours' => 'En cours', 'terminee' => 'Terminée'][$action->statut] ?? $action->statut }}</dd></div>
+                                                <div><dt class="inline font-semibold">Responsable :</dt> <dd class="inline">{{ $action->technicien?->nom ?? $action->responsable ?? 'Non assigné' }}</dd></div>
+                                                <div><dt class="inline font-semibold">Date prévue :</dt> <dd class="inline">{{ $action->date_prevue?->format('d/m/Y') ?? '—' }}</dd></div>
+                                                <div><dt class="inline font-semibold">Réalisation :</dt> <dd class="inline">{{ $action->date_realisation?->format('d/m/Y H:i') ?? '—' }}</dd></div>
+                                            </dl>
+                                            @if($action->resultat)
+                                                <p class="mt-2 whitespace-pre-line text-xs">{{ $action->resultat }}</p>
+                                            @endif
+                                        </li>
+                                    @empty
+                                        <li class="text-xs text-slate-500">Aucune action corrective.</li>
+                                    @endforelse
+                                </ul>
+                            </details>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-5 py-10 text-center text-slate-500">Aucun incident ne correspond à ces critères.</td></tr>
+                    <tr><td colspan="7" class="px-5 py-10 text-center text-slate-500">Aucun incident ne correspond à ces critères.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -1,10 +1,10 @@
-@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
+@extends(request()->routeIs('admin.*') ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', $zone->nom.' — AquaSecure')
 
-@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
+@section(request()->routeIs('admin.*') ? 'admin-content' : 'manager-content')
 @php
-    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
+    $inventoryRoutePrefix = request()->routeIs('admin.*') ? 'admin' : 'manager';
 @endphp
 <div class="mx-auto max-w-7xl space-y-6">
     {{-- En-tête de la zone --}}
@@ -314,7 +314,7 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-3 text-right whitespace-nowrap">
-                                    <a href="{{ route('manager.incidents.show', $incident) }}" class="font-medium text-cyan-300 hover:text-cyan-200">
+                                    <a href="{{ $inventoryRoutePrefix === 'admin' ? route('admin.incidents', ['q' => $incident->titre]) : route('manager.incidents.show', $incident) }}" class="font-medium text-cyan-300 hover:text-cyan-200">
                                         Consulter →
                                     </a>
                                 </td>

@@ -61,7 +61,7 @@ class ConsultationController extends Controller
             'sort_dir' => ['nullable', Rule::in(['asc', 'desc'])],
         ]);
 
-        $query = Incident::with(['zone', 'infrastructure', 'user']);
+        $query = Incident::with(['zone', 'infrastructure', 'user', 'actions.technicien']);
         $search = trim((string) ($filters['q'] ?? ''));
         if ($search !== '') {
             $query->where(function ($builder) use ($search): void {

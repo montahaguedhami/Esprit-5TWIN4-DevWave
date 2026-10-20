@@ -114,7 +114,7 @@
                    class="sidebar-link {{ request()->routeIs('manager.quality*', 'manager.quality-measures.*') ? 'is-active' : '' }}">
                     <i data-lucide="droplets"></i><span>Qualité de l'eau</span>
                 </a>
-                <a href="{{ route('manager.incidents') }}"
+                <a href="{{ route(request()->routeIs('admin.*') ? 'admin.incidents' : 'manager.incidents') }}"
                    class="sidebar-link {{ request()->routeIs('manager.incidents*', 'manager.actions.*') ? 'is-active' : '' }}">
                     <i data-lucide="alert-circle"></i><span>Incidents & Actions</span>
                 </a>
