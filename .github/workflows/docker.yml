@@ -72,12 +72,20 @@ jobs:
           category: trivy-image
 
       # --- Plateforme complète ------------------------------------------------
-      - name: Start platform (docker compose)
+      # Clés jetables, partagées avec les étapes suivantes (compose les exige pour up, logs et down)
+      - name: Generate throwaway app keys
         run: |
           APP_KEY="base64:$(openssl rand -base64 32)"
           JWT_SECRET="$(openssl rand -hex 32)"
-          export APP_KEY JWT_SECRET
-          docker compose up -d --no-build --wait --wait-timeout 300 app
+          echo "::add-mask::$APP_KEY"
+          echo "::add-mask::$JWT_SECRET"
+          {
+            echo "APP_KEY=$APP_KEY"
+            echo "JWT_SECRET=$JWT_SECRET"
+          } >> "$GITHUB_ENV"
+
+      - name: Start platform (docker compose)
+        run: docker compose up -d --no-build --wait --wait-timeout 300 app
 
       - name: Smoke test
         run: sh docker/smoke-test.sh
