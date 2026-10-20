@@ -1,0 +1,35 @@
+# Dépendances et fichiers générés (reconstruits dans l'image)
+vendor
+node_modules
+public/build
+public/hot
+public/storage
+bootstrap/cache/*.php
+
+# Secrets et configuration locale (fournis par l'environnement du conteneur)
+.env
+.env.*
+!.env.example
+
+# Données d'exécution
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/*
+database/*.sqlite
+
+# Outils, CI, qualité
+.git
+.github
+.idea
+.vscode
+.claude
+.scannerwork
+coverage.xml
+.phpunit.result.cache
+.phpunit.cache
+docker-compose*.yml
+Dockerfile
+.dockerignore
+*.log
