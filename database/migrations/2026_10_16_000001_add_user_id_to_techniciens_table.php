@@ -12,14 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('techniciens', function (Blueprint $table) {
-            $table->foreignId('user_id')
-                ->nullable()
-                ->unique()
-                ->after('id')
-                ->constrained('users')
-                ->nullOnDelete();
-        });
+        // La colonne peut déjà exister (migration dupliquée après fusion Git)
+        if (! Schema::hasColumn('techniciens', 'user_id')) {
+            Schema::table('techniciens', function (Blueprint $table) {
+                $table->foreignId('user_id')
+                    ->nullable()
+                    ->unique()
+                    ->after('id')
+                    ->constrained('users')
+                    ->nullOnDelete();
+            });
+        }
 
         // Migration de données : rattache les fiches existantes aux comptes « technicien » portant exactement le même nom
         $comptes = DB::table('users')
@@ -47,6 +50,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasColumn('techniciens', 'user_id')) {
+            return;
+        }
+
         Schema::table('techniciens', function (Blueprint $table) {
             $table->dropForeign(['user_id']);
             $table->dropUnique(['user_id']);

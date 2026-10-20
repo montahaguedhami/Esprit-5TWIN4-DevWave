@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // La table peut déjà exister (migration dupliquée après fusion Git)
+        if (Schema::hasTable('notifications')) {
+            return;
+        }
+
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type');
