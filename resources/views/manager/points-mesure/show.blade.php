@@ -5,7 +5,12 @@
     <div class="mx-auto max-w-5xl space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div><h1 class="text-2xl font-bold text-white">{{ $point->nom }}</h1><p class="text-sm text-slate-400">{{ $point->code }} · {{ $point->zone }}</p></div>
-            <div class="flex gap-2"><a href="{{ route('manager.points-mesure.edit', $point) }}" class="rounded-xl bg-slate-800 px-4 py-2 text-sm">Modifier</a><a href="{{ route('manager.quality.mesures.create', ['point_mesure_id' => $point->id]) }}" class="rounded-xl bg-teal-500 px-4 py-2 text-sm font-bold text-slate-950">Ajouter une mesure</a></div>
+            <div class="flex gap-2">
+                <a href="{{ route('manager.points-mesure.edit', $point) }}" class="rounded-xl bg-slate-800 px-4 py-2 text-sm">Modifier</a>
+                @can('create', App\Models\MesureQualite::class)
+                    <a href="{{ route('manager.quality.mesures.create', ['point_mesure_id' => $point->id]) }}" class="rounded-xl bg-teal-500 px-4 py-2 text-sm font-bold text-slate-950">Ajouter une mesure</a>
+                @endcan
+            </div>
         </div>
         @if(session('success'))<div class="rounded-xl border border-teal-500/30 bg-teal-500/10 p-3 text-sm text-teal-200">{{ session('success') }}</div>@endif
         <div class="grid gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:grid-cols-3">

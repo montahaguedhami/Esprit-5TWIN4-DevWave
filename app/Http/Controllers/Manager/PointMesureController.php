@@ -9,8 +9,8 @@ use App\Models\AuditLog;
 use App\Models\Infrastructure;
 use App\Models\PointMesure;
 use App\Models\Zone;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -88,7 +88,7 @@ class PointMesureController extends Controller
             return $point;
         });
 
-        return redirect()->route('manager.points-mesure.show', $point)->with('success', 'Le point de mesure a été créé.');
+        return redirect()->route('manager.points-mesure.show', $point)->with('success', 'Le point de mesure a été créé avec succès.');
     }
 
     public function show(PointMesure $point_mesure): View
@@ -131,29 +131,43 @@ class PointMesureController extends Controller
 
     public function destroy(PointMesure $point_mesure): RedirectResponse
     {
-        if ($point_mesure->mesuresQualites()->exists()) {
-            $point_mesure->update(['statut' => 'inactif']);
+        return DB::transaction(function () use ($point_mesure) {
+            if ($point_mesure->mesuresQualites()->exists()) {
+                $point_mesure->update(['statut' => 'inactif']);
 
-            AuditLog::record('point_mesure_deactivated', 'PointMesure', $point_mesure->id, [
-                'code' => $point_mesure->code,
-                'reason' => 'measurements_exist',
-            ], auth()->user());
+                AuditLog::record('point_mesure_deactivated', 'PointMesure', $point_mesure->id, [
+                    'code'   => $point_mesure->code,
+                    'reason' => 'has_historical_measurements',
+                ], auth()->user());
 
-            return redirect()->route('manager.points-mesure.index')
-                ->with('success', 'Le point a été désactivé car il contient des mesures.');
-        }
+                return redirect()->route('manager.points-mesure.index')
+                    ->with('success', 'Le point possède un historique de mesures : il a été désactivé pour préserver l’intégrité des données.');
+            }
 
-        DB::transaction(function () use ($point_mesure): void {
-            AuditLog::record('point_mesure_deleted', 'PointMesure', $point_mesure->id, [
-                'code' => $point_mesure->code,
-                'nom' => $point_mesure->nom,
-            ], auth()->user());
-
+            $code = $point_mesure->code;
             $point_mesure->delete();
-        });
 
-        return redirect()->route('manager.points-mesure.index')
-            ->with('success', 'Le point de mesure a été supprimé.');
+            AuditLog::record('point_mesure_deleted', 'PointMesure', null, [
+                'code' => $code,
+            ], auth()->user());
+
+            return redirect()->route('manager.points-mesure.index')->with('success', 'Le point de mesure a été supprimé.');
+        });
+    }
+
+    /**
+     * Keep an explicitly supplied code, otherwise keep the existing one.
+     *
+     * The "update" form no longer asks for the code: it is only kept
+     * when the request still carries one (backward compatibility).
+     */
+    private function resolveExistingCode(UpdatePointMesureRequest $request, PointMesure $point_mesure): string
+    {
+        $code = $request->input('code');
+
+        return $code !== null && $code !== ''
+            ? $code
+            : $point_mesure->code;
     }
 
     /**
@@ -199,11 +213,13 @@ class PointMesureController extends Controller
             return $code;
         }
 
-        $next = (int) PointMesure::query()->max('id') + 1;
-        do {
-            $candidate = sprintf('PMS-%03d', $next++);
-        } while (PointMesure::where('code', $candidate)->exists());
+        $max = 0;
+        foreach (PointMesure::pluck('code') as $existingCode) {
+            if (preg_match('/(\d+)$/', (string) $existingCode, $matches) === 1) {
+                $max = max($max, (int) $matches[1]);
+            }
+        }
 
-        return $candidate;
+        return sprintf('PMS-%04d', $max + 1);
     }
 }

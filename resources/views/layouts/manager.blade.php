@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @php
-    $isTech = (session('user.role') === 'technician');
+    $isTech = in_array(session('user.role'), ['technician', 'technicien'], true);
     $role   = $isTech ? 'technician' : 'manager';
     $dashRoute = $isTech ? route('technician.dashboard') : route('manager.dashboard');
     $roleLabel = $isTech ? 'Espace Technicien' : 'Espace Gestionnaire';
@@ -68,6 +68,10 @@
 
             <div class="sidebar-section">
                 <p class="sidebar-section-label">Interventions</p>
+                <a href="{{ route('technician.incidents.index') }}"
+                   class="sidebar-link {{ request()->routeIs('technician.incidents.*') ? 'is-active' : '' }}">
+                    <i data-lucide="alert-circle"></i><span>Incidents & actions correctives</span>
+                </a>
                 <a href="{{ route('technician.interventions.index') }}"
                    class="sidebar-link {{ request()->routeIs('technician.interventions.*') ? 'is-active' : '' }}">
                     <i data-lucide="wrench"></i><span>Mes interventions</span>
@@ -110,13 +114,17 @@
                    class="sidebar-link {{ request()->routeIs('manager.quality*', 'manager.quality-measures.*') ? 'is-active' : '' }}">
                     <i data-lucide="droplets"></i><span>Qualité de l'eau</span>
                 </a>
-                <a href="{{ route('manager.incidents') }}"
+                <a href="{{ route(request()->routeIs('admin.*') ? 'admin.incidents' : 'manager.incidents') }}"
                    class="sidebar-link {{ request()->routeIs('manager.incidents*', 'manager.actions.*') ? 'is-active' : '' }}">
                     <i data-lucide="alert-circle"></i><span>Incidents & Actions</span>
                 </a>
                 <a href="{{ route('manager.techniciens.index') }}"
-                   class="sidebar-link {{ request()->routeIs('manager.techniciens.*', 'manager.interventions.*') ? 'is-active' : '' }}">
+                   class="sidebar-link {{ request()->routeIs('manager.techniciens.*', 'manager.interventions.*', 'manager.maintenance.*') ? 'is-active' : '' }}">
                     <i data-lucide="wrench"></i><span>Maintenance</span>
+                </a>
+                <a href="{{ route('manager.planning.index') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.planning.*') ? 'is-active' : '' }}">
+                    <i data-lucide="calendar-days"></i><span>Planning</span>
                 </a>
             </div>
 
@@ -133,6 +141,14 @@
                 <a href="{{ route('manager.budget') }}"
                    class="sidebar-link {{ request()->routeIs('manager.budget*', 'manager.financements.*') ? 'is-active' : '' }}">
                     <i data-lucide="credit-card"></i><span>Budget</span>
+                </a>
+                <a href="{{ route('manager.teams') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.teams') ? 'is-active' : '' }}">
+                    <i data-lucide="users"></i><span>Équipes</span>
+                </a>
+                <a href="{{ route('manager.analytics') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.analytics') ? 'is-active' : '' }}">
+                    <i data-lucide="line-chart"></i><span>Analyses et rapports</span>
                 </a>
             </div>
             @endif
@@ -160,7 +176,7 @@
     </aside>
 
     {{-- Mobile overlay --}}
-    <div class="sidebar-overlay" id="mgr-overlay" onclick="closeSidebar('mgr')"></div>
+    <button type="button" class="sidebar-overlay" id="mgr-overlay" onclick="closeSidebar('mgr')" aria-label="Fermer le menu"></button>
 
     {{-- ══ MAIN COLUMN ════════════════════════════════════════════════════ --}}
     <div class="main-col">
@@ -168,6 +184,7 @@
         {{-- Topbar --}}
         <header class="app-topbar">
             <div class="topbar-left">
+                <x-back-button :fallback="$dashRoute" class="icon-btn" />
                 <button class="icon-btn sidebar-toggle" id="mgr-menu-btn" onclick="toggleSidebar('mgr')"
                         aria-label="Ouvrir la navigation" aria-expanded="false">
                     <i data-lucide="menu" class="sidebar-toggle-icon sidebar-toggle-icon--closed"></i>

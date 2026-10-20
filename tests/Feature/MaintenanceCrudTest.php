@@ -70,7 +70,8 @@ class MaintenanceCrudTest extends TestCase
 
     public function test_manager_can_create_update_and_delete_an_intervention(): void
     {
-        $technicien = Technicien::factory()->create();
+        // Disponible : un technicien en congé ne peut pas recevoir d'intervention planifiée
+        $technicien = Technicien::factory()->create(['disponibilite' => 'Disponible']);
 
         $this->get(route('manager.interventions.index'))->assertOk();
         $this->get(route('manager.interventions.create', ['technicien_id' => $technicien->id]))->assertOk();
@@ -143,6 +144,13 @@ class MaintenanceCrudTest extends TestCase
         $enCours = Intervention::factory()->for($technicien)->create(['statut' => 'En cours', 'description' => 'Réparation rue de Marseille']);
         Intervention::factory()->for($technicien)->create(['statut' => 'Annulée', 'description' => 'Travaux annulés']);
 
+        $this->withSession([
+            'user' => [
+                'name' => 'Yassine Hamdi',
+                'email' => 'citoyen@aquasecure.tn',
+                'role' => 'citoyen',
+            ],
+        ]);
         $this->get(route('citizen.travaux.index'))
             ->assertOk()
             ->assertSee('Réparation rue de Marseille')
@@ -159,6 +167,13 @@ class MaintenanceCrudTest extends TestCase
     {
         $annulee = Intervention::factory()->create(['statut' => 'Annulée']);
 
+        $this->withSession([
+            'user' => [
+                'name' => 'Yassine Hamdi',
+                'email' => 'citoyen@aquasecure.tn',
+                'role' => 'citoyen',
+            ],
+        ]);
         $this->get(route('citizen.travaux.show', $annulee))->assertNotFound();
     }
 
@@ -170,8 +185,6 @@ class MaintenanceCrudTest extends TestCase
 
         $this->flushSession();
         $this->get(route('manager.interventions.index'))->assertRedirect(route('auth.login'));
-
-        // Le Front Office reste public
         $this->get(route('citizen.travaux.index'))->assertOk();
     }
 

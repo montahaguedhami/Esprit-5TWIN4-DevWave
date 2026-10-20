@@ -331,21 +331,21 @@
                     <form data-contact-form class="bg-white border border-slate-100 rounded-3xl shadow-xl" style="padding:var(--card-padding-lg);">
                         <div class="grid sm:grid-cols-2" style="gap:var(--spacing-md);margin-bottom:var(--spacing-md);">
                             <div>
-                                <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Nom complet</label>
-                                <input name="name" type="text" required placeholder="Jean Dupont" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                                <label for="name" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Nom complet</label>
+                                <input id="name" name="name" type="text" required placeholder="Jean Dupont" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
                             </div>
                             <div>
-                                <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Email professionnel</label>
-                                <input name="email" type="email" required placeholder="j.dupont@entreprise.com" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                                <label for="email" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Email professionnel</label>
+                                <input id="email" name="email" type="email" required placeholder="j.dupont@entreprise.com" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
                             </div>
                         </div>
                         <div style="margin-bottom:var(--spacing-md);">
-                            <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Organisation / Entreprise</label>
-                            <input name="organisation" type="text" placeholder="Nom de votre structure" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                            <label for="organisation" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Organisation / Entreprise</label>
+                            <input id="organisation" name="organisation" type="text" placeholder="Nom de votre structure" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
                         </div>
                         <div style="margin-bottom:var(--spacing-lg);">
-                            <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Message</label>
-                            <textarea name="message" rows="4" required placeholder="Décrivez votre besoin ou projet..." class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all resize-none" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);"></textarea>
+                            <label for="message" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Message</label>
+                            <textarea id="message" name="message" rows="4" required placeholder="Décrivez votre besoin ou projet..." class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all resize-none" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);"></textarea>
                         </div>
                         <button type="submit" class="btn-primary-lg w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 hover:shadow-xl" style="border-radius:9999px;">
                             Préparer ma demande par e-mail →

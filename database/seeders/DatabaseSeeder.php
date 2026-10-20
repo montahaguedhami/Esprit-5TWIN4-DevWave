@@ -18,6 +18,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RbacSeeder::class);
+
         // Créer les utilisateurs de démo (version équipe)
         User::firstOrCreate(['email' => 'test@example.com'], [
             'name' => 'Test User',
@@ -125,27 +127,25 @@ class DatabaseSeeder extends Seeder
         foreach ($syntheticMeasurements as [$pointCode, $reference, $date, $ph, $turbidite, $chloreResiduel, $plomb, $nitrates, $status]) {
             $point = PointMesure::where('code', $pointCode)->firstOrFail();
 
-            MesureQualite::firstOrCreate(
-                ['reference' => $reference],
-                [
-                    'point_mesure_id'   => $point->id,
-                    'date_mesure'       => $date,
-                    'ph'                => $ph,
-                    'turbidite'         => $turbidite,
-                    'chlore_residuel'   => $chloreResiduel,
-                    'plomb'             => $plomb,
-                    'nitrates'          => $nitrates,
-                    'source_donnee'     => 'simule',
-                    'source_type'       => 'simulated',
-                    'status'            => $status,
-                    'overall_compliance' => match ($status) {
-                        'Compliant'      => 100.0,
-                        'Alert'          => 60.0,
-                        'Non-Compliant'  => 0.0,
-                        default           => null,
-                    },
-                ]
-            );
+            // firstOrCreate : le seeder peut être relancé sans dupliquer les mesures
+            MesureQualite::firstOrCreate(['reference' => $reference], [
+                'point_mesure_id'   => $point->id,
+                'date_mesure'       => $date,
+                'ph'                => $ph,
+                'turbidite'         => $turbidite,
+                'chlore_residuel'   => $chloreResiduel,
+                'plomb'             => $plomb,
+                'nitrates'          => $nitrates,
+                'source_donnee'     => 'simule',
+                'source_type'       => 'simulated',
+                'status'            => $status,
+                'overall_compliance' => match ($status) {
+                    'Compliant'      => 100.0,
+                    'Alert'          => 60.0,
+                    'Non-Compliant'  => 0.0,
+                    default           => null,
+                },
+            ]);
         }
 
         // === MODULE PROJETS/FINANCEMENTS (Ghada) ===
@@ -183,7 +183,7 @@ class DatabaseSeeder extends Seeder
                     $montant = fake()->numberBetween((int)$montantMin, (int)$montantMax);
                     
                     // Date de financement : entre date début du projet et maintenant (ou date début si future)
-                    $dateFinancementStart = $projet->date_debut > now() ? $projet->date_debut : $projet->date_debut;
+                    $dateFinancementStart = $projet->date_debut;
                     $dateFinancementEnd = $projet->date_debut > now() ? $projet->date_debut : 'now';
                     
                     // Créer le financement

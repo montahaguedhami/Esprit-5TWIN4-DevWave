@@ -43,6 +43,44 @@ Copiez ensuite `.env.example` dans un fichier `.env`, puis préparez l’applica
 php artisan key:generate
 ```
 
+Sous Windows PowerShell :
+
+```powershell
+Copy-Item .env.example .env
+php artisan key:generate
+if (-not (Test-Path database/database.sqlite)) {
+    New-Item -ItemType File database/database.sqlite | Out-Null
+}
+```
+
+Dans `.env`, utilisez les pilotes locaux suivants pour la démonstration :
+
+```dotenv
+DB_CONNECTION=sqlite
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+```
+
+### Emails des actions correctives
+
+Par défaut, `.env.example` utilise `MAIL_MAILER=log` : les emails sont alors écrits dans `storage/logs/laravel.log` et ne sont pas envoyés à Gmail. Pour envoyer les notifications au citoyen, configurez le SMTP Gmail dans votre fichier `.env` (ne partagez et ne committez jamais le mot de passe d’application) :
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=votre-adresse@gmail.com
+MAIL_PASSWORD=mot-de-passe-d-application-google
+MAIL_FROM_ADDRESS=votre-adresse@gmail.com
+MAIL_FROM_NAME="AquaSecure"
+```
+
+Utilisez un mot de passe d’application Google, pas le mot de passe normal du compte. Après modification, exécutez `php artisan config:clear`.
+
+### 3. Préparer la base et les fichiers frontend
+
 ```sh
 php artisan migrate
 npm run build

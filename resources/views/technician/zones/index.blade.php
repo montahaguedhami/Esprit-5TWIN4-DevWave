@@ -1,8 +1,8 @@
-@extends('layouts.manager')
+@extends('layouts.technician')
 
 @section('title', 'Mes Zones d\'Intervention — Technicien')
 
-@section('manager-content')
+@section('technician-content')
 <div class="max-w-6xl mx-auto space-y-6">
 
     {{-- En-tête mobile-first --}}
@@ -35,7 +35,8 @@
         <form method="GET" action="{{ route('technician.zones.index') }}" class="flex flex-col sm:flex-row gap-3">
             <div class="relative flex-1">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-100/40"></i>
-                <input type="text"
+                <label for="q" class="sr-only">Rechercher par nom de zone, code ou type</label>
+                <input id="q" type="text"
                        name="q"
                        value="{{ $search }}"
                        placeholder="Rechercher par nom de zone, code ou type..."

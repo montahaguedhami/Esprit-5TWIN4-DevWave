@@ -32,7 +32,7 @@ class MapController extends Controller
             ->get();
 
         $zonesData = $realZones->isNotEmpty()
-            ? $realZones->map(function (Zone $zone) {
+            ? $realZones->map(function (Zone $zone) use ($routePrefix) {
                 return [
                     'id' => (string) $zone->id,
                     'name' => $zone->nom,
@@ -71,7 +71,7 @@ class MapController extends Controller
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get()
-            ->map(function (Infrastructure $infra) {
+            ->map(function (Infrastructure $infra) use ($routePrefix) {
                 $sante = $infra->sante;
                 return [
                     'id' => (string) $infra->id,

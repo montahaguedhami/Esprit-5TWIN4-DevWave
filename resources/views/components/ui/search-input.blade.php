@@ -10,6 +10,7 @@
         <i data-lucide="search" class="w-5 h-5 {{ $dark ? 'text-cyan-400/50' : 'text-slate-400' }}"></i>
     </div>
     
+    <label for="{{ $name }}" class="sr-only">{{ $placeholder }}</label>
     <input
         type="search"
         name="{{ $name }}"

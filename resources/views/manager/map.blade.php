@@ -10,9 +10,9 @@
 
 @push('styles')
 {{-- Leaflet CSS & MarkerCluster CSS --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" integrity="sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+" crossorigin="anonymous" />
 
 <style>
 /* ── Map container ── */
@@ -163,6 +163,9 @@
                 <i data-lucide="layers" class="w-4 h-4"></i>
                 <span>Filtres & Couches</span>
             </button>
+            <span class="glass px-3 py-2 rounded-xl text-teal-300 text-sm font-medium">
+                {{ $measurementPoints->count() }} points de mesure
+            </span>
             <button onclick="flyToTunisia()"
                     class="glass px-3 py-1.5 rounded-xl text-cyan-300 hover:text-white text-xs sm:text-sm font-medium flex items-center gap-2 transition-all hover:border-cyan-400/40">
                 <i data-lucide="locate" class="w-4 h-4"></i>
@@ -271,6 +274,7 @@
 
             {{-- Tab Content: LISTE DES ZONES --}}
             <div id="tab-content-zones" class="hidden flex-1 overflow-y-auto p-3 space-y-2">
+                <label for="zone-search" class="sr-only">Rechercher une zone</label>
                 <input id="zone-search" type="text" placeholder="Rechercher une zone…"
                        class="w-full bg-slate-950/40 border border-cyan-400/15 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 mb-2"
                        oninput="filterZoneList(this.value)">
@@ -278,6 +282,7 @@
                 @foreach($zones as $zone)
                 <div class="zone-item rounded-xl border border-white/5 bg-slate-950/50 p-3 hover:border-cyan-400/40 cursor-pointer transition"
                      data-name="{{ strtolower($zone['name']) }}"
+                     role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                      onclick="focusZone('{{ $zone['id'] }}', {{ $zone['lat'] }}, {{ $zone['lng'] }})">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-white text-xs">{{ $zone['name'] }}</h3>
@@ -296,6 +301,7 @@
 
             {{-- Tab Content: LISTE DES ÉQUIPEMENTS --}}
             <div id="tab-content-infras" class="hidden flex-1 overflow-y-auto p-3 space-y-2">
+                <label for="infra-search" class="sr-only">Rechercher un équipement</label>
                 <input id="infra-search" type="text" placeholder="Rechercher un équipement…"
                        class="w-full bg-slate-950/40 border border-cyan-400/15 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 mb-2"
                        oninput="filterInfraList(this.value)">
@@ -305,6 +311,7 @@
                      data-name="{{ strtolower($infra['nom']) }}"
                      data-type="{{ $infra['type_key'] }}"
                      data-etat="{{ $infra['etat_key'] }}"
+                     role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                      onclick="focusInfrastructure('{{ $infra['id'] }}', {{ $infra['lat'] }}, {{ $infra['lng'] }})">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-white text-xs">{{ $infra['nom'] }}</h3>
@@ -335,14 +342,15 @@
 
 @push('scripts')
 {{-- Leaflet JS & MarkerCluster JS --}}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr" crossorigin="anonymous"></script>
 
 <script>
 // ── Données injectées depuis PHP ─────────────────────────────────────────────
 const ZONES = @json($zones);
-const INFRASTRUCTURES = @json($infrastructures);
+const PIPELINES = @json($pipelines);
 const MEASUREMENT_POINTS = @json($measurementPoints);
+const INFRASTRUCTURES = @json($infrastructures);
 const FOCUS_ZONE_ID = @json($focusZone);
 const FOCUS_INFRA_ID = @json($focusInfrastructure);
 
@@ -406,6 +414,14 @@ function buildZonePopup(zone) {
         <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:8px;margin-bottom:10px;font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
             <div><span style="color:#64748b;">Responsable:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.responsable)}</strong></div>
             <div><span style="color:#64748b;">Équipements:</span><br><strong style="color:#f1f5f9;">${zone.infrastructures_count} unités</strong></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;margin-bottom:10px;font-size:11px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div><span style="color:#64748b;">Qualité:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.quality)}%</strong></div>
+            <div><span style="color:#64748b;">Pression:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.pressure)} bar</strong></div>
+            <div><span style="color:#64748b;">Débit:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.flowRate)} m³/h</strong></div>
+            <div><span style="color:#64748b;">Population:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.population)}</strong></div>
+            <div><span style="color:#64748b;">Incidents:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.incidents)}</strong></div>
+            <div><span style="color:#64748b;">Technicien:</span><br><strong style="color:#f1f5f9;">${escapeHtml(zone.technician)}</strong></div>
         </div>
         <div style="text-align:right;">
             <a href="${zone.show_url}" style="font-size:11px;font-weight:700;color:#38bdf8;text-decoration:none;">Ouvrir la fiche zone →</a>
@@ -550,6 +566,31 @@ function applyInfrastructureFilters() {
         }
     });
 }
+
+// ── Pipeline polylines ────────────────────────────────────────────────────────
+const pipeColors = { normal: '#2dd4bf', alert: '#fbbf24', critical: '#ef4444' };
+
+PIPELINES.forEach(pipe => {
+    const from = zoneById[pipe.from];
+    const to   = zoneById[pipe.to];
+    if (!from || !to) return;
+
+    L.polyline(
+        [[from.lat, from.lng], [to.lat, to.lng]],
+        {
+            color: pipeColors[pipe.status] ?? '#2dd4bf',
+            weight: pipe.status === 'critical' ? 3 : 2,
+            opacity: 0.55,
+            dashArray: pipe.status === 'normal' ? null : '6,4',
+        }
+    ).addTo(map).bindTooltip(
+        `<span style="font-size:11px;color:#f0fdff">
+            ${from.name} → ${to.name}<br>
+            Ø${pipe.diameter}mm · ${pipe.pressure} bar · ${pipe.flow} m³/h
+        </span>`,
+        { sticky: true, className: '' }
+    );
+});
 
 function toggleAllTypes(checkAll) {
     document.querySelectorAll('input[name="infra_type"]').forEach(cb => cb.checked = checkAll);

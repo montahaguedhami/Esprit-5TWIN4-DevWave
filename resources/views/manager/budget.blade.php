@@ -7,7 +7,7 @@
 @endphp
 
 @push('styles')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
 <style>
     /* Le chevron natif du <summary> laisse place à l'icône Lucide. */
     #export-report-menu > summary::-webkit-details-marker { display: none; }

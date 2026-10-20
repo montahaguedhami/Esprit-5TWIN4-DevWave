@@ -1,8 +1,8 @@
-@extends('layouts.manager')
+@extends('layouts.technician')
 
 @section('title', 'Intervention #' . $intervention->id . ' — Technicien')
 
-@section('manager-content')
+@section('technician-content')
 <div class="max-w-4xl mx-auto space-y-6">
 
     {{-- En-tête avec bouton retour et statut --}}

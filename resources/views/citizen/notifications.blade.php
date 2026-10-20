@@ -5,11 +5,13 @@
 @php
     use App\Data\PlaceholderData;
     $notifications = PlaceholderData::citizenNotifications();
-    $unreadCount = count(array_filter($notifications, fn($n) => !$n['read']));
+    $incidentNotifications = $incidentNotifications ?? collect();
+    $incidentUnreadCount = $incidentNotifications->whereNull('read_at')->count();
+    $unreadCount = count(array_filter($notifications, fn($n) => !$n['read'])) + $incidentUnreadCount;
 @endphp
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6 citizen-notifications">
     <!-- Header with Back Navigation -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div class="flex items-center gap-3">
@@ -48,8 +50,9 @@
                 
                 <div class="space-y-1">
                     @foreach([
-                        ['value' => 'all', 'label' => 'Toutes', 'icon' => 'inbox', 'count' => count($notifications)],
+                        ['value' => 'all', 'label' => 'Toutes', 'icon' => 'inbox', 'count' => count($notifications) + $incidentNotifications->count()],
                         ['value' => 'unread', 'label' => 'Non lues', 'icon' => 'mail', 'count' => $unreadCount],
+                        ['value' => 'action_corrective', 'label' => 'Incidents', 'icon' => 'wrench', 'count' => $incidentNotifications->count()],
                         ['value' => 'report_update', 'label' => 'Déclarations', 'icon' => 'alert-circle', 'count' => 2],
                         ['value' => 'water_quality', 'label' => 'Qualité eau', 'icon' => 'flask', 'count' => 1],
                         ['value' => 'maintenance', 'label' => 'Maintenance', 'icon' => 'wrench', 'count' => 1],
@@ -71,13 +74,13 @@
         <div class="lg:col-span-3">
             <!-- Search -->
             <div class="mb-6">
-                <x-ui.search-input placeholder="Rechercher dans les notifications..." />
+                <x-ui.search-input name="notification-search" placeholder="Rechercher dans les notifications..." />
             </div>
 
             <!-- Notifications -->
             <div class="space-y-3">
                 @forelse($notifications as $notification)
-                <x-ui.card hover padding="none" class="notification-item {{ $notification['read'] ? 'opacity-75' : '' }}" data-type="{{ $notification['type'] }}" data-read="{{ $notification['read'] ? 'true' : 'false' }}">
+                <x-ui.card hover padding="none" class="notification-item {{ $notification['read'] ? 'is-read' : 'is-unread' }}" data-type="{{ $notification['type'] }}" data-read="{{ $notification['read'] ? 'true' : 'false' }}">
                     <div class="flex gap-4 p-5">
                         <!-- Icon -->
                         <div class="w-12 h-12 rounded-xl bg-{{ $notification['color'] }}-500/10 flex items-center justify-center flex-shrink-0">
@@ -87,12 +90,12 @@
                         <!-- Content -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-3 mb-2">
-                                <h4 class="font-semibold text-white">{{ $notification['title'] }}</h4>
+                                <h4 class="notification-title font-semibold text-white">{{ $notification['title'] }}</h4>
                                 @if(!$notification['read'])
                                 <span class="w-2 h-2 rounded-full bg-cyan-400 flex-shrink-0 mt-1.5"></span>
                                 @endif
                             </div>
-                            <p class="text-sm text-cyan-100/70 mb-3">{{ $notification['message'] }}</p>
+                            <p class="notification-message text-sm text-cyan-100/70 mb-3">{{ $notification['message'] }}</p>
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-cyan-100/40">
                                     <i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1"></i>
@@ -121,8 +124,62 @@
                 @endforelse
             </div>
 
+            <section class="mt-8 space-y-3" aria-labelledby="incident-notifications-title">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 id="incident-notifications-title" class="text-lg font-display font-bold text-white">Incidents</h2>
+                    <span class="text-xs text-cyan-100/50">{{ $incidentNotifications->count() }} action(s) corrective(s)</span>
+                </div>
+
+                @forelse($incidentNotifications as $incidentNotification)
+                    @php($incidentData = $incidentNotification->data ?? [])
+                    <x-ui.card hover padding="none" class="notification-item {{ $incidentNotification->read_at ? 'opacity-75' : '' }}" data-type="action_corrective" data-read="{{ $incidentNotification->read_at ? 'true' : 'false' }}">
+                        <div class="flex gap-4 p-5">
+                            <div class="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10">
+                                <i data-lucide="wrench" class="h-6 w-6 text-cyan-400"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-start justify-between gap-3">
+                                    <h3 class="font-semibold text-white">
+                                        Action corrective : {{ $incidentData['action_title'] ?? 'Action enregistrée' }}
+                                    </h3>
+                                    @if(! $incidentNotification->read_at)
+                                        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan-400" aria-label="Non lue"></span>
+                                    @endif
+                                </div>
+                                <p class="mt-2 text-sm text-cyan-100/70">{{ $incidentData['message'] ?? 'Le gestionnaire a ajouté une action corrective à votre incident.' }}</p>
+                                <p class="mt-2 text-xs text-cyan-100/50">
+                                    Incident : {{ $incidentData['incident_title'] ?? 'Incident' }}
+                                </p>
+                                @if(! empty($incidentData['action_status']))
+                                    <div class="mt-2 flex items-center gap-2 text-xs text-cyan-100/60">
+                                        <span>Statut :</span><x-incident-action-status :status="$incidentData['action_status']" />
+                                    </div>
+                                @endif
+                                @if(! empty($incidentData['action_description']))
+                                    <p class="mt-2 whitespace-pre-line text-sm text-cyan-100/80">{{ $incidentData['action_description'] }}</p>
+                                @endif
+                                <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                                    <span class="text-xs text-cyan-100/40">{{ $incidentNotification->created_at?->diffForHumans() ?? 'Récemment' }}</span>
+                                    @if(! empty($incidentData['incident_id']))
+                                        <a href="{{ route('incidents.show', $incidentData['incident_id']) }}" class="text-xs font-medium text-cyan-400 hover:text-cyan-300">
+                                            Voir l’incident
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </x-ui.card>
+                @empty
+                    <x-ui.empty-state
+                        icon="clipboard-list"
+                        title="Aucune action corrective"
+                        description="Les actions ajoutées par le gestionnaire à vos incidents apparaîtront ici."
+                    />
+                @endforelse
+            </section>
+
             <!-- Load More -->
-            @if(count($notifications) > 0)
+            @if(count($notifications) + $incidentNotifications->count() > 0)
             <div class="mt-6 text-center">
                 <x-ui.button variant="outline" icon="refresh-cw">
                     Charger plus
@@ -144,23 +201,43 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         document.querySelectorAll('.filter-btn').forEach(b => {
             b.classList.remove('bg-cyan-500/10', 'text-white');
             b.classList.add('text-cyan-100/60');
+            b.classList.remove('is-active');
         });
         this.classList.add('bg-cyan-500/10', 'text-white');
         this.classList.remove('text-cyan-100/60');
+        this.classList.add('is-active');
         
         // Filter notifications
         document.querySelectorAll('.notification-item').forEach(item => {
             const type = item.dataset.type;
             const read = item.dataset.read === 'true';
+            const query = document.getElementById('notification-search')?.value.trim().toLocaleLowerCase() || '';
+            const searchableText = `${item.querySelector('.notification-title')?.textContent || ''} ${item.querySelector('.notification-message')?.textContent || ''}`.toLocaleLowerCase();
+            const matchesSearch = searchableText.includes(query);
+            let matchesFilter = true;
             
             if (filter === 'all') {
-                item.classList.remove('hidden');
+                matchesFilter = true;
             } else if (filter === 'unread') {
-                item.classList.toggle('hidden', read);
+                matchesFilter = !read;
             } else {
-                item.classList.toggle('hidden', type !== filter);
+                matchesFilter = type === filter;
             }
+            item.classList.toggle('hidden', !matchesFilter || !matchesSearch);
         });
+    });
+});
+
+const notificationSearch = document.getElementById('notification-search');
+notificationSearch?.addEventListener('input', function () {
+    const activeFilter = document.querySelector('.filter-btn.is-active')?.dataset.filter || 'all';
+    document.querySelectorAll('.notification-item').forEach(item => {
+        const read = item.dataset.read === 'true';
+        const type = item.dataset.type;
+        const query = this.value.trim().toLocaleLowerCase();
+        const text = `${item.querySelector('.notification-title')?.textContent || ''} ${item.querySelector('.notification-message')?.textContent || ''}`.toLocaleLowerCase();
+        const matchesFilter = activeFilter === 'all' || (activeFilter === 'unread' ? !read : type === activeFilter);
+        item.classList.toggle('hidden', !matchesFilter || !text.includes(query));
     });
 });
 </script>

@@ -115,10 +115,11 @@ class WaterQualitySeeder extends Seeder
                 ['reference' => $record['reference']],
                 array_merge($values, [
                     'point_mesure_id' => $point->id,
-                    'date_mesure' => $record['date_mesure'],
-                    'is_verified' => $record['is_verified'],
-                    'verifier' => $record['verifier'],
-                    'status' => $assessment['status'],
+                    'date_mesure'     => $record['date_mesure'],
+                    'source_donnee'   => 'simule',
+                    'is_verified'     => $record['is_verified'],
+                    'verifier'        => $record['verifier'],
+                    'status'          => $assessment['status'],
                     'overall_compliance' => $assessment['overall_compliance'],
                 ])
             );

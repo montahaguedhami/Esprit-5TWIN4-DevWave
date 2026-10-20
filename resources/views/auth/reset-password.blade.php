@@ -1,31 +1,7 @@
 @extends('layouts.auth')
 
 @section('auth-content')
-<style>
-    .aqua-auth-page { min-height: 100vh; width: 100%; box-sizing: border-box; align-content: center; background: #f3f7fb; color: #102a43; padding: 5rem 1.5rem 1.5rem; }
-    .aqua-auth-page > section { border: 1px solid #dce7ef; border-radius: 1.5rem; box-shadow: 0 18px 48px rgba(15,42,67,.08); }
-    .aqua-auth-page > section:first-child { background: linear-gradient(145deg,#123b57,#0d5b76); border-color: #1e7892; }
-    .aqua-auth-page > section:first-child .text-white { color: #fff !important; }
-    .aqua-auth-page > section:first-child [class*="text-cyan-100/"] { color: #c5e5ef !important; }
-    .aqua-auth-page > section:last-child { background: #fff; }
-    .aqua-auth-page [class~="text-white"] { color: #102a43 !important; }
-    .aqua-auth-page [class*="text-cyan-100/"] { color: #647b8e !important; }
-    .aqua-auth-page [class*="bg-slate-950"] { background-color: #f5f8fb !important; }
-    .aqua-auth-page [class*="border-cyan-400/"] { border-color: #d5e2eb !important; }
-    .aqua-auth-page input:not([type="checkbox"]), .aqua-auth-page select { color: #102a43; background: #f8fafc; border-color: #cbd9e5; }
-    .aqua-auth-page input::placeholder { color: #94a3b8; }
-    .aqua-auth-page [class*="bg-gradient-to-r"],
-    .aqua-auth-page [class*="bg-gradient-to-r"] [class~="text-white"],
-    .aqua-auth-page .btn-primary { color: #fff !important; }
-    @media (max-width: 640px) { .aqua-auth-page { padding: 1rem; } }
-
-    .pw-reqs { display: grid; gap: .35rem; }
-    .pw-req { display: flex; align-items: center; gap: .5rem; font-size: .74rem; color: #7c8fa1; transition: color .2s ease; }
-    .pw-req .dot { width: .4rem; height: .4rem; border-radius: 50%; background: #cbd5e1; transition: background .2s ease; }
-    .pw-req.is-ok { color: #15803d; }
-    .pw-req.is-ok .dot { background: #22c55e; }
-</style>
-<div class="aqua-auth-page w-full max-w-5xl grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-stretch">
+<div class="w-full max-w-5xl grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-stretch">
     <!-- Left Section - Info (Desktop only) -->
     <section class="hidden lg:flex flex-col justify-between glass p-9 animate-fade-in-up">
         <div>
@@ -34,8 +10,8 @@
                 Plateforme nationale de surveillance
             </div>
             <h1 class="text-4xl xl:text-5xl font-display font-bold text-white leading-tight mb-6">
-                Chaque goutte compte.
-                <span class="block text-gradient">Chaque intervention aussi.</span>
+                Choisissez un nouveau mot de passe.
+                <span class="block text-gradient">Le réseau vous en remercie.</span>
             </h1>
             <p class="text-cyan-100/65 leading-relaxed max-w-lg">
                 AquaSecure relie les citoyens, techniciens et gestionnaires autour d'un réseau d'eau potable plus sûr, plus transparent et plus résilient.
@@ -56,96 +32,85 @@
         </div>
     </section>
 
-    <!-- Right Section - New Password Form -->
+    <!-- Right Section - Reset Password Form -->
     <section class="glass-strong p-6 sm:p-8 animate-fade-in-up" style="animation-delay: 0.12s">
         <div class="flex items-center justify-between mb-7">
             <div>
-                <p class="text-xs font-semibold tracking-wider text-cyan-300 uppercase">Étape 3 sur 3</p>
-                <h2 class="text-2xl font-display font-bold text-white mt-1">Nouveau mot de passe</h2>
+                <p class="text-xs font-semibold tracking-wider text-cyan-300 uppercase">Accès sécurisé</p>
+                <h2 class="text-2xl font-display font-bold text-white mt-1">Définir un nouveau mot de passe</h2>
             </div>
             <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-400/25 flex items-center justify-center">
                 <svg class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a4 4 0 11-8 0 4 4 0 018 0zm-4 4a4 4 0 11-8 0 4 4 0 018 0zM12 19v1a3 3 0 01-3 3H6a3 3 0 01-3-3V8a3 3 0 013-3h6a3 3 0 013 3v1z"></path>
                 </svg>
             </div>
         </div>
 
-        <!-- Progress steps -->
-        <div class="flex items-center gap-2 mb-6">
-            <div class="h-1.5 flex-1 rounded-full bg-emerald-400/70"></div>
-            <div class="h-1.5 flex-1 rounded-full bg-emerald-400/70"></div>
-            <div class="h-1.5 flex-1 rounded-full bg-cyan-400/70"></div>
-        </div>
+        <!-- Error / Success Messages -->
+        @if (session('error') || $errors->any())
+            <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 mb-6 text-sm text-red-200">
+                {{ session('error') ?? $errors->first() }}
+            </div>
+        @endif
 
-        <form method="POST" action="{{ route('password.reset.post') }}" class="space-y-4" id="resetForm">
+        @if (session('success'))
+            <div role="status" class="rounded-xl border border-teal-400/25 bg-teal-500/10 p-3 mb-6 text-sm text-teal-200">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- Reset Password Form -->
+        <form method="POST" action="{{ route('reset-password.post') }}" class="space-y-4">
             @csrf
 
-            @if ($errors->any())
-                <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
-                    {{ $errors->first() }}
-                </div>
-            @endif
+            <input type="hidden" name="token" value="{{ $token }}">
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Nouveau mot de passe</label>
+                <label for="email" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
                 <div class="relative">
-                    <input
-                        type="password"
-                        name="password"
-                        id="password"
-                        required
-                        minlength="12"
-                        autocomplete="new-password"
-                        placeholder="Votre nouveau mot de passe"
-                        class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors"
-                    />
+                    <input id="email" type="email" name="email" value="{{ old('email', $email ?? '') }}" required placeholder="vous@exemple.tn" autocomplete="email" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <path d="M8 10V7a4 4 0 118 0v3" stroke="currentColor" stroke-width="2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </svg>
-                    <button type="button" onclick="togglePw('password')" class="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-100/40 hover:text-cyan-200" aria-label="Afficher">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
+                <div class="relative">
+                    <input type="password" name="password" id="password" required minlength="6" autocomplete="new-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <svg class="w-4 h-4 text-cyan-100/30 absolute right-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    <button type="button" onclick="togglePasswordVisibility()" class="text-cyan-100/35 hover:text-cyan-300 absolute right-4 top-1/2 -translate-y-1/2" aria-label="Afficher le mot de passe">
+                        <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <svg class="w-5 h-5 eye-off-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 L21 21"></path>
+                        </svg>
                     </button>
                 </div>
             </div>
 
-            <!-- Requirements checklist -->
-            <div class="glass p-4 rounded-xl pw-reqs">
-                <div class="pw-req" data-rule="len"><span class="dot"></span> 12 caractères minimum</div>
-                <div class="pw-req" data-rule="lower"><span class="dot"></span> Une lettre minuscule</div>
-                <div class="pw-req" data-rule="upper"><span class="dot"></span> Une lettre majuscule</div>
-                <div class="pw-req" data-rule="digit"><span class="dot"></span> Un chiffre</div>
-                <div class="pw-req" data-rule="symbol"><span class="dot"></span> Un caractère spécial</div>
-            </div>
-
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Confirmer le mot de passe</label>
+                <label for="password_confirmation" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Confirmer le mot de passe</label>
                 <div class="relative">
-                    <input
-                        type="password"
-                        name="password_confirmation"
-                        id="password_confirmation"
-                        required
-                        minlength="12"
-                        autocomplete="new-password"
-                        placeholder="Retapez le mot de passe"
-                        class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors"
-                    />
+                    <input type="password" name="password_confirmation" id="password_confirmation" required autocomplete="new-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </svg>
-                    <button type="button" onclick="togglePw('password_confirmation')" class="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-100/40 hover:text-cyan-200" aria-label="Afficher">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
-                    </button>
                 </div>
             </div>
 
-            <button type="submit" id="reset-submit" class="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold py-3.5 shadow-lg shadow-cyan-500/20 transition-opacity disabled:opacity-60">
-                Enregistrer le nouveau mot de passe
+            <x-ripple-button type="submit" size="lg" class="w-full flex items-center justify-center gap-2">
+                Réinitialiser le mot de passe
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                 </svg>
-            </button>
+            </x-ripple-button>
         </form>
 
         <!-- Back to login -->
@@ -154,7 +119,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
-                Annuler et retourner à la connexion
+                Retour à la connexion
             </a>
         </div>
     </section>
@@ -162,35 +127,22 @@
 
 @push('scripts')
 <script>
-    function togglePw(id) {
-        const el = document.getElementById(id);
-        el.type = el.type === 'password' ? 'text' : 'password';
+    function togglePasswordVisibility() {
+        const input = document.getElementById('password');
+        const eyeIcon = document.querySelector('.eye-icon');
+        const eyeOffIcon = document.querySelector('.eye-off-icon');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeIcon.classList.add('hidden');
+            eyeOffIcon.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeIcon.classList.remove('hidden');
+            eyeOffIcon.classList.add('hidden');
+        }
     }
-
-    (function () {
-        const pw = document.getElementById('password');
-        const rules = {
-            len:    v => v.length >= 12,
-            lower:  v => /[a-z]/.test(v),
-            upper:  v => /[A-Z]/.test(v),
-            digit:  v => /[0-9]/.test(v),
-            symbol: v => /[^A-Za-z0-9]/.test(v),
-        };
-
-        pw.addEventListener('input', function () {
-            const v = pw.value;
-            Object.keys(rules).forEach(function (key) {
-                const el = document.querySelector('[data-rule="' + key + '"]');
-                el.classList.toggle('is-ok', rules[key](v));
-            });
-        });
-
-        document.getElementById('resetForm').addEventListener('submit', function () {
-            const btn = document.getElementById('reset-submit');
-            btn.disabled = true;
-            btn.textContent = 'Enregistrement…';
-        });
-    })();
 </script>
 @endpush
+
 @endsection

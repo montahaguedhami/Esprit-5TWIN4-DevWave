@@ -14,7 +14,6 @@
     <div
         id="aqua-confirm-dialog"
         class="aqua-confirm-card relative w-full max-w-md rounded-3xl border border-cyan-400/25 bg-slate-900 p-7 shadow-2xl ring-1 ring-white/10 overflow-hidden transform transition-all duration-300 scale-90 opacity-0"
-        onclick="event.stopPropagation()"
     >
         {{-- Lueur d'ambiance dynamique selon le type --}}
         <div id="aqua-confirm-glow" class="absolute -top-32 -left-32 h-64 w-64 rounded-full blur-[100px] pointer-events-none transition-colors duration-500"></div>

@@ -1,10 +1,10 @@
-@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
+@extends(request()->routeIs('admin.*') ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', $infrastructure->nom.' — AquaSecure')
 
-@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
+@section(request()->routeIs('admin.*') ? 'admin-content' : 'manager-content')
 @php
-    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
+    $inventoryRoutePrefix = request()->routeIs('admin.*') ? 'admin' : 'manager';
 @endphp
 <div class="mx-auto max-w-5xl space-y-6">
     {{-- En-tête de page --}}
@@ -272,8 +272,8 @@
             <div id="infra-map-show" class="h-64 w-full rounded-xl border border-cyan-400/20 overflow-hidden shadow-inner bg-slate-950/60"></div>
         </div>
 
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const mapEl = document.getElementById('infra-map-show');
@@ -475,7 +475,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-2.5 text-right whitespace-nowrap">
-                                    <a href="{{ route('manager.incidents.show', $incident) }}" class="font-medium text-cyan-300 hover:text-cyan-200">Consulter →</a>
+                                    <a href="{{ $inventoryRoutePrefix === 'admin' ? route('admin.incidents', ['q' => $incident->titre]) : route('manager.incidents.show', $incident) }}" class="font-medium text-cyan-300 hover:text-cyan-200">Consulter →</a>
                                 </td>
                             </tr>
                         @endforeach

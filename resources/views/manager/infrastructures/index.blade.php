@@ -270,6 +270,7 @@
                                     <form id="etat-form-{{ $infrastructure->id }}" method="POST" action="{{ route($inventoryRoutePrefix . '.infrastructures.etat', $infrastructure) }}" class="inline">
                                         @csrf
                                         @method('PATCH')
+                                        <label for="etat-select-{{ $infrastructure->id }}" class="sr-only">État de {{ $infrastructure->nom }}</label>
                                         <select
                                             id="etat-select-{{ $infrastructure->id }}"
                                             name="etat"

@@ -1,8 +1,8 @@
-@extends('layouts.manager')
+@extends('layouts.technician')
 
 @section('title', 'Mes Ouvrages Assignés — Technicien')
 
-@section('manager-content')
+@section('technician-content')
 <div class="max-w-6xl mx-auto space-y-6">
 
     {{-- En-tête mobile-first --}}
@@ -75,10 +75,14 @@
 
     {{-- Formulaire de filtres mobile-friendly --}}
     <form method="GET" action="{{ route('technician.infrastructures.index') }}" class="glass rounded-2xl p-4 border border-white/10 space-y-3">
+        @if(request()->filled('zone_id'))
+            <input type="hidden" name="zone_id" value="{{ request('zone_id') }}">
+        @endif
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             <div class="sm:col-span-5 relative">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-100/40"></i>
-                <input type="text"
+                <label for="q" class="sr-only">Rechercher nom, référence, lieu</label>
+                <input id="q" type="text"
                        name="q"
                        value="{{ request('q') }}"
                        placeholder="Rechercher nom, référence, lieu..."
@@ -86,7 +90,8 @@
             </div>
 
             <div class="sm:col-span-3">
-                <select name="etat" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
+                <label for="etat" class="sr-only">etat</label>
+                <select id="etat" name="etat" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
                     <option value="">Tous les états</option>
                     @foreach($etats as $e)
                         <option value="{{ $e->value }}" @selected(request('etat') === $e->value)>{{ $e->label() }}</option>
@@ -95,7 +100,8 @@
             </div>
 
             <div class="sm:col-span-2">
-                <select name="type" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
+                <label for="type" class="sr-only">type</label>
+                <select id="type" name="type" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
                     <option value="">Tous les types</option>
                     @foreach($types as $t)
                         <option value="{{ $t->value }}" @selected(request('type') === $t->value)>{{ $t->label() }}</option>
@@ -107,7 +113,7 @@
                 <button type="submit" class="w-full py-2 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-all">
                     Filtrer
                 </button>
-                @if(request()->hasAny(['q', 'etat', 'type', 'open_only']))
+                @if(request()->hasAny(['q', 'etat', 'type', 'open_only', 'zone_id']))
                 <a href="{{ route('technician.infrastructures.index') }}" class="p-2 rounded-xl glass text-cyan-300 hover:text-white text-xs transition-colors" title="Réinitialiser">
                     <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                 </a>

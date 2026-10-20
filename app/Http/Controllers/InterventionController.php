@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\InterventionRequest;
 use App\Models\Intervention;
 use App\Models\Technicien;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class InterventionController extends Controller
@@ -32,10 +33,11 @@ class InterventionController extends Controller
      */
     public function create(Request $request)
     {
-        // Permet de pré-sélectionner le technicien ou l'infrastructure depuis sa fiche
+        // Permet de pré-sélectionner le technicien, l'infrastructure ou la date (fiche, planning)
         $intervention = new Intervention([
             'technicien_id' => $request->query('technicien_id'),
             'infrastructure_id' => $request->query('infrastructure_id'),
+            'date' => rescue(fn () => $request->date('date'), null, false),
         ]);
         $techniciens = Technicien::orderBy('nom')->get(['id', 'nom', 'specialite']);
         $infrastructures = \App\Models\Infrastructure::with('zone')->orderBy('nom')->get(['id', 'nom', 'zone_id']);
@@ -63,6 +65,27 @@ class InterventionController extends Controller
         $intervention->load(['technicien', 'infrastructure.zone']);
 
         return view('manager.interventions.show', compact('intervention'));
+    }
+
+    /**
+     * Rapport d'intervention au format PDF (fiche + rapport terrain + historique de l'équipement).
+     */
+    public function pdf(Intervention $intervention)
+    {
+        $intervention->load(['technicien', 'infrastructure.zone']);
+
+        $historique = $intervention->infrastructure
+            ? $intervention->infrastructure->interventions()
+                ->with('technicien')
+                ->whereKeyNot($intervention->id)
+                ->latest('date')
+                ->take(5)
+                ->get()
+            : collect();
+
+        return Pdf::loadView('manager.interventions.pdf', compact('intervention', 'historique'))
+            ->setPaper('a4')
+            ->download('intervention-'.$intervention->id.'.pdf');
     }
 
     /**

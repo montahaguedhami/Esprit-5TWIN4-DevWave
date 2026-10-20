@@ -99,11 +99,23 @@
         <!-- Forgot Password Form -->
         <form method="POST" action="{{ route('forgot-password.post') }}" class="space-y-4">
             @csrf
-            
+
+            @if (session('error') || $errors->any())
+                <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
+                    {{ session('error') ?? $errors->first() }}
+                </div>
+            @endif
+
+            @if (session('success'))
+                <div role="status" class="rounded-xl border border-teal-400/25 bg-teal-500/10 p-3 text-sm text-teal-200">
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
+                <label for="email" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
                 <div class="relative">
-                    <input type="email" name="email" required placeholder="vous@exemple.tn" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="vous@exemple.tn" autocomplete="email" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </svg>

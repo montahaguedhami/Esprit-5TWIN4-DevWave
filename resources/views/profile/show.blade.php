@@ -282,14 +282,10 @@
                 <div class="pro-card">
                     <div class="pro-card-body text-center">
                         <div class="pro-avatar-ring">
-                            @if($user->avatar)
-                                <img src="{{ Storage::url($user->avatar) }}" alt="Avatar" style="width:5rem;height:5rem;border-radius:50%;object-fit:cover;">
-                            @else
-                                {{ $initials }}
-                            @endif
-                            <a href="{{ route('profile.edit') }}" class="pro-avatar-edit" title="Modifier la photo">
+                            {{ $initials }}
+                            <div class="pro-avatar-edit" title="Modifier la photo">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                            </a>
+                            </div>
                         </div>
 
                         <h2 style="font-size:1.1rem;font-weight:700;color:#152b42;margin:.875rem 0 .2rem" class="[data-theme=dark]:text-slate-100">
@@ -316,36 +312,6 @@
                                 <div class="pro-stat-lbl">Terminés</div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {{-- Google account --}}
-                <div class="pro-card">
-                    <div class="pro-card-body">
-                        <h3 class="pro-card-title">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                            Compte Google
-                        </h3>
-
-                        @if(($user->provider ?? null) === 'google')
-                            <p style="font-size:.8125rem;color:var(--text-secondary, #52677d);margin-bottom:.75rem;">
-                                Votre compte est lié à Google : vous pouvez vous connecter
-                                directement avec Google, sans mot de passe.
-                            </p>
-                        @elseif(\App\Http\Controllers\Auth\GoogleAuthController::configured())
-                            <p style="font-size:.8125rem;color:var(--text-secondary, #52677d);margin-bottom:.75rem;">
-                                Aucun compte Google lié. Vous pouvez connecter Google pour vous
-                                authentifier sans mot de passe.
-                            </p>
-                            <a href="{{ route('profile.google.link') }}" class="pro-quick-btn" style="text-decoration:none;">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-                                Lier mon compte Google
-                            </a>
-                        @else
-                            <p style="font-size:.8125rem;color:var(--text-secondary, #52677d);margin-bottom:0;">
-                                La connexion Google n'est pas configurée sur ce serveur.
-                            </p>
-                        @endif
                     </div>
                 </div>
 
@@ -386,8 +352,7 @@
                                 Informations personnelles
                             </h3>
                             <button style="display:inline-flex;align-items:center;gap:.375rem;font-size:.75rem;font-weight:600;color:#0891b2;background:#e0f2fe;border:1px solid #bae6fd;border-radius:.5rem;padding:.35rem .75rem;cursor:pointer;transition:background .15s"
-                                    onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'"
-                                    onclick="window.location='{{ route('profile.edit') }}'">
+                                    onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onfocus="this.style.background='#bae6fd'" onblur="this.style.background='#e0f2fe'">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                 Modifier
                             </button>
@@ -395,24 +360,24 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="pro-field">
-                                <label>Nom complet</label>
-                                <input type="text" value="{{ $name }}" readonly>
+                                <label for="nom-complet">Nom complet</label>
+                                <input id="nom-complet" type="text" value="{{ $name }}" readonly>
                             </div>
                             <div class="pro-field">
-                                <label>Adresse email</label>
-                                <input type="email" value="{{ $email }}" readonly>
+                                <label for="adresse-email">Adresse email</label>
+                                <input id="adresse-email" type="email" value="{{ $email }}" readonly>
                             </div>
                             <div class="pro-field">
-                                <label>Téléphone</label>
-                                <input type="text" value="+216 98 765 432" readonly>
+                                <label for="telephone">Téléphone</label>
+                                <input id="telephone" type="text" value="+216 98 765 432" readonly>
                             </div>
                             <div class="pro-field">
-                                <label>Rôle</label>
-                                <input type="text" value="{{ $roleLabel }}" readonly>
+                                <label for="role">Rôle</label>
+                                <input id="role" type="text" value="{{ $roleLabel }}" readonly>
                             </div>
                             <div class="pro-field sm:col-span-2">
-                                <label>Adresse</label>
-                                <input type="text" value="42 Avenue Habib Bourguiba, Tunis 1000" readonly>
+                                <label for="adresse">Adresse</label>
+                                <input id="adresse" type="text" value="42 Avenue Habib Bourguiba, Tunis 1000" readonly>
                             </div>
                         </div>
                     </div>
@@ -464,7 +429,7 @@
                                     </div>
                                 </div>
                                 <label class="pro-toggle">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" checked aria-label="Notifications par email">
                                     <span class="pro-toggle-track"></span>
                                 </label>
                             </div>

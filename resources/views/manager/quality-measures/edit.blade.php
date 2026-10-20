@@ -1,5 +1,5 @@
 @extends('layouts.manager')
-@section('title', 'Modifier une mesure de qualité')
+@section('title', 'Modifier la mesure ' . $mesure->reference)
 @section('manager-content')
 <div class="text-slate-800">
     <div class="mx-auto max-w-3xl space-y-5">
@@ -29,4 +29,13 @@
         </form>
     </div>
 </div>
+
+<script>
+document.getElementById('measure-edit-form').addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    document.getElementById('btn-text').classList.add('hidden');
+    document.getElementById('btn-spinner').classList.remove('hidden');
+    btn.disabled = true;
+});
+</script>
 @endsection
