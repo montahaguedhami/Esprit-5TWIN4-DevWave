@@ -36,9 +36,9 @@ class TechnicianScopeService
             }
         }
 
-        // 3. Compte technicien réel sans fiche : même règle de rattachement que availableTechniciansForAssignment()
+        // 3. Compte réel sans fiche liée : pas de création ni de rattachement par nom (403)
         if ($userId) {
-            return self::provisionForTechnicianAccount((int) $userId);
+            return null;
         }
 
         // 4. Session de démonstration sans compte (/switch-role), jamais en production
@@ -48,38 +48,6 @@ class TechnicianScopeService
 
         // Aucun rattachement : les contrôleurs répondent 403
         return null;
-    }
-
-    private static function provisionForTechnicianAccount(int $userId): ?Technicien
-    {
-        $user = User::query()
-            ->whereKey($userId)
-            ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $query) => $query->where('slug', Role::TECHNICIEN))
-            ->first();
-
-        if (! $user) {
-            return null;
-        }
-
-        // Nom exact uniquement, et seulement une fiche encore libre : évite de s'approprier la fiche d'un autre
-        $tech = Technicien::where('nom', $user->name)->whereNull('user_id')->first();
-        if ($tech) {
-            $tech->user()->associate($user);
-            $tech->save();
-
-            return $tech;
-        }
-
-        return Technicien::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'nom' => $user->name,
-                'specialite' => 'Canalisations',
-                'telephone' => 'Non renseigné',
-                'disponibilite' => 'Disponible',
-            ]
-        );
     }
 
     private static function demoTechnicienFromSessionName(?string $name): ?Technicien
