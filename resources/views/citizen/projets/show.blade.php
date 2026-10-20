@@ -337,5 +337,59 @@
         marker.bindPopup('<strong>{{ addslashes($projet->nom) }}</strong><br>{{ addslashes($projet->adresse ?? '') }}').openPopup();
     });
     @endif
+
+    // ── Toggle Favori (étoile) ──
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.querySelector('.favori-toggle');
+        if (!btn) return;
+
+        btn.addEventListener('click', function() {
+            var url = btn.getAttribute('data-url');
+            var etatActuel = btn.getAttribute('data-etat') === '1';
+            var nouvelEtat = !etatActuel;
+            var icon = btn.querySelector('i[data-lucide="star"]');
+
+            fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ etat: nouvelEtat ? 1 : 0 })
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Erreur serveur');
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                // Mise à jour visuelle de l'étoile
+                btn.setAttribute('data-etat', nouvelEtat ? '1' : '0');
+                btn.setAttribute('aria-pressed', nouvelEtat ? 'true' : 'false');
+                btn.setAttribute('title', nouvelEtat ? 'Retirer des favoris' : 'Ajouter aux favoris');
+                btn.setAttribute('aria-label', nouvelEtat ? 'Retirer ce projet de vos favoris' : 'Ajouter ce projet à vos favoris');
+
+                if (nouvelEtat) {
+                    btn.classList.remove('bg-white/5', 'border-white/10', 'text-cyan-100/60', 'hover:text-white', 'hover:border-cyan-400/40');
+                    btn.classList.add('bg-amber-400/15', 'border-amber-400/40', 'text-amber-300');
+                    icon.classList.add('fill-current');
+                } else {
+                    btn.classList.remove('bg-amber-400/15', 'border-amber-400/40', 'text-amber-300');
+                    btn.classList.add('bg-white/5', 'border-white/10', 'text-cyan-100/60', 'hover:text-white', 'hover:border-cyan-400/40');
+                    icon.classList.remove('fill-current');
+                }
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            })
+            .catch(function(error) {
+                console.error('Erreur favoris:', error);
+                // Optionnel : afficher un toast d'erreur
+            });
+        });
+    });
 </script>
 @endpush

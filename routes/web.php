@@ -548,6 +548,14 @@ Route::middleware('role:administrateur,manager,technicien,citoyen')->group(funct
     Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
 });
 
+// ── Chatbot IA (module Projets et Financements) ──
+// La route status est publique (vérification côté client avant login)
+Route::get('/chatbot/status', [\App\Http\Controllers\ChatbotController::class, 'status'])->name('chatbot.status');
+
+Route::middleware('role:citoyen,manager,administrateur')->prefix('chatbot')->name('chatbot.')->group(function () {
+    Route::post('/ask', [\App\Http\Controllers\ChatbotController::class, 'ask'])->name('ask');
+});
+
 // ── Public demo pages ─────────────────────────────────────────────────────────
 Route::get('/ai-demo', fn () => view('ai-demo'))->name('ai.demo');
 Route::get('/weather',  fn () => response()->file(public_path('weather.html')))->name('weather');
