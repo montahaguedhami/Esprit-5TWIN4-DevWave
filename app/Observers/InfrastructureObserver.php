@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Enums\InfrastructureEtat;
 use App\Models\Infrastructure;
 use App\Models\InfrastructureHistorique;
+use App\Services\FailureRiskService;
 use Illuminate\Support\Facades\Cache;
 
 class InfrastructureObserver
@@ -34,6 +35,7 @@ class InfrastructureObserver
             'created_at' => now(),
         ]);
 
+        app(FailureRiskService::class)->recompute($infrastructure);
         Cache::forget('zone_stats_globales');
     }
 
@@ -58,6 +60,8 @@ class InfrastructureObserver
                 'user_name' => session('user.name', 'Système'),
                 'created_at' => now(),
             ]);
+
+            app(FailureRiskService::class)->recompute($infrastructure);
         }
 
         Cache::forget('zone_stats_globales');

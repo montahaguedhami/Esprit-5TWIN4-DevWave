@@ -99,6 +99,7 @@
         <div class="p-4 border-t border-slate-100 bg-slate-50">
             <form id="ai-chat-form" onsubmit="sendAIMessage(event)" class="flex items-end gap-2">
                 <div class="flex-1">
+                    <label for="ai-input" class="sr-only">Question pour l'assistant IA</label>
                     <textarea 
                         id="ai-input"
                         placeholder="Posez votre question..."

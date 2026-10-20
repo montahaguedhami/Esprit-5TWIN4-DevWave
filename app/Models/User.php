@@ -3,18 +3,32 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Traits\HasRoles;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Validation\ValidationException;
+use App\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasRoles;
+
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'rol' => $this->roles()->pluck('slug')->all(),
+            'aud' => config('jwt.audience', 'aquasecure-api'),
+        ];
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -47,8 +61,8 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -67,24 +81,10 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
-     * Get the identifier that will be stored in the JWT subject claim.
+     * Fiche technicien liée à ce compte (module Maintenance).
      */
-    public function getJWTIdentifier(): mixed
+    public function technicien(): HasOne
     {
-        return $this->getKey();
-    }
-
-    /**
-     * Return a key-value array of custom claims added to the JWT payload.
-     *
-     * NOTE: `rol` is informational only — it is NEVER used for authorization decisions
-     * server-side. Every request re-validates roles from the database.
-     */
-    public function getJWTCustomClaims(): array
-    {
-        return [
-            'rol' => $this->roles->first()?->slug ?? null,
-            'aud' => 'aquasecure-api',
-        ];
+        return $this->hasOne(Technicien::class);
     }
 }

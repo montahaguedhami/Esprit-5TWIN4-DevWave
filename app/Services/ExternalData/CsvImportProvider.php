@@ -84,7 +84,7 @@ class CsvImportProvider implements ExternalDataProviderInterface
         $infrastructure = $this->resolveInfrastructure($obs);
         $zone = $infrastructure?->zone ?? $this->resolveZone($obs);
 
-        $code = !empty($obs->stationCode) ? $obs->stationCode : ('PT-' . ($pointId ?? rand(100, 999)));
+        $code = !empty($obs->stationCode) ? $obs->stationCode : ('PT-' . ($pointId ?? random_int(100, 999)));
         $name = !empty($obs->stationName) ? $obs->stationName : $code;
 
         $newPoint = new PointMesure([
@@ -369,7 +369,7 @@ class CsvImportProvider implements ExternalDataProviderInterface
         }
 
         if ($code === '') {
-            $code = 'PT-IMP-' . ($rowIdx > 0 ? $rowIdx : rand(100, 999));
+            $code = 'PT-IMP-' . ($rowIdx > 0 ? $rowIdx : random_int(100, 999));
             $name = $name ?: $code;
         }
 

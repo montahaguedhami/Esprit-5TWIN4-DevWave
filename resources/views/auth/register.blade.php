@@ -103,7 +103,7 @@
             @endif
             
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
+                <label for="name" class="text-xs font-semibold text-cyan-100/70 mb-2 block">
                     Nom complet <span class="text-rose-400">*</span>
                 </label>
                 <div class="relative">
@@ -123,7 +123,7 @@
             </div>
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
+                <label for="email" class="text-xs font-semibold text-cyan-100/70 mb-2 block">
                     Adresse email <span class="text-rose-400">*</span>
                 </label>
                 <div class="relative">
@@ -142,11 +142,11 @@
             </div>
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
+                <label for="phone" class="text-xs font-semibold text-cyan-100/70 mb-2 block">
                     Numéro de téléphone
                 </label>
                 <div class="relative">
-                    <input 
+                    <input id="phone" 
                         type="tel" 
                         name="phone" 
                         autocomplete="off"
@@ -158,7 +158,7 @@
             </div>
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
+                <label for="password" class="text-xs font-semibold text-cyan-100/70 mb-2 block">
                     Mot de passe <span class="text-rose-400">*</span>
                 </label>
                 <div class="relative">
@@ -191,7 +191,7 @@
             </div>
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">
+                <label for="password_confirmation" class="text-xs font-semibold text-cyan-100/70 mb-2 block">
                     Confirmer le mot de passe <span class="text-rose-400">*</span>
                 </label>
                 <div class="relative">

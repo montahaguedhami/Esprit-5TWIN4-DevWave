@@ -6,9 +6,6 @@
 <div class="space-y-8">
     {{-- En-tête --}}
     <div class="flex items-center gap-3">
-        <a href="{{ route('citizen.dashboard') }}" class="w-10 h-10 rounded-2xl glass flex items-center justify-center text-cyan-300 hover:text-white hover:bg-white/10 transition-all shadow-sm shrink-0" title="Retour au tableau de bord">
-            <i data-lucide="arrow-left" class="w-5 h-5"></i>
-        </a>
         <div>
             <h1 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">Travaux de maintenance</h1>
             <p class="text-cyan-100/60 text-xs sm:text-sm mt-0.5">Suivez les interventions de nos équipes sur le réseau d'eau potable</p>

@@ -54,7 +54,7 @@
                                 </div>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" {{ $channel['enabled'] ? 'checked' : '' }} class="sr-only peer">
+                                <input type="checkbox" aria-label="{{ $channel['label'] }}" {{ $channel['enabled'] ? 'checked' : '' }} class="sr-only peer">
                                 <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                             </label>
                         </div>
@@ -127,18 +127,18 @@
                             <p class="text-sm text-slate-400">Ne pas recevoir de notifications pendant ces heures (sauf alertes critiques)</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" checked class="sr-only peer">
+                            <input type="checkbox" checked aria-label="Activer les heures de silence" class="sr-only peer">
                             <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                         </label>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-2">De</label>
+                            <label for="quiet_start" class="block text-sm font-medium text-slate-400 mb-2">De</label>
                             <x-forms.input type="time" value="22:00" name="quiet_start" />
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-2">À</label>
+                            <label for="quiet_end" class="block text-sm font-medium text-slate-400 mb-2">À</label>
                             <x-forms.input type="time" value="08:00" name="quiet_end" />
                         </div>
                     </div>

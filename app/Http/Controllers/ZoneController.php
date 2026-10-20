@@ -39,7 +39,7 @@ class ZoneController extends Controller
 
         $statsGlobales = $statsService->statsGlobales();
 
-        return view($request->routeIs('admin.*') ? 'admin.inventory.zones.index' : 'manager.zones.index', [
+        return view('manager.zones.index', [
             'zones' => $zones,
             'statsGlobales' => $statsGlobales,
             'filters' => [
@@ -75,6 +75,7 @@ class ZoneController extends Controller
             'infrastructures' => fn ($query) => $query
                 ->when($etat !== null, fn ($q) => $q->dEtat($etat))
                 ->orderBy('nom'),
+            'infrastructures.latestRiskPrediction',
             'incidents' => fn ($q) => $q->whereNotIn('statut', ['resolu', 'cloture'])->latest('date_signalement'),
             'pointsMesure.derniereMesure',
             'projets' => fn ($q) => $q->orderByDesc('created_at'),
@@ -93,12 +94,21 @@ class ZoneController extends Controller
         }
 
         $stats = $statsService->statsZone($zone);
+        $riskInfrastructures = $zone->infrastructures
+            ->filter(fn ($infrastructure) => $infrastructure->latestRiskPrediction !== null)
+            ->sortByDesc(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability)
+            ->values();
+        $riskAverage = $riskInfrastructures->isNotEmpty()
+            ? (int) round($riskInfrastructures->avg(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability))
+            : null;
 
-        return view($request->routeIs('admin.*') ? 'admin.inventory.zones.show' : 'manager.zones.show', [
+        return view('manager.zones.show', [
             'zone' => $zone,
             'stats' => $stats,
             'selectedEtat' => $etat?->value ?? '',
             'etats' => InfrastructureEtat::cases(),
+            'riskTop5' => $riskInfrastructures->take(5),
+            'riskAverage' => $riskAverage,
         ]);
     }
 

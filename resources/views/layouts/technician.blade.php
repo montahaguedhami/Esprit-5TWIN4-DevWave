@@ -20,6 +20,7 @@
 
             <nav class="technician-topnav hidden md:flex items-center gap-1.5 glass p-1.5 rounded-2xl text-xs font-medium" aria-label="Navigation technicien">
                 <a href="{{ route('technician.dashboard') }}" class="{{ request()->routeIs('technician.dashboard') ? 'is-active' : '' }}">Tableau de bord</a>
+                <a href="{{ route('technician.incidents.index') }}" class="{{ request()->routeIs('technician.incidents.*') ? 'is-active' : '' }}">Incidents & actions</a>
                 <a href="{{ route('technician.interventions.index') }}" class="{{ request()->routeIs('technician.interventions.*') ? 'is-active' : '' }}">Interventions</a>
                 <a href="{{ route('technician.equipment') }}" class="{{ request()->routeIs('technician.equipment') ? 'is-active' : '' }}">Équipement</a>
             </nav>

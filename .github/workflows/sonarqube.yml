@@ -1,0 +1,52 @@
+name: SonarQube
+
+# Analyse de qualité lancée après un CI réussi sur main (ou à la demande).
+#
+# Secrets du dépôt : SONAR_TOKEN, SONAR_HOST_URL.
+# Variable du dépôt (facultative) : SONAR_RUNNER
+#   - absente           → ubuntu-latest (SonarCloud ou serveur SonarQube accessible depuis Internet)
+#   - "self-hosted"     → runner auto-hébergé (serveur SonarQube local, ex. docker compose --profile qualite)
+on:
+  workflow_run:
+    workflows: ["AquaSecure CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  sonarqube:
+    name: Analyse SonarQube + Quality Gate
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ${{ vars.SONAR_RUNNER || 'ubuntu-latest' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Historique complet : SonarQube attribue les problèmes aux bons commits
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      # Rapport de couverture produit par le job de tests du CI (chemins déjà relatifs)
+      - name: Download coverage report
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: SonarQube analysis
+        uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          # Le job échoue si le Quality Gate est rouge
+          args: >
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300

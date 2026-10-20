@@ -66,9 +66,9 @@
             <input type="hidden" name="token" value="{{ $token }}">
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
+                <label for="email" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
                 <div class="relative">
-                    <input type="email" name="email" value="{{ old('email', $email ?? '') }}" required placeholder="vous@exemple.tn" autocomplete="email" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <input id="email" type="email" name="email" value="{{ old('email', $email ?? '') }}" required placeholder="vous@exemple.tn" autocomplete="email" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </svg>
@@ -76,7 +76,7 @@
             </div>
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
+                <label for="password" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
                 <div class="relative">
                     <input type="password" name="password" id="password" required minlength="6" autocomplete="new-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute right-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@
             </div>
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Confirmer le mot de passe</label>
+                <label for="password_confirmation" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Confirmer le mot de passe</label>
                 <div class="relative">
                     <input type="password" name="password_confirmation" id="password_confirmation" required autocomplete="new-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

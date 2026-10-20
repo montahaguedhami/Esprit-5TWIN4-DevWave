@@ -5,7 +5,9 @@
 @php
     use App\Data\PlaceholderData;
     $notifications = PlaceholderData::citizenNotifications();
-    $unreadCount = count(array_filter($notifications, fn($n) => !$n['read']));
+    $incidentNotifications = $incidentNotifications ?? collect();
+    $incidentUnreadCount = $incidentNotifications->whereNull('read_at')->count();
+    $unreadCount = count(array_filter($notifications, fn($n) => !$n['read'])) + $incidentUnreadCount;
 @endphp
 
 @section('content')
@@ -48,8 +50,9 @@
                 
                 <div class="space-y-1">
                     @foreach([
-                        ['value' => 'all', 'label' => 'Toutes', 'icon' => 'inbox', 'count' => count($notifications)],
+                        ['value' => 'all', 'label' => 'Toutes', 'icon' => 'inbox', 'count' => count($notifications) + $incidentNotifications->count()],
                         ['value' => 'unread', 'label' => 'Non lues', 'icon' => 'mail', 'count' => $unreadCount],
+                        ['value' => 'action_corrective', 'label' => 'Incidents', 'icon' => 'wrench', 'count' => $incidentNotifications->count()],
                         ['value' => 'report_update', 'label' => 'Déclarations', 'icon' => 'alert-circle', 'count' => 2],
                         ['value' => 'water_quality', 'label' => 'Qualité eau', 'icon' => 'flask', 'count' => 1],
                         ['value' => 'maintenance', 'label' => 'Maintenance', 'icon' => 'wrench', 'count' => 1],
@@ -121,8 +124,62 @@
                 @endforelse
             </div>
 
+            <section class="mt-8 space-y-3" aria-labelledby="incident-notifications-title">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 id="incident-notifications-title" class="text-lg font-display font-bold text-white">Incidents</h2>
+                    <span class="text-xs text-cyan-100/50">{{ $incidentNotifications->count() }} action(s) corrective(s)</span>
+                </div>
+
+                @forelse($incidentNotifications as $incidentNotification)
+                    @php($incidentData = $incidentNotification->data ?? [])
+                    <x-ui.card hover padding="none" class="notification-item {{ $incidentNotification->read_at ? 'opacity-75' : '' }}" data-type="action_corrective" data-read="{{ $incidentNotification->read_at ? 'true' : 'false' }}">
+                        <div class="flex gap-4 p-5">
+                            <div class="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10">
+                                <i data-lucide="wrench" class="h-6 w-6 text-cyan-400"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-start justify-between gap-3">
+                                    <h3 class="font-semibold text-white">
+                                        Action corrective : {{ $incidentData['action_title'] ?? 'Action enregistrée' }}
+                                    </h3>
+                                    @if(! $incidentNotification->read_at)
+                                        <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan-400" aria-label="Non lue"></span>
+                                    @endif
+                                </div>
+                                <p class="mt-2 text-sm text-cyan-100/70">{{ $incidentData['message'] ?? 'Le gestionnaire a ajouté une action corrective à votre incident.' }}</p>
+                                <p class="mt-2 text-xs text-cyan-100/50">
+                                    Incident : {{ $incidentData['incident_title'] ?? 'Incident' }}
+                                </p>
+                                @if(! empty($incidentData['action_status']))
+                                    <div class="mt-2 flex items-center gap-2 text-xs text-cyan-100/60">
+                                        <span>Statut :</span><x-incident-action-status :status="$incidentData['action_status']" />
+                                    </div>
+                                @endif
+                                @if(! empty($incidentData['action_description']))
+                                    <p class="mt-2 whitespace-pre-line text-sm text-cyan-100/80">{{ $incidentData['action_description'] }}</p>
+                                @endif
+                                <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+                                    <span class="text-xs text-cyan-100/40">{{ $incidentNotification->created_at?->diffForHumans() ?? 'Récemment' }}</span>
+                                    @if(! empty($incidentData['incident_id']))
+                                        <a href="{{ route('incidents.show', $incidentData['incident_id']) }}" class="text-xs font-medium text-cyan-400 hover:text-cyan-300">
+                                            Voir l’incident
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </x-ui.card>
+                @empty
+                    <x-ui.empty-state
+                        icon="clipboard-list"
+                        title="Aucune action corrective"
+                        description="Les actions ajoutées par le gestionnaire à vos incidents apparaîtront ici."
+                    />
+                @endforelse
+            </section>
+
             <!-- Load More -->
-            @if(count($notifications) > 0)
+            @if(count($notifications) + $incidentNotifications->count() > 0)
             <div class="mt-6 text-center">
                 <x-ui.button variant="outline" icon="refresh-cw">
                     Charger plus

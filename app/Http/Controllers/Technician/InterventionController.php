@@ -6,6 +6,7 @@ use App\Enums\InfrastructureEtat;
 use App\Http\Controllers\Controller;
 use App\Models\InfrastructureAlerte;
 use App\Models\Intervention;
+use App\Services\ReportAssistantService;
 use App\Services\TechnicianScopeService;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,14 @@ class InterventionController extends Controller
 
         $query = Intervention::query()
             ->where('technicien_id', $technicien->id)
-            ->with(['infrastructure.zone'])
+            ->with(['infrastructure.zone', 'infrastructure.latestRiskPrediction'])
+            ->orderByDesc(
+                \App\Models\InfrastructureRiskPrediction::query()
+                    ->select('probability')
+                    ->whereColumn('infrastructure_id', 'interventions.infrastructure_id')
+                    ->orderByDesc('computed_at')
+                    ->limit(1),
+            )
             ->latest('date');
 
         // Filtre par statut
@@ -120,6 +128,27 @@ class InterventionController extends Controller
      * 2. Infrastructure : mise à jour de l'état, de la date de dernière maintenance, et consignation dans l'historique.
      * 3. Clôture automatique de toutes les alertes opérationnelles actives de l'ouvrage.
      */
+    /**
+     * Rédaction assistée par IA : propose un rapport à partir des notes rapides (rien n'est enregistré).
+     */
+    public function assistantRapport(Request $request, ReportAssistantService $assistant, $id)
+    {
+        $technicien = TechnicianScopeService::currentTechnicien();
+        abort_unless($technicien, 403, 'Compte technicien introuvable.');
+
+        $intervention = Intervention::with(['infrastructure'])->findOrFail($id);
+        abort_unless($intervention->technicien_id === $technicien->id, 403);
+
+        $validated = $request->validate([
+            'notes' => 'required|string|min:5|max:2000',
+        ], [
+            'notes.required' => 'Écrivez d\'abord quelques notes sur ce que vous avez fait.',
+            'notes.min' => 'Les notes doivent comporter au moins :min caractères.',
+        ]);
+
+        return response()->json($assistant->rediger($intervention, $validated['notes']));
+    }
+
     public function storeReport(Request $request, $id)
     {
         $technicien = TechnicianScopeService::currentTechnicien();
@@ -141,8 +170,11 @@ class InterventionController extends Controller
             'work_performed.min' => 'Le descriptif des travaux doit comporter au moins :min caractères.',
         ]);
 
-        // 1. Clôture de l'intervention
+        // 1. Clôture de l'intervention (réalisée en avance : elle est datée du jour réel des travaux)
         $intervention->statut = 'Terminée';
+        if ($intervention->date->isFuture()) {
+            $intervention->date = today();
+        }
 
         $piecesTxt = '';
         if (! empty($validated['parts']) && is_array($validated['parts'])) {

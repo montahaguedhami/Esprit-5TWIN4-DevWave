@@ -24,7 +24,8 @@
     <div class="glass rounded-2xl p-4">
         <form method="GET" action="{{ route('manager.financements.index') }}" class="flex flex-wrap gap-3">
             <!-- Project Filter -->
-            <select name="projet_id" 
+            <label for="projet-id" class="sr-only">projet id</label>
+            <select id="projet-id" name="projet_id" 
                     class="flex-1 min-w-[200px] px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-400/50 focus:outline-none transition-colors">
                 <option value="">Tous les projets</option>
                 @foreach($projets as $projet)

@@ -1,10 +1,10 @@
-@extends('layouts.manager')
+@extends(request()->routeIs('admin.*') ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', $zone->nom.' — AquaSecure')
 
-@section('manager-content')
+@section(request()->routeIs('admin.*') ? 'admin-content' : 'manager-content')
 @php
-    $inventoryRoutePrefix = 'manager';
+    $inventoryRoutePrefix = request()->routeIs('admin.*') ? 'admin' : 'manager';
 @endphp
 <div class="mx-auto max-w-7xl space-y-6">
     {{-- En-tête de la zone --}}
@@ -20,7 +20,7 @@
             <p class="text-sm text-cyan-100/60">{{ $zone->localisation }} · Réseau d’alimentation en eau potable</p>
         </div>
         <div class="flex items-center gap-2">
-            @if(!request()->routeIs('admin.*') && $zone->latitude && $zone->longitude)
+            @if($zone->latitude && $zone->longitude)
                 <a href="{{ route('manager.map', ['zone' => $zone->id]) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-2 text-sm font-medium text-cyan-200 hover:bg-cyan-500/20 transition">
                     <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -58,7 +58,7 @@
     @include('manager.shared.flash')
 
     {{-- Cartes KPI de performance & santé --}}
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <div class="rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-4 shadow-sm">
             <p class="text-xs font-medium text-cyan-100/60">Total équipements</p>
             <p class="mt-2 text-2xl font-bold text-white">{{ $stats['total'] }}</p>
@@ -94,7 +94,16 @@
             </p>
             <p class="mt-1 text-[11px] text-cyan-200/50">Sensibilité réseau</p>
         </div>
+        <div class="col-span-2 rounded-2xl border border-cyan-400/15 bg-slate-900/60 p-4 shadow-sm sm:col-span-1">
+            <p class="text-xs font-medium text-cyan-100/60">Risque moyen</p>
+            <p class="mt-2 text-2xl font-bold {{ $riskAverage === null ? 'text-slate-300' : ($riskAverage >= 50 ? 'text-rose-400' : ($riskAverage >= 25 ? 'text-amber-400' : 'text-emerald-400')) }}">
+                {{ $riskAverage === null ? '—' : $riskAverage.'%' }}
+            </p>
+            <p class="mt-1 text-[11px] text-cyan-200/50">Estimation indicative · 30 jours</p>
+        </div>
     </div>
+
+    <x-infrastructure.risk-top-five :infrastructures="$riskTop5" :route-prefix="$inventoryRoutePrefix" />
 
     {{-- Informations générales de la zone & Localisation --}}
     <div class="grid gap-6 lg:grid-cols-3">
@@ -254,8 +263,6 @@
         </div>
     </section>
 
-    @if(!request()->routeIs('admin.*'))
-    {{-- Sections de suivi réservées au gestionnaire --}}
     {{-- Section : Incidents ouverts sur la zone --}}
     <section class="space-y-4">
         <div class="flex items-center justify-between">
@@ -307,7 +314,7 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-3 text-right whitespace-nowrap">
-                                    <a href="{{ route('manager.incidents.show', $incident) }}" class="font-medium text-cyan-300 hover:text-cyan-200">
+                                    <a href="{{ $inventoryRoutePrefix === 'admin' ? route('admin.incidents', ['q' => $incident->titre]) : route('manager.incidents.show', $incident) }}" class="font-medium text-cyan-300 hover:text-cyan-200">
                                         Consulter →
                                     </a>
                                 </td>
@@ -489,13 +496,12 @@
             @endif
         </div>
     </section>
-    @endif
 </div>
 
 {{-- Scripts Leaflet & Chart.js --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -641,19 +647,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function confirmDeleteZoneShow() {
     const infraCount = {{ $zone->infrastructures()->count() }};
-    let hint = 'Cette opération archivera la zone dans le système (suppression logique).';
+    const zoneNom = '{{ addslashes($zone->nom) }}';
+    let impactHtml = '';
+    let hint = '';
+
     if (infraCount > 0) {
-        hint = 'Attention : cette zone englobe actuellement ' + infraCount + ' équipement(s). Conformément aux règles de gestion, vous ne pourrez pas la supprimer tant que ces infrastructures sont rattachées.';
+        impactHtml += '<div class="flex items-start gap-2 mb-1"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-rose-400"></span><span class="text-rose-200/90 font-medium">Bloqué par ' + infraCount + ' infrastructure(s) rattachée(s)</span></div>';
+        impactHtml += '<div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-amber-400"></span><span class="text-amber-200/90">Détachez d\'abord les équipements avant de pouvoir archiver cette zone.</span></div>';
+        hint = 'Opération bloquée : ' + infraCount + ' équipement' + (infraCount > 1 ? 's' : '') + ' dépendent encore de cette zone.';
+    } else {
+        impactHtml += '<div class="flex items-start gap-2 mb-1"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-emerald-400"></span><span class="text-emerald-200/90 font-medium">Aucune dépendance — suppression autorisée</span></div>';
+        impactHtml += '<div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-cyan-400"></span><span class="text-cyan-200/90">La zone sera archivée (Soft Delete). Son historique reste conservé.</span></div>';
+        hint = 'Cette opération archivera la zone dans le système (suppression logique). Les données associées restent conservées.';
     }
 
     window.openAquaConfirm({
         variant: 'danger',
         title: 'Supprimer la zone géographique',
-        message: 'Êtes-vous certain de vouloir supprimer cette zone territoriale du réseau ?',
-        badge: '{{ addslashes($zone->nom) }} (' + infraCount + ' équipement' + (infraCount > 1 ? 's' : '') + ')',
+        message: 'Êtes-vous certain de vouloir supprimer « ' + zoneNom + ' » du réseau ?',
+        badge: zoneNom + ' · ' + infraCount + ' équipement' + (infraCount > 1 ? 's' : ''),
+        impact: impactHtml,
         hint: hint,
-        confirmText: 'Supprimer la zone',
+        confirmText: infraCount > 0 ? 'Supprimer quand même' : 'Supprimer la zone',
         cancelText: 'Annuler',
+        footerLeft: 'Action irréversible',
         onConfirm: function () {
             document.getElementById('delete-zone-form-show').submit();
         }

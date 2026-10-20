@@ -1,4 +1,4 @@
-@extends('layouts.manager')
+@extends($layout ?? 'layouts.manager')
 
 @section('title', 'Carte Réseau — AquaSecure')
 
@@ -10,9 +10,9 @@
 
 @push('styles')
 {{-- Leaflet CSS & MarkerCluster CSS --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" integrity="sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+" crossorigin="anonymous" />
 
 <style>
 /* ── Map container ── */
@@ -116,14 +116,14 @@
 </style>
 @endpush
 
-@section('manager-content')
+@section($contentSection ?? 'manager-content')
 <div class="flex h-full flex-col bg-slate-950">
 
     {{-- ── TOP BAR ── --}}
     <div class="glass-strong border-b border-cyan-500/10 px-4 sm:px-6 py-3 flex flex-wrap gap-4 items-center justify-between">
         {{-- Left: breadcrumb + title --}}
         <div class="flex items-center gap-3">
-            <a href="{{ route('manager.dashboard') }}"
+            <a href="{{ route($dashboardRoute ?? 'manager.dashboard') }}"
                class="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors text-sm font-medium">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Dashboard</span>
@@ -274,6 +274,7 @@
 
             {{-- Tab Content: LISTE DES ZONES --}}
             <div id="tab-content-zones" class="hidden flex-1 overflow-y-auto p-3 space-y-2">
+                <label for="zone-search" class="sr-only">Rechercher une zone</label>
                 <input id="zone-search" type="text" placeholder="Rechercher une zone…"
                        class="w-full bg-slate-950/40 border border-cyan-400/15 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 mb-2"
                        oninput="filterZoneList(this.value)">
@@ -281,6 +282,7 @@
                 @foreach($zones as $zone)
                 <div class="zone-item rounded-xl border border-white/5 bg-slate-950/50 p-3 hover:border-cyan-400/40 cursor-pointer transition"
                      data-name="{{ strtolower($zone['name']) }}"
+                     role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                      onclick="focusZone('{{ $zone['id'] }}', {{ $zone['lat'] }}, {{ $zone['lng'] }})">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-white text-xs">{{ $zone['name'] }}</h3>
@@ -299,6 +301,7 @@
 
             {{-- Tab Content: LISTE DES ÉQUIPEMENTS --}}
             <div id="tab-content-infras" class="hidden flex-1 overflow-y-auto p-3 space-y-2">
+                <label for="infra-search" class="sr-only">Rechercher un équipement</label>
                 <input id="infra-search" type="text" placeholder="Rechercher un équipement…"
                        class="w-full bg-slate-950/40 border border-cyan-400/15 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 mb-2"
                        oninput="filterInfraList(this.value)">
@@ -308,6 +311,7 @@
                      data-name="{{ strtolower($infra['nom']) }}"
                      data-type="{{ $infra['type_key'] }}"
                      data-etat="{{ $infra['etat_key'] }}"
+                     role="button" tabindex="0" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }"
                      onclick="focusInfrastructure('{{ $infra['id'] }}', {{ $infra['lat'] }}, {{ $infra['lng'] }})">
                     <div class="flex items-center justify-between">
                         <h3 class="font-semibold text-white text-xs">{{ $infra['nom'] }}</h3>
@@ -338,8 +342,8 @@
 
 @push('scripts')
 {{-- Leaflet JS & MarkerCluster JS --}}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr" crossorigin="anonymous"></script>
 
 <script>
 // ── Données injectées depuis PHP ─────────────────────────────────────────────
