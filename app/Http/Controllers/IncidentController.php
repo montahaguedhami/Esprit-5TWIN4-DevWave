@@ -27,8 +27,10 @@ class IncidentController extends Controller
 
     public function managerShow(Incident $incident)
     {
-        $incident->load(['user', 'actions', 'zone', 'infrastructure']);
-        return view('manager.incidents.show', compact('incident'));
+        $incident->load(['user', 'actions.technicien', 'zone', 'infrastructure']);
+        $techniciens = \App\Services\TechnicianScopeService::availableTechniciansForAssignment();
+
+        return view('manager.incidents.show', compact('incident', 'techniciens'));
     }
 
     public function index(Request $request)

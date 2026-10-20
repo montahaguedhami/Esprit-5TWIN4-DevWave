@@ -10,8 +10,8 @@
     <a href="{{ route('manager.incidents.show', $action->incident_id) }}" class="inline-block mt-2 text-cyan-300 wrap-break-word">Incident : {{ $action->incident->titre }}</a>
     <p class="mt-6 whitespace-pre-line wrap-break-word">{{ $action->description }}</p>
     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 py-6 border-b border-white/15">
-        <div><dt class="text-slate-400">Responsable</dt><dd class="wrap-break-word">{{ $action->responsable ?? '-' }}</dd></div>
-        <div><dt class="text-slate-400">Statut</dt><dd>{{ $action->statut }}</dd></div>
+        <div><dt class="text-slate-400">Technicien</dt><dd class="wrap-break-word">{{ $action->technicien?->nom ?? $action->responsable ?? '-' }}</dd></div>
+        <div><dt class="text-slate-400">Statut</dt><dd class="mt-1"><x-incident-action-status :status="$action->statut" /></dd></div>
         <div><dt class="text-slate-400">Date pr&eacute;vue</dt><dd>{{ $action->date_prevue?->format('d/m/Y') ?? '-' }}</dd></div>
         <div><dt class="text-slate-400">Date de r&eacute;alisation</dt><dd>{{ $action->date_realisation?->format('d/m/Y H:i') ?? '-' }}</dd></div>
     </dl>

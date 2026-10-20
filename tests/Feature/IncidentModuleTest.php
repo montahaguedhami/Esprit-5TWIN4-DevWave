@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\ActionCorrective;
 use App\Models\Incident;
+use App\Models\Role;
+use App\Models\Technicien;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -27,6 +29,19 @@ class IncidentModuleTest extends TestCase
     private function incidentData(): array
     {
         return ['titre' => 'Fuite dans ma rue', 'description' => 'Une canalisation fuit.', 'type' => 'fuite', 'gravite' => 'elevee', 'statut' => 'signale', 'date_signalement' => '2026-10-07T10:00', 'localisation' => 'Tunis'];
+    }
+
+    private function availableTechnician(): Technicien
+    {
+        $role = Role::firstOrCreate(['slug' => Role::TECHNICIEN], ['name' => 'Technicien']);
+        $user = User::factory()->create();
+        $user->assignRole($role);
+
+        return Technicien::factory()->create([
+            'nom' => $user->name,
+            'user_id' => $user->id,
+            'disponibilite' => 'Disponible',
+        ]);
     }
 
     public function test_citizen_cannot_access_another_citizens_incident(): void
@@ -94,6 +109,7 @@ class IncidentModuleTest extends TestCase
     {
         $incidents = Incident::factory()->count(2)->create();
         $incident = $incidents->first();
+        $technicien = $this->availableTechnician();
         $this->withSession(['user' => ['name' => 'Gestionnaire', 'role' => 'manager', 'email' => 'gestionnaire@aquasecure.tn']]);
         $response = $this->get('/manager/incidents')->assertOk()->assertDontSee('Nouveau incident')->assertDontSee('/incidents/create', false);
         foreach ($incidents as $record) {
@@ -103,7 +119,7 @@ class IncidentModuleTest extends TestCase
             ->assertSee('id="incident-map"', false)
             ->assertSee('leaflet@1.9.4/dist/leaflet.js')
             ->assertSee('nominatim.openstreetmap.org/search');
-        $data = ['titre' => 'Fermer la vanne', 'description' => 'Isoler la conduite.', 'responsable' => 'Equipe reseau', 'date_prevue' => '2026-10-07', 'date_realisation' => '2026-10-07T12:00', 'statut' => 'a_faire', 'resultat' => 'Vanne fermee.'];
+        $data = ['titre' => 'Fermer la vanne', 'description' => 'Isoler la conduite.', 'technicien_id' => $technicien->id, 'date_prevue' => '2026-10-07', 'date_realisation' => '2026-10-07T12:00', 'statut' => 'a_faire', 'resultat' => 'Vanne fermee.'];
         $this->post('/manager/incidents/'.$incident->id.'/actions', array_merge($data, ['incident_id' => $incidents->last()->id]))->assertRedirect(route('manager.incidents.show', $incident));
         $action = $incident->actions()->firstOrFail();
         $this->assertDatabaseHas('action_correctives', ['id' => $action->id, 'incident_id' => $incident->id]);
@@ -112,6 +128,23 @@ class IncidentModuleTest extends TestCase
             'notifiable_id' => $incident->user_id,
             'notifiable_type' => User::class,
         ]);
+        $mail = (new \App\Notifications\ActionCorrectiveCreated($incident, $action))->toMail($incident->user);
+        $mailText = implode(' ', array_merge($mail->introLines, $mail->outroLines));
+        $this->assertSame('Nouvelle action corrective pour votre incident', $mail->subject);
+        $this->assertStringContainsString('Fermer la vanne', $mailText);
+        $this->assertStringContainsString($technicien->nom, $mailText);
+        $this->assertStringContainsString('compte sur le site AquaSecure', $mailText);
+        $this->get('/manager/incidents/'.$incident->id)->assertOk()->assertSee('Fermer la vanne');
+        $this->get('/manager/actions/'.$action->id.'/edit')->assertOk();
+        $this->put('/manager/actions/'.$action->id, array_merge($data, ['statut' => 'terminee', 'date_realisation' => '2026-10-07T12:00', 'resultat' => 'Zone isolee']))->assertRedirect(route('manager.incidents.show', $incident));
+        $this->assertDatabaseHas('action_correctives', ['id' => $action->id, 'statut' => 'terminee', 'resultat' => 'Zone isolee']);
+        $this->delete('/manager/actions/'.$action->id)->assertRedirect(route('manager.incidents.show', $incident));
+        $this->assertDatabaseMissing('action_correctives', ['id' => $action->id]);
+        $this->assertDatabaseHas('incidents', ['id' => $incident->id]);
+        $this->post('/manager/incidents', $this->incidentData())->assertStatus(405);
+        $this->put('/manager/incidents/'.$incident->id, $this->incidentData())->assertStatus(405);
+        $this->delete('/manager/incidents/'.$incident->id)->assertStatus(405);
+
         $citizenRole = \App\Models\Role::firstOrCreate(['slug' => 'citoyen'], ['name' => 'Citoyen']);
         $incident->user->assignRole($citizenRole);
         $this->withSession($this->citizen($incident->user));
@@ -125,17 +158,6 @@ class IncidentModuleTest extends TestCase
             ->assertSee('Action corrective : Fermer la vanne')
             ->assertSee('Isoler la conduite.')
             ->assertSee($incident->titre);
-        $this->withSession(['user' => ['name' => 'Gestionnaire', 'role' => 'manager', 'email' => 'gestionnaire@aquasecure.tn']]);
-        $this->get('/manager/incidents/'.$incident->id)->assertOk()->assertSee('Fermer la vanne');
-        $this->get('/manager/actions/'.$action->id.'/edit')->assertOk();
-        $this->put('/manager/actions/'.$action->id, array_merge($data, ['statut' => 'terminee', 'date_realisation' => '2026-10-07T12:00', 'resultat' => 'Zone isolee']))->assertRedirect(route('manager.incidents.show', $incident));
-        $this->assertDatabaseHas('action_correctives', ['id' => $action->id, 'statut' => 'terminee', 'resultat' => 'Zone isolee']);
-        $this->delete('/manager/actions/'.$action->id)->assertRedirect(route('manager.incidents.show', $incident));
-        $this->assertDatabaseMissing('action_correctives', ['id' => $action->id]);
-        $this->assertDatabaseHas('incidents', ['id' => $incident->id]);
-        $this->post('/manager/incidents', $this->incidentData())->assertStatus(405);
-        $this->put('/manager/incidents/'.$incident->id, $this->incidentData())->assertStatus(405);
-        $this->delete('/manager/incidents/'.$incident->id)->assertStatus(405);
     }
 
     public function test_separate_seeders_reuse_existing_users_and_incidents(): void
@@ -214,7 +236,12 @@ class IncidentModuleTest extends TestCase
     public function test_action_list_detail_and_create_pages_are_available_to_manager_only(): void
     {
         $incident = Incident::factory()->create();
-        $action = ActionCorrective::factory()->for($incident)->create(['titre' => 'Action liee a cet incident']);
+        $technicien = $this->availableTechnician();
+        $action = ActionCorrective::factory()->for($incident)->create([
+            'titre' => 'Action liee a cet incident',
+            'technicien_id' => $technicien->id,
+            'responsable' => $technicien->nom,
+        ]);
         $otherAction = ActionCorrective::factory()->create(['titre' => 'Action autre incident']);
         $urls = [
             route('manager.actions.index', $incident),
@@ -233,7 +260,7 @@ class IncidentModuleTest extends TestCase
         $this->get($urls[1])->assertOk()->assertSee($incident->titre)
             ->assertDontSee('name="incident_id"', false)
             ->assertSee('name="description" rows="3"', false)
-            ->assertSee('name="responsable"', false)
+            ->assertSee('name="technicien_id"', false)
             ->assertDontSee(' required', false)
             ->assertDontSee('maxlength=', false)
             ->assertSee('name="date_prevue"', false)
@@ -269,16 +296,21 @@ class IncidentModuleTest extends TestCase
     public function test_action_validation_checks_required_fields_types_lengths_dates_and_form_errors(): void
     {
         $incident = Incident::factory()->create();
-        $action = ActionCorrective::factory()->for($incident)->create(['titre' => 'Action originale']);
+        $technicien = $this->availableTechnician();
+        $action = ActionCorrective::factory()->for($incident)->create([
+            'titre' => 'Action originale',
+            'technicien_id' => $technicien->id,
+            'responsable' => $technicien->nom,
+        ]);
         $this->withSession(['user' => ['name' => 'Gestionnaire', 'role' => 'manager', 'email' => 'gestionnaire@aquasecure.tn']]);
         $storeUrl = route('incidents.actions.store', $incident);
         $createUrl = route('manager.actions.create', $incident);
-        $this->post($storeUrl, [])->assertSessionHasErrors(['titre', 'description', 'responsable', 'date_prevue', 'date_realisation', 'statut', 'resultat']);
-        $this->put(route('manager.actions.update', $action), [])->assertSessionHasErrors(['titre', 'description', 'responsable', 'date_prevue', 'date_realisation', 'statut', 'resultat']);
+        $this->post($storeUrl, [])->assertSessionHasErrors(['titre', 'description', 'technicien_id', 'date_prevue', 'statut', 'resultat']);
+        $this->put(route('manager.actions.update', $action), [])->assertSessionHasErrors(['titre', 'description', 'technicien_id', 'date_prevue', 'statut', 'resultat']);
         $invalidData = [
             'titre' => str_repeat('a', 256),
             'description' => ['incorrect'],
-            'responsable' => str_repeat('a', 256),
+            'technicien_id' => 'inconnu',
             'date_prevue' => 'invalide',
             'date_realisation' => 'invalide',
             'statut' => 'invalide',
@@ -287,25 +319,28 @@ class IncidentModuleTest extends TestCase
         $fields = array_keys($invalidData);
         $this->post($storeUrl, $invalidData)->assertSessionHasErrors($fields);
         $this->put(route('manager.actions.update', $action), $invalidData)->assertSessionHasErrors($fields);
-        $this->get(route('manager.actions.edit', $action))->assertOk()->assertSee('Le champ responsable ne doit pas depasser 255 caracteres.');
+        $this->get(route('manager.actions.edit', $action))->assertOk()
+            ->assertSee('name="technicien_id"', false)
+            ->assertSee($technicien->nom);
         $this->assertSame('Action originale', $action->fresh()->titre);
         $this->from($createUrl)->post($storeUrl, ['titre' => 'Action conservee', 'statut' => 'terminee'])
-            ->assertRedirect($createUrl)->assertSessionHasErrors(['description', 'responsable', 'date_prevue', 'date_realisation', 'resultat'])->assertSessionHasInput('titre', 'Action conservee');
+            ->assertRedirect($createUrl)->assertSessionHasErrors(['description', 'technicien_id', 'date_prevue', 'date_realisation', 'resultat'])->assertSessionHasInput('titre', 'Action conservee');
         $this->get($createUrl)->assertOk()
             ->assertSee('Le champ description est obligatoire.')
             ->assertSeeInOrder(['name="description"', 'text-red-400', 'Le champ description est obligatoire.'])
             ->assertSee('value="Action conservee"', false);
+        $technicien = $this->availableTechnician();
         $this->post($storeUrl, [
             'titre' => 'Action complete',
             'description' => 'Action corrective requise.',
-            'responsable' => 'Equipe reseau',
+            'technicien_id' => $technicien->id,
             'date_prevue' => '2026-10-07',
             'date_realisation' => '2026-10-07T12:00',
             'statut' => 'terminee',
             'resultat' => 'Intervention terminee.',
         ])
             ->assertRedirect(route('manager.incidents.show', $incident));
-        $this->assertDatabaseHas('action_correctives', ['titre' => 'Action complete', 'responsable' => 'Equipe reseau']);
+        $this->assertDatabaseHas('action_correctives', ['titre' => 'Action complete', 'responsable' => $technicien->nom, 'technicien_id' => $technicien->id]);
         $this->assertDatabaseCount('action_correctives', 2);
     }
 
@@ -337,6 +372,134 @@ class IncidentModuleTest extends TestCase
                 ->assertOk()->assertSee($matching->titre)->assertDontSee('Incident sud')
                 ->assertDontSee('name="status"', false)->assertDontSee('<th class="pb-3">Statut</th>', false);
         }
+
+    public function test_assigned_technician_only_sees_and_updates_own_corrective_actions(): void
+    {
+        $role = Role::firstOrCreate(['slug' => Role::TECHNICIEN], ['name' => 'Technicien']);
+        $user = User::factory()->create(['name' => 'Technicien affecte']);
+        $user->assignRole($role);
+        $technicien = Technicien::factory()->create([
+            'nom' => $user->name,
+            'user_id' => $user->id,
+        ]);
+        $incident = Incident::factory()->create(['titre' => 'Incident du technicien']);
+        $action = ActionCorrective::factory()->for($incident)->create([
+            'titre' => 'Réparer la conduite',
+            'technicien_id' => $technicien->id,
+            'responsable' => $technicien->nom,
+            'statut' => 'a_faire',
+        ]);
+
+        $otherTechnicien = Technicien::factory()->create();
+        $otherAction = ActionCorrective::factory()->create([
+            'titre' => 'Action privée autre technicien',
+            'technicien_id' => $otherTechnicien->id,
+        ]);
+        $otherActionStatus = $otherAction->statut;
+
+        $this->withSession(['user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => 'technicien',
+        ]]);
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+
+        $this->get(route('technician.incidents.index'))
+            ->assertOk()
+            ->assertSee('id="mgr-sidebar"', false)
+            ->assertSee('Incidents & actions correctives', false)
+            ->assertSee($incident->titre)
+            ->assertSee($action->titre)
+            ->assertSee('À faire')
+            ->assertSee('text-red-800')
+            ->assertDontSee($otherAction->titre);
+
+        $this->patch(route('technician.incidents.actions.status', $action), ['statut' => 'en_cours'])
+            ->assertRedirect(route('technician.incidents.index'));
+        $this->assertDatabaseHas('action_correctives', ['id' => $action->id, 'statut' => 'en_cours']);
+        $this->assertDatabaseHas('notifications', [
+            'type' => \App\Notifications\ActionCorrectiveCreated::class,
+            'notifiable_id' => $incident->user_id,
+            'data->type' => 'action_corrective_status',
+        ]);
+        $statusEmail = (new \App\Notifications\ActionCorrectiveCreated($incident, $action->fresh('technicien'), true))
+            ->toMail($incident->user);
+        $this->assertSame('Mise à jour d’une action corrective', $statusEmail->subject);
+        $this->assertStringContainsString('En cours', implode(' ', $statusEmail->introLines));
+
+        $this->patch(route('technician.incidents.actions.status', $otherAction), ['statut' => 'terminee'])
+            ->assertForbidden();
+        $this->assertDatabaseHas('action_correctives', ['id' => $otherAction->id, 'statut' => $otherActionStatus]);
+
+    }
+    public function test_persisted_corrective_status_is_visible_to_citizen_and_manager(): void
+    {
+        $owner = User::factory()->create();
+        $citizenRole = Role::firstOrCreate(['slug' => Role::CITOYEN], ['name' => 'Citoyen']);
+        $owner->assignRole($citizenRole);
+        $incident = Incident::factory()->for($owner)->create();
+        $technicien = Technicien::factory()->create();
+        ActionCorrective::factory()->for($incident)->create([
+            'titre' => 'Réparer la conduite',
+            'technicien_id' => $technicien->id,
+            'statut' => 'en_cours',
+        ]);
+
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+        $this->withSession($this->citizen($incident->user));
+        $this->get(route('incidents.show', $incident))
+            ->assertOk()
+            ->assertSee('Réparer la conduite')
+            ->assertSee('En cours')
+            ->assertSee('text-blue-800')
+            ->assertSee('font-bold');
+
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+        $this->withSession(['user' => ['name' => 'Gestionnaire', 'role' => 'manager', 'email' => 'gestionnaire@aquasecure.tn']]);
+        $this->get(route('manager.incidents.show', $incident))
+            ->assertOk()
+            ->assertSee('Réparer la conduite')
+            ->assertSee('En cours')
+            ->assertSee('text-blue-800')
+            ->assertSee('font-bold');
+    }
+
+    public function test_admin_can_filter_and_sort_incidents(): void
+    {
+        $role = Role::firstOrCreate(['slug' => Role::ADMINISTRATEUR], ['name' => 'Administrateur']);
+        $user = User::factory()->create();
+        $user->assignRole($role);
+        $matching = Incident::factory()->create([
+            'titre' => 'Fuite secteur nord',
+            'description' => 'Conduite à réparer',
+            'localisation' => 'Tunis nord',
+            'type' => 'fuite',
+            'gravite' => 'critique',
+            'date_signalement' => '2026-10-07 10:00:00',
+        ]);
+        Incident::factory()->create([
+            'titre' => 'Incident secteur sud',
+            'type' => 'pollution',
+            'gravite' => 'faible',
+            'date_signalement' => '2026-09-01 10:00:00',
+        ]);
+
+        $this->withSession(['user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => 'administrateur',
+        ]]);
+        \Illuminate\Support\Facades\Auth::forgetGuards();
+
+        $this->get('/admin/incidents?q=nord&type=fuite&gravite=critique&date_from=2026-10-01&date_to=2026-10-31&sort_by=titre&sort_dir=asc')
+            ->assertOk()
+            ->assertSee($matching->titre)
+            ->assertDontSee('Incident secteur sud')
+            ->assertSee('name="sort_by"', false)
+            ->assertDontSee('<th scope="col" class="px-5 py-3">Statut</th>', false);
+    }
 
     public function test_roles_are_enforced_on_incident_and_action_routes(): void
     {

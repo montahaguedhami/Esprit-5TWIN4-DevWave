@@ -4,10 +4,13 @@
         ? $currentUser->notifications()->latest()->limit(8)->get()->map(function ($notification) {
             $data = $notification->data ?? [];
             $actionTitle = $data['action_title'] ?? null;
+            $isStatusUpdate = ($data['type'] ?? null) === 'action_corrective_status';
 
             return [
                 'id' => (string) $notification->id,
-                'title' => $actionTitle ? 'Nouvelle action corrective : ' . $actionTitle : ($data['incident_title'] ?? 'Nouvelle notification'),
+                'title' => $isStatusUpdate
+                    ? 'Statut d’action mis à jour : ' . ($actionTitle ?? 'Action corrective')
+                    : ($actionTitle ? 'Nouvelle action corrective : ' . $actionTitle : ($data['incident_title'] ?? 'Nouvelle notification')),
                 'message' => $data['message'] ?? 'Une mise à jour est disponible.',
                 'read' => $notification->read_at !== null,
                 'time' => $notification->created_at?->diffForHumans() ?? 'Récemment',

@@ -15,5 +15,9 @@
         @include('front.incidents.form')
         <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-semibold shadow-sm transition-colors"><i data-lucide="send" class="w-4 h-4"></i>Envoyer</button>
     </form>
+
+    <div class="mt-6">
+        @include('front.incidents.partials.ai-advice', ['endpoint' => route('incidents.ai.preview'), 'fromForm' => true])
+    </div>
 </div>
 @endsection

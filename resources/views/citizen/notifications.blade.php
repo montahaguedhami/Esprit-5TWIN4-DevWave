@@ -150,6 +150,11 @@
                                 <p class="mt-2 text-xs text-cyan-100/50">
                                     Incident : {{ $incidentData['incident_title'] ?? 'Incident' }}
                                 </p>
+                                @if(! empty($incidentData['action_status']))
+                                    <div class="mt-2 flex items-center gap-2 text-xs text-cyan-100/60">
+                                        <span>Statut :</span><x-incident-action-status :status="$incidentData['action_status']" />
+                                    </div>
+                                @endif
                                 @if(! empty($incidentData['action_description']))
                                     <p class="mt-2 whitespace-pre-line text-sm text-cyan-100/80">{{ $incidentData['action_description'] }}</p>
                                 @endif

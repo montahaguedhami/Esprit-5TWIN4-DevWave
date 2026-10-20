@@ -6,6 +6,9 @@
     @if(session('success'))
         <div role="status" class="mt-4 p-3 bg-green-600 rounded">{{ session('success') }}</div>
     @endif
+    @if(session('warning'))
+        <div role="status" class="mt-4 p-3 bg-amber-600 text-amber-950 font-medium rounded">{{ session('warning') }}</div>
+    @endif
     <section class="py-6 border-b border-white/15">
         <h1 class="text-2xl font-bold wrap-break-word">{{ $incident->titre }}</h1>
         <p class="mt-2 text-slate-300">{{ $incident->type }} | {{ $incident->gravite }}</p>
@@ -86,6 +89,8 @@
         </script>
     </section>
 
+    @include('manager.incidents.partials.ai-assistant')
+
     <section class="py-6 border-b border-white/15">
         <h2 class="text-xl font-semibold mb-4">Actions correctives</h2>
         <a href="{{ route('manager.actions.index', $incident) }}" class="inline-flex items-center gap-2 text-cyan-300 mb-4"><i data-lucide="list" class="w-4 h-4"></i>Liste des actions</a>
@@ -94,7 +99,10 @@
                 <article class="p-4 bg-white/5 rounded wrap-break-word">
                     <h3 class="font-semibold">{{ $action->titre }}</h3>
                     <p class="mt-2 whitespace-pre-line">{{ $action->description }}</p>
-                    <p class="mt-2 text-sm text-slate-300">Responsable : {{ $action->responsable }} | Statut : {{ $action->statut }}</p>
+                    <p class="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                        <span>Technicien : {{ $action->technicien?->nom ?? $action->responsable ?? '-' }}</span>
+                        <span>Statut :</span><x-incident-action-status :status="$action->statut" />
+                    </p>
                     <p class="text-sm text-slate-300">Pr&eacute;vue : {{ $action->date_prevue?->format('d/m/Y') ?? '-' }} | R&eacute;alis&eacute;e : {{ $action->date_realisation?->format('d/m/Y H:i') ?? '-' }}</p>
                     <p class="mt-2 whitespace-pre-line">{{ $action->resultat }}</p>
                     <div class="flex flex-wrap gap-4 mt-4">

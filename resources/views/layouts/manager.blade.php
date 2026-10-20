@@ -68,6 +68,10 @@
 
             <div class="sidebar-section">
                 <p class="sidebar-section-label">Interventions</p>
+                <a href="{{ route('technician.incidents.index') }}"
+                   class="sidebar-link {{ request()->routeIs('technician.incidents.*') ? 'is-active' : '' }}">
+                    <i data-lucide="alert-circle"></i><span>Incidents & actions correctives</span>
+                </a>
                 <a href="{{ route('technician.interventions.index') }}"
                    class="sidebar-link {{ request()->routeIs('technician.interventions.*') ? 'is-active' : '' }}">
                     <i data-lucide="wrench"></i><span>Mes interventions</span>

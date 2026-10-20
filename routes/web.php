@@ -216,9 +216,11 @@ Route::middleware('role:citoyen')->group(function () {
 
                 return [
                     'id' => (string) $notification->id,
-                    'title' => isset($data['action_title'])
-                        ? 'Nouvelle action corrective : ' . $data['action_title']
-                        : ($data['incident_title'] ?? 'Nouvelle notification'),
+                    'title' => ($data['type'] ?? null) === 'action_corrective_status'
+                        ? 'Statut d’action mis à jour : ' . ($data['action_title'] ?? 'Action corrective')
+                        : (isset($data['action_title'])
+                            ? 'Nouvelle action corrective : ' . $data['action_title']
+                            : ($data['incident_title'] ?? 'Nouvelle notification')),
                     'message' => $data['message'] ?? 'Une mise à jour est disponible.',
                     'read' => $notification->read_at !== null,
                     'time' => $notification->created_at?->diffForHumans() ?? 'Récemment',
@@ -234,6 +236,8 @@ Route::middleware('role:citoyen')->group(function () {
 // ── Technicien ────────────────────────────────────────────────────────────────
 Route::middleware('role:technicien')->group(function () {
     Route::get('/technician/dashboard',              fn () => view('technician.dashboard'))->name('technician.dashboard');
+    Route::get('/technician/incidents/actions', [\App\Http\Controllers\Technician\ActionCorrectiveController::class, 'index'])->name('technician.incidents.index');
+    Route::patch('/technician/incidents/actions/{action}/status', [\App\Http\Controllers\Technician\ActionCorrectiveController::class, 'updateStatus'])->name('technician.incidents.actions.status');
     Route::get('/technician/interventions', [\App\Http\Controllers\Technician\InterventionController::class, 'index'])->name('technician.interventions.index');
     Route::get('/technician/interventions/{id}', [\App\Http\Controllers\Technician\InterventionController::class, 'show'])->name('technician.interventions.show');
     Route::post('/technician/interventions/{id}/start', [\App\Http\Controllers\Technician\InterventionController::class, 'start'])->name('technician.interventions.start');
@@ -252,6 +256,10 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(
     Route::delete('/incidents/{incident}',    [IncidentController::class, 'destroy'])->name('incidents.destroy');
     Route::get('/incidents/{incident}/attachment', [IncidentController::class, 'attachment'])->name('incidents.attachment');
     Route::get('/incidents/{incident}',       [IncidentController::class, 'show'])->name('incidents.show');
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::post('/incidents/ai-advice/preview',  [\App\Http\Controllers\IncidentAiController::class, 'citizenPreview'])->name('incidents.ai.preview');
+        Route::post('/incidents/{incident}/ai-advice', [\App\Http\Controllers\IncidentAiController::class, 'citizenAdvice'])->name('incidents.ai.advice');
+    });
 });
 
 Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
@@ -265,6 +273,8 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(
     Route::get('/manager/actions/{action}',                   [ActionCorrectiveController::class, 'show'])->name('manager.actions.show');
     Route::put('/manager/actions/{action}',                   [ActionCorrectiveController::class, 'update'])->name('manager.actions.update');
     Route::delete('/manager/actions/{action}',                [ActionCorrectiveController::class, 'destroy'])->name('manager.actions.destroy');
+    Route::post('/manager/incidents/{incident}/ai-analysis',  [\App\Http\Controllers\IncidentAiController::class, 'managerAnalysis'])
+        ->middleware('throttle:10,1')->name('manager.incidents.ai.analysis');
 });
 
 // ── Manager ───────────────────────────────────────────────────────────────────

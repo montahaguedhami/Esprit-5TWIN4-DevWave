@@ -2,7 +2,7 @@
     $fieldValues = collect([
         'titre' => $action->titre ?? '',
         'description' => $action->description ?? '',
-        'responsable' => $action->responsable ?? '',
+        'technicien_id' => $action->technicien_id ?? '',
         'date_prevue' => isset($action) ? $action->date_prevue?->format('Y-m-d') : '',
         'date_realisation' => isset($action) ? $action->date_realisation?->format('Y-m-d\TH:i') : '',
         'resultat' => $action->resultat ?? '',
@@ -22,9 +22,19 @@
     @error('description') <p data-laravel-error-for="description" class="mt-1 text-xs font-normal text-red-400">{{ $message }}</p> @enderror
 </div>
 <div>
-    <label for="responsable" class="block text-sm">Responsable</label>
-    <input id="responsable" type="text" name="responsable" data-validation-rules="required|max:255" value="{{ $fieldValues['responsable'] }}" class="mt-1 w-full rounded p-2 bg-black/20">
-    @error('responsable') <p data-laravel-error-for="responsable" class="mt-1 text-xs font-normal text-red-400">{{ $message }}</p> @enderror
+    <label for="technicien_id" class="block text-sm">Technicien responsable</label>
+    <select id="technicien_id" name="technicien_id" data-validation-rules="required|exists" class="mt-1 w-full rounded p-2 bg-slate-900">
+        <option value="">Choisir un technicien disponible</option>
+        @foreach($techniciens ?? collect() as $technicien)
+            <option value="{{ $technicien->id }}" @selected((string) old('technicien_id', $fieldValues['technicien_id']) === (string) $technicien->id)>
+                {{ $technicien->nom }} · {{ $technicien->specialite }}
+            </option>
+        @endforeach
+    </select>
+    @if(($techniciens ?? collect())->isEmpty())
+        <p class="mt-1 text-xs text-amber-300">Aucun technicien disponible pour le moment.</p>
+    @endif
+    @error('technicien_id') <p data-laravel-error-for="technicien_id" class="mt-1 text-xs font-normal text-red-400">{{ $message }}</p> @enderror
 </div>
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
@@ -33,8 +43,8 @@
         @error('date_prevue') <p data-laravel-error-for="date_prevue" class="mt-1 text-xs font-normal text-red-400">{{ $message }}</p> @enderror
     </div>
     <div>
-        <label for="date_realisation" class="block text-sm">Date de r&eacute;alisation</label>
-        <input id="date_realisation" type="datetime-local" name="date_realisation" data-validation-rules="required|date|after-or-equal:date_prevue" value="{{ $fieldValues['date_realisation'] }}" class="mt-1 w-full min-w-0 rounded p-2 bg-black/20">
+        <label for="date_realisation" class="block text-sm">Date de r&eacute;alisation (si terminée)</label>
+        <input id="date_realisation" type="datetime-local" name="date_realisation" data-validation-rules="date|after-or-equal:date_prevue|required-if-terminee:statut" value="{{ $fieldValues['date_realisation'] }}" class="mt-1 w-full min-w-0 rounded p-2 bg-black/20">
         @error('date_realisation') <p data-laravel-error-for="date_realisation" class="mt-1 text-xs font-normal text-red-400">{{ $message }}</p> @enderror
     </div>
 </div>

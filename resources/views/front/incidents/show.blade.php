@@ -67,13 +67,20 @@
         @endif
     </div>
 
+    @if(! in_array($incident->statut, ['resolu', 'cloture'], true))
+        @include('front.incidents.partials.ai-advice', ['endpoint' => route('incidents.ai.advice', $incident)])
+    @endif
+
     <div class="mt-6">
         <h2 class="text-lg font-semibold text-slate-900">Actions correctives</h2>
         <div class="space-y-3 mt-3">
             @foreach($incident->actions as $action)
                 <div class="p-4 sm:p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
                     <div class="font-semibold text-slate-900">{{ $action->titre }}</div>
-                    <div class="text-sm text-slate-600 mt-1">Responsable : {{ $action->responsable }} · Statut : {{ $action->statut }}</div>
+                    <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                        <span>Technicien : {{ $action->technicien?->nom ?? $action->responsable ?? '-' }}</span>
+                        <span>Statut :</span><x-incident-action-status :status="$action->statut" />
+                    </div>
                     <div class="text-xs text-slate-500 mt-2">Prévue : {{ optional($action->date_prevue)->format('Y-m-d') }} · Réalisée : {{ optional($action->date_realisation)->format('Y-m-d H:i') }}</div>
                     <p class="mt-2 text-sm text-slate-700">{{ $action->resultat }}</p>
                 </div>

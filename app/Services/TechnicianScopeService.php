@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Models\Infrastructure;
 use App\Models\Intervention;
+use App\Models\Role;
 use App\Models\Technicien;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class TechnicianScopeService
 {
@@ -17,6 +20,15 @@ class TechnicianScopeService
         $user = session('user');
         if (! $user) {
             return null;
+        }
+
+        $userId = isset($user['id']) ? (int) $user['id'] : null;
+
+        if ($userId) {
+            $linkedTechnician = Technicien::where('user_id', $userId)->first();
+            if ($linkedTechnician) {
+                return $linkedTechnician;
+            }
         }
 
         // 1. Si l'ID du technicien est explicitement en session
@@ -31,23 +43,78 @@ class TechnicianScopeService
         $name = $user['name'] ?? null;
         if ($name) {
             $cleanName = trim(explode('(', $name)[0]);
-            $tech = Technicien::where('nom', $cleanName)
-                ->orWhere('nom', 'like', "%{$cleanName}%")
+            $tech = Technicien::where(function (Builder $query) use ($cleanName): void {
+                $query->where('nom', $cleanName)
+                    ->orWhere('nom', 'like', "%{$cleanName}%");
+            })
+                ->when($userId, fn (Builder $query) => $query->where(fn (Builder $q) => $q->whereNull('user_id')->orWhere('user_id', $userId)))
                 ->first();
             if ($tech) {
+                if ($userId && ! $tech->user_id) {
+                    $tech->forceFill(['user_id' => $userId])->save();
+                }
+
                 return $tech;
             }
         }
 
         // 3. Fallback automatique pour environnement démo ou tests
+        $identity = $userId ? ['user_id' => $userId] : ['nom' => $cleanName ?? 'Amira Ben Ali'];
+
         return Technicien::firstOrCreate(
-            ['nom' => $cleanName ?? 'Amira Ben Ali'],
+            $identity,
             [
+                'nom' => $cleanName ?? 'Amira Ben Ali',
                 'specialite' => 'Canalisations',
                 'telephone' => '+216 22 123 456',
                 'disponibilite' => 'Disponible',
             ]
         );
+    }
+
+    /**
+     * Retourne uniquement les fiches disponibles rattachées à un compte technicien actif.
+     */
+    public static function availableTechniciansForAssignment(): Collection
+    {
+        $technicianUsers = User::query()
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $query) => $query->where('slug', Role::TECHNICIEN))
+            ->orderBy('name')
+            ->get();
+
+        foreach ($technicianUsers as $user) {
+            $technician = Technicien::where('user_id', $user->id)->first();
+            if ($technician) {
+                continue;
+            }
+
+            $technician = Technicien::where('nom', $user->name)->whereNull('user_id')->first();
+            if ($technician) {
+                $technician->user()->associate($user);
+                $technician->save();
+                continue;
+            }
+
+            Technicien::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'nom' => $user->name,
+                    'specialite' => 'Canalisations',
+                    'telephone' => 'Non renseigné',
+                    'disponibilite' => 'Disponible',
+                ]
+            );
+        }
+
+        return Technicien::query()
+            ->with('user')
+            ->where('disponibilite', 'Disponible')
+            ->whereHas('user', fn (Builder $query) => $query
+                ->where('is_active', true)
+                ->whereHas('roles', fn (Builder $roles) => $roles->where('slug', Role::TECHNICIEN)))
+            ->orderBy('nom')
+            ->get();
     }
 
     /**

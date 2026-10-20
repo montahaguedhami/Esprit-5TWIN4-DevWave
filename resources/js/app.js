@@ -33,7 +33,12 @@ function fieldMatchesLaravelRules(field, form) {
 
 		if (name === 'after-or-equal') {
 			const otherField = form.elements.namedItem(parameter);
-			return value !== '' && otherField && Date.parse(value) >= Date.parse(otherField.value);
+			return value === '' || (otherField && Date.parse(value) >= Date.parse(otherField.value));
+		}
+
+		if (name === 'required-if-terminee') {
+			const otherField = form.elements.namedItem(parameter);
+			return !otherField || otherField.value !== 'terminee' || value !== '';
 		}
 
 		if (name === 'in') {

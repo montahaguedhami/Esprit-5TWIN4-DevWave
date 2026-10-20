@@ -9,6 +9,7 @@ use App\Models\Intervention;
 use App\Models\MesureQualite;
 use App\Models\Projet;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ConsultationController extends Controller
@@ -48,10 +49,44 @@ class ConsultationController extends Controller
         return view('admin.consultation.qualite', compact('mesures', 'totalMesures', 'totalPoints'));
     }
 
-    public function incidents(): View
+    public function incidents(Request $request): View
     {
-        $incidents = Incident::with(['zone', 'infrastructure', 'user'])
-            ->latest('date_signalement')->paginate(25);
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:255'],
+            'type' => ['nullable', Rule::in(['fuite', 'pollution', 'panne', 'rupture', 'contamination'])],
+            'gravite' => ['nullable', Rule::in(['faible', 'moyenne', 'elevee', 'critique'])],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'sort_by' => ['nullable', Rule::in(['date_signalement', 'titre', 'type', 'gravite'])],
+            'sort_dir' => ['nullable', Rule::in(['asc', 'desc'])],
+        ]);
+
+        $query = Incident::with(['zone', 'infrastructure', 'user']);
+        $search = trim((string) ($filters['q'] ?? ''));
+        if ($search !== '') {
+            $query->where(function ($builder) use ($search): void {
+                $builder->where('titre', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('localisation', 'like', "%{$search}%");
+            });
+        }
+
+        foreach (['type', 'gravite'] as $filter) {
+            if (! empty($filters[$filter])) {
+                $query->where($filter, $filters[$filter]);
+            }
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('date_signalement', '>=', $filters['date_from']);
+        }
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('date_signalement', '<=', $filters['date_to']);
+        }
+
+        $sortBy = $filters['sort_by'] ?? 'date_signalement';
+        $sortDir = $filters['sort_dir'] ?? 'desc';
+        $incidents = $query->orderBy($sortBy, $sortDir)->paginate(25)->withQueryString();
 
         return view('admin.consultation.incidents', compact('incidents'));
     }

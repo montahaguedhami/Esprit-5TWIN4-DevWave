@@ -78,8 +78,8 @@
                 @forelse($actions as $action)
                     <tr class="border-t border-white/10">
                         <td class="py-3 pr-4 wrap-break-word">{{ $action->titre }}</td>
-                        <td class="py-3 pr-4">{{ $action->responsable ?? '-' }}</td>
-                        <td class="py-3 pr-4">{{ $action->statut }}</td>
+                        <td class="py-3 pr-4">{{ $action->technicien?->nom ?? $action->responsable ?? '-' }}</td>
+                        <td class="py-3 pr-4"><x-incident-action-status :status="$action->statut" /></td>
                         <td class="py-3 pr-4">{{ $action->date_prevue?->format('d/m/Y') ?? '-' }}</td>
                         <td class="py-3">
                             <div class="flex items-center gap-4">
