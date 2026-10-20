@@ -32,7 +32,7 @@ return [
     'groq' => [
         'api_key' => env('GROK_API_KEY'),
         'model'   => env('GROQ_MODEL', 'qwen/qwen3.8-27b'),
-        'timeout' => (int) env('GROQ_TIMEOUT', 30),
+        'timeout' => (int) env('GROQ_TIMEOUT', 15),
         'base_url'=> 'https://api.groq.com/openai/v1',
     ],
 

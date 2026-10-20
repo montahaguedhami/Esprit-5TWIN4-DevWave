@@ -5,13 +5,10 @@ namespace App\Services\Chatbot;
 /**
  * Classifier de questions du chatbot — 0 token LLM consommé.
  *
- * Stratégies (du moins coûteux au plus coûteux) :
- *   TOOL_DIRECT  → Outil identifié sans ambiguïté, exécution PHP directe (0 token LLM)
- *   RAG_DIRECT   → Documentation : recherche full-text MySQL, réponse PHP (0 token LLM)
- *   LLM          → Question complexe ou contextuelle → appel Groq
- *
- * RÈGLE : Les patterns TOOL_DIRECT sont vérifiés avant RAG_DIRECT.
- * Un pattern RAG ne doit pas être un sous-ensemble d'un pattern TOOL.
+ * Stratégies :
+ *   TOOL_DIRECT  → Outil identifié, exécution PHP directe (0 token LLM)
+ *   RAG_DIRECT   → Documentation MySQL full-text (0 token LLM)
+ *   LLM          → Question complexe/contextuelle → appel Groq
  */
 class QuestionClassifier
 {
@@ -24,8 +21,7 @@ class QuestionClassifier
         $lower = mb_strtolower(trim($message));
 
         // ══════════════════════════════════════════════════════════════════
-        // NIVEAU 1 — TOOL_DIRECT
-        // Patterns stricts : ne pas mettre de mots-clés ambigus avec RAG
+        // NIVEAU 1 — TOOL_DIRECT (citoyen + manager)
         // ══════════════════════════════════════════════════════════════════
 
         // get_my_funding_requests
@@ -37,7 +33,7 @@ class QuestionClassifier
             return $this->toolResult('get_my_funding_requests', [], 0.95);
         }
 
-        // get_my_payments (uniquement données personnelles, pas l'explication)
+        // get_my_payments
         if ($this->matches($lower, [
             'mes paiements', 'mon paiement simulé', 'historique paiement',
             'mes transactions', 'voir mes paiements', 'liste mes paiements',
@@ -62,7 +58,7 @@ class QuestionClassifier
             return $this->toolResult('get_my_project_contributions', [], 0.95);
         }
 
-        // get_funding_rules — STRICT : montant minimum, règles, conditions
+        // get_funding_rules
         if ($this->matches($lower, [
             'montant minimum', 'montant minimal', 'montant minimum de contribution',
             'règles du financement', 'règles financement',
@@ -72,37 +68,55 @@ class QuestionClassifier
             return $this->toolResult('get_funding_rules', [], 0.90);
         }
 
-        // search_projects avec filtres précis
-        if ($this->matches($lower, ['projets en cours', 'en cours de réalisation', 'montre-moi les projets en cours'])) {
+        // search_projects — filtres statut
+        if ($this->matches($lower, [
+            'projets en cours', 'en cours de réalisation',
+            'montre-moi les projets en cours',
+        ])) {
             return $this->toolResult('search_projects', ['statut' => 'en_cours', 'limit' => 20], 0.92);
         }
 
-        if ($this->matches($lower, ['projets planifiés', 'projets en planification', 'projets à venir', 'projets planifié'])) {
+        if ($this->matches($lower, [
+            'projets planifiés', 'projets en planification',
+            'projets à venir', 'projets planifié',
+        ])) {
             return $this->toolResult('search_projects', ['statut' => 'planifie', 'limit' => 20], 0.92);
         }
 
-        if ($this->matches($lower, ['projets terminés', 'projets finis', 'projets complétés', 'projets achevés'])) {
+        if ($this->matches($lower, [
+            'projets terminés', 'projets finis',
+            'projets complétés', 'projets achevés',
+        ])) {
             return $this->toolResult('search_projects', ['statut' => 'termine', 'limit' => 20], 0.90);
         }
 
-        // search_projects — projets finançables/éligibles
+        // search_projects — éligibles au financement
         if ($this->matches($lower, [
             'puis-je financer', 'quels projets financer', 'projets à financer',
             'projets disponibles pour financement', 'projets éligibles au financement',
-            'projets ouverts au financement',
+            'projets ouverts au financement', 'projets éligibles',
+            'quels projets sont éligibles', 'projets qui peuvent être financés',
         ])) {
             return $this->toolResult('search_projects', ['eligible_only' => true, 'limit' => 20], 0.92);
         }
 
-        // search_projects — liste générale (pas de filtre complexe)
+        // search_projects — liste générale
         if ($this->matches($lower, [
             'tous les projets', 'liste des projets', 'liste projets',
             'affiche les projets', 'montre les projets', 'voir tous les projets',
+            'les projets', 'voir les projets', 'afficher les projets',
+            'projets disponibles', 'projets existants', 'projets du système',
+            'donne moi liste des projets', 'donne-moi la liste des projets',
         ])) {
             return $this->toolResult('search_projects', ['limit' => 20], 0.88);
         }
 
-        // ── Outils MANAGER uniquement ──────────────────────────────────────
+        // Mot seul "projets"
+        if (in_array(trim($lower), ['projets', 'projet'])) {
+            return $this->toolResult('search_projects', ['limit' => 20], 0.85);
+        }
+
+        // ── MANAGER uniquement ─────────────────────────────────────────────
         if ($role === 'manager') {
 
             // get_funding_dashboard_summary
@@ -111,6 +125,10 @@ class QuestionClassifier
                 'total demandes', 'vue d\'ensemble', 'dashboard', 'bilan global',
                 'nombre de demandes', 'combien de demandes',
                 'résume la situation', 'situation des financements',
+                'résumez la situation', 'résumez les financements',
+                'résumé global', 'situation globale', 'bilan financements',
+                'résumez la situation globale', 'résumer la situation',
+                'résumez la situation globale des financements',
             ])) {
                 return $this->toolResult('get_funding_dashboard_summary', [], 0.93);
             }
@@ -125,13 +143,14 @@ class QuestionClassifier
                 return $this->toolResult('get_pending_funding_requests', [], 0.93);
             }
 
-            // get_manager_project_budget_report — STRICT
+            // get_manager_project_budget_report
             if ($this->matches($lower, [
                 'rapport budgétaire', 'rapport budget',
                 'budget par projet', 'taux de financement par projet',
                 'rapport financier', 'synthèse budgétaire',
                 'consulte les budgets', 'budgets des projets',
                 'nécessitent encore des financements', 'projets nécessitent',
+                'financements urgents', 'projets urgents',
             ])) {
                 return $this->toolResult('get_manager_project_budget_report', [], 0.93);
             }
@@ -139,38 +158,37 @@ class QuestionClassifier
 
         // ══════════════════════════════════════════════════════════════════
         // NIVEAU 2 — RAG_DIRECT
-        // Questions procédurales, explicatives, "comment", "qu'est-ce que"
         // ══════════════════════════════════════════════════════════════════
         if ($this->matches($lower, [
-            // Comment faire / Comment financer un projet
+            // Comment faire
             'comment financer', 'comment faire une demande', 'comment contribuer',
             'comment soumettre', 'comment créer une demande', 'comment un projet',
             'procédure financement', 'étapes financement', 'démarche financement',
             // Comment ça fonctionne
-            'comment fonctionne', 'comment ça marche', 'comment ça fonctionne',
+            'comment fonctionne', 'comment ça marche',
             // Guides
             'guide', 'tutoriel', 'aide', 'documentation',
-            // Paiements simulés (explication)
+            // Paiements simulés
             'paiement simulé', 'paiements simulés', 'c\'est quoi le paiement',
             'qu\'est-ce qu\'un paiement simulé', 'simulation paiement',
             'comment fonctionne le paiement', 'comment fonctionne la simulation',
             // Reçus
             'comment obtenir un reçu', 'comment imprimer', 'comment télécharger',
-            // Autres actions
+            // Autres procédures
             'annuler une demande', 'modifier une demande',
-            // Présentation générale
+            // Présentation
             'qu\'est-ce que aquasecure', 'présentation', 'à quoi sert',
-            // Manager : règles et situation
+            // Règles générales
             'quelles sont les règles', 'règles de décision', 'explique les règles',
-            'conditions de financement', 'résume la situation', 'situation des financements',
-            // Montant minimum de contribution (formulation longue)
-            'montant minimum de contribution', 'quel est le montant',
+            'conditions de financement', 'procédures manager',
+            // Montant (formulation longue)
+            'quel est le montant',
         ])) {
             return ['strategy' => self::RAG_DIRECT, 'confidence' => 0.88];
         }
 
         // ══════════════════════════════════════════════════════════════════
-        // NIVEAU 3 — LLM (par défaut)
+        // NIVEAU 3 — LLM
         // ══════════════════════════════════════════════════════════════════
         return ['strategy' => self::LLM, 'confidence' => 1.0];
     }

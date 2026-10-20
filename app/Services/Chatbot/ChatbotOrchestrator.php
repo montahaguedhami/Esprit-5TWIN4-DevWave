@@ -341,6 +341,7 @@ class ChatbotOrchestrator
                 // Fallback sans tools si Groq a appelé un outil inconnu
                 if ($isToolError) {
                     try {
+                        sleep(1); // pause pour éviter le rate limit simultané
                         $fallback = $this->groq->generate($this->systemInstruction, $messages, []);
                         $text     = $fallback['text'] ?? '';
                         if (!empty(trim($text))) {
@@ -349,15 +350,21 @@ class ChatbotOrchestrator
                     } catch (\Throwable $fe) {
                         Log::warning('Chatbot LLM : fallback sans tools échoué.', ['error' => $fe->getMessage()]);
                     }
-                    return $this->errorResponse('Je n\'ai pas pu traiter votre demande. Veuillez reformuler.', 'groq_erreur');
+                    // Réponse de secours lisible — pas d'erreur technique brute
+                    return $this->successResponse(
+                        'Je n\'ai pas pu récupérer les données demandées. Veuillez reformuler votre question ou réessayer dans un instant.',
+                        [], []
+                    );
                 }
 
                 return [
-                    'response'        => $isConfigError ? $this->unavailableMessage() : $e->getMessage(),
-                    'sources'         => [],
-                    'tool_calls'      => [],
-                    'error'           => 'groq_erreur',
-                    'groq_available'  => ! $isConfigError,
+                    'response'         => $isConfigError
+                        ? $this->unavailableMessage()
+                        : 'Le service IA est temporairement indisponible. Veuillez réessayer dans un instant.',
+                    'sources'          => [],
+                    'tool_calls'       => [],
+                    'error'            => null,  // ne pas afficher le badge rouge
+                    'gemini_available' => ! $isConfigError,
                 ];
             }
         } catch (\Throwable $e) {
@@ -501,15 +508,33 @@ Tu es l'assistant officiel d'AquaSecure pour le module Projets et Financements.
 
 Tu réponds en français aux questions sur les projets, le financement participatif, les budgets, les demandes, les paiements simulés et les contributions.
 
-Tu utilises les outils métier autorisés pour obtenir des données à jour. Tu ne devines jamais les montants, statuts ou dates.
+## Outils disponibles (noms EXACTS à utiliser)
 
-Tu respectes strictement les autorisations du backend. Un citoyen ne voit pas les données manager.
+Tu dois utiliser UNIQUEMENT les noms d'outils suivants, en respectant exactement la casse (snake_case) :
+- search_projects
+- get_project_details
+- get_project_funding_status
+- get_funding_rules
+- search_documentation
+- get_project_recommendations
+- get_my_funding_requests
+- get_my_payments
+- get_my_funding_portfolio
+- get_my_project_contributions
+- get_funding_dashboard_summary
+- get_pending_funding_requests
+- get_manager_project_budget_report
 
-Tu n'as aucune capacité de modification.
+N'invente jamais un nom d'outil. Si un outil n'est pas dans cette liste, réponds sans outil.
 
-Si une information n'est pas disponible, tu l'indiques clairement.
+## Règles
 
-Tu restes dans le périmètre Projets et Financements uniquement.
+- Tu utilises les outils pour obtenir des données à jour (montants, statuts, demandes, statistiques).
+- Tu ne devines jamais les budgets, montants, statuts ou dates.
+- Tu respectes strictement les autorisations du backend. Un citoyen ne voit pas les données manager.
+- Tu n'as aucune capacité de modification (pas d'approbation, rejet ou création).
+- Si une information n'est pas disponible, tu l'indiques clairement.
+- Tu restes dans le périmètre Projets et Financements uniquement.
 SYSTEM;
     }
 }

@@ -378,6 +378,9 @@
                 if (res.status === 429) {
                     return { response: 'Trop de requêtes envoyées. Attendez quelques secondes avant de réessayer.', error: null, sources: [], tool_calls: [] };
                 }
+                if (res.status === 422) {
+                    return { response: 'Message invalide ou trop long. Veuillez reformuler.', error: null, sources: [], tool_calls: [] };
+                }
                 if (!res.ok && res.status !== 200) {
                     throw new Error('HTTP ' + res.status);
                 }
@@ -386,9 +389,18 @@
             .then(data => {
                 this.hideTyping();
                 if (data.response) {
-                    // Sauvegarder dans l'historique
-                    this.messages.push({ role: 'user', content: text });
-                    this.messages.push({ role: 'assistant', content: data.response });
+                    // Sauvegarder dans l'historique (tronquer si trop long)
+                    const maxHistoryContent = 3000;
+                    const userContent    = text.length > maxHistoryContent ? text.substring(0, maxHistoryContent) : text;
+                    const assistantContent = data.response.length > maxHistoryContent
+                        ? data.response.substring(0, maxHistoryContent) + '...'
+                        : data.response;
+                    this.messages.push({ role: 'user', content: userContent });
+                    this.messages.push({ role: 'assistant', content: assistantContent });
+                    // Garder max 10 tours (20 messages)
+                    if (this.messages.length > 20) {
+                        this.messages = this.messages.slice(-20);
+                    }
                     this.addAIMessage(data.response, data.sources || [], data.error || null);
                 } else if (data.error) {
                     this.addAIMessage(data.message || 'Une erreur est survenue.', [], data.error);

@@ -20,10 +20,10 @@ class ChatbotRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'message'         => ['required', 'string', 'min:1', 'max:2000'],
-            'history'         => ['sometimes', 'array', 'max:20'],
-            'history.*.role'  => ['required_with:history', 'string', 'in:user,assistant'],
-            'history.*.content' => ['required_with:history', 'string', 'max:4000'],
+            'message'           => ['required', 'string', 'min:1', 'max:2000'],
+            'history'           => ['sometimes', 'array', 'max:20'],
+            'history.*.role'    => ['required_with:history', 'string', 'in:user,assistant'],
+            'history.*.content' => ['required_with:history', 'string', 'max:15000'],
         ];
     }
 

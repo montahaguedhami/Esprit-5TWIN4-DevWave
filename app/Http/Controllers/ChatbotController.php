@@ -45,11 +45,11 @@ class ChatbotController extends Controller
             ]);
 
             return response()->json([
-                'response' => $result['response'],
-                'sources' => $result['sources'],
-                'tool_calls' => $result['tool_calls'],
-                'error' => $result['error'],
-                'groq_available' => $result['groq_available'],
+                'response'       => $result['response'],
+                'sources'        => $result['sources']      ?? [],
+                'tool_calls'     => $result['tool_calls']   ?? [],
+                'error'          => $result['error']        ?? null,
+                'gemini_available' => $result['gemini_available'] ?? true,
             ], 200);
         } catch (\Throwable $e) {
             Log::error('ChatbotController : erreur inattendue.', [
