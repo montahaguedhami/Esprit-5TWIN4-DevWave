@@ -3,27 +3,13 @@
 namespace App\Services\ExternalData;
 
 use App\Models\PointMesure;
+use App\Models\Infrastructure;
+use App\Models\Zone;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Manual CSV/XLSX import provider.
- *
- * Usage:
- *   $provider = app(CsvImportProvider::class);
- *   $provider->setFilePath('/path/to/anpe_export.csv');
- *   $observations = $provider->fetchObservations();
- *
- * Expected CSV columns (case-insensitive, order flexible):
- *   code, nom, zone, latitude, longitude, date_mesure,
- *   ph, turbidite, chlore_residuel, plomb, nitrates
- *
- * Optional: gouvernorat, region, type_station, source_name
- *
- * XLSX is supported if the phpoffice/phpspreadsheet package is available.
- * If it is not installed, the file is attempted as CSV.
- *
- * All imported rows are tagged source_type='real' because manual imports from
- * official agencies (ANPE, SONEDE, ONAS) are field observations.
  */
 class CsvImportProvider implements ExternalDataProviderInterface
 {
@@ -62,35 +48,64 @@ class CsvImportProvider implements ExternalDataProviderInterface
 
         return match ($ext) {
             'xlsx', 'xls' => $this->parseXlsx($this->filePath),
-            default        => $this->parseCsvFile($this->filePath),
+            default       => $this->parseCsvFile($this->filePath),
         };
     }
 
     public function resolveOrCreatePoint(NormalisedObservation $obs): ?PointMesure
     {
-        $point = PointMesure::where('code', $obs->stationCode)->first();
+        $pointId = $obs->rawMeta['point_mesure_id'] ?? null;
+        $point = null;
+
+        // 1. Chercher par ID de point si fourni
+        if ($pointId && is_numeric($pointId)) {
+            $point = PointMesure::find((int) $pointId);
+        }
+
+        // 2. Chercher par code exact
+        if (!$point && !empty($obs->stationCode)) {
+            $point = PointMesure::where('code', $obs->stationCode)->first();
+        }
+
+        // 3. Chercher par identifiant numérique si le code est un nombre
+        if (!$point && is_numeric($obs->stationCode)) {
+            $point = PointMesure::find((int) $obs->stationCode);
+        }
+
+        // 4. Chercher par nom exact
+        if (!$point && !empty($obs->stationName)) {
+            $point = PointMesure::where('nom', $obs->stationName)->first();
+        }
+
         if ($point) {
             return $point;
         }
 
-        $latitude = ($obs->latitude >= -90 && $obs->latitude <= 90) ? $obs->latitude : null;
-        $longitude = ($obs->longitude >= -180 && $obs->longitude <= 180) ? $obs->longitude : null;
+        $infrastructure = $this->resolveInfrastructure($obs);
+        $zone = $infrastructure?->zone ?? $this->resolveZone($obs);
 
-        if ($obs->latitude == 0.0 && $obs->longitude == 0.0) {
-            $latitude = null;
-            $longitude = null;
-        }
+        $code = !empty($obs->stationCode) ? $obs->stationCode : ('PT-' . ($pointId ?? random_int(100, 999)));
+        $name = !empty($obs->stationName) ? $obs->stationName : $code;
 
-        return PointMesure::create([
-            'code'        => $obs->stationCode,
-            'nom'         => $obs->stationName,
-            'zone'        => $obs->rawMeta['zone'] ?? $obs->rawMeta['gouvernorat'] ?? null,
-            'latitude'    => $latitude,
-            'longitude'   => $longitude,
-            'type'        => $obs->rawMeta['type_station'] ?? 'Station',
+        $newPoint = new PointMesure([
+            'code'        => $code,
+            'nom'         => $name,
+            'zone'        => $zone?->nom ?? $infrastructure?->zone?->nom ?? $obs->rawMeta['zone'] ?? 'Zone Principale',
+            'zone_id'     => $infrastructure?->zone_id ?? $zone?->id,
+            'infrastructure_id' => $infrastructure?->id,
+            'latitude'    => ($obs->latitude != 0.0) ? $obs->latitude : null,
+            'longitude'   => ($obs->longitude != 0.0) ? $obs->longitude : null,
+            'type'        => 'Station',
             'statut'      => 'actif',
-            'description' => 'Cree par import ' . ($obs->rawMeta['source_name'] ?? 'manuel'),
+            'description' => 'Station de prélèvement d’eau',
         ]);
+
+        if ($pointId && is_numeric($pointId)) {
+            $newPoint->id = (int) $pointId;
+        }
+        $newPoint->save();
+
+        return $newPoint;
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -108,31 +123,28 @@ class CsvImportProvider implements ExternalDataProviderInterface
 
         $headers = null;
         $observations = [];
+        $rowIdx = 0;
 
         while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
-            if ($row === [null] || $row === false) {
+            $rowIdx++;
+            if ($row === [null] || $row === false || empty(array_filter($row, fn ($c) => trim((string)$c) !== ''))) {
                 continue;
             }
 
             if ($headers === null) {
-                $headers = array_map(fn ($h) => strtolower(trim((string) $h)), $row);
-                // Remove a UTF-8 BOM from the first header (common in Excel exports).
-                if ($headers !== [] && str_starts_with($headers[0], "\xef\xbb\xbf")) {
-                    $headers[0] = trim(substr($headers[0], 3));
-                }
+                $headers = array_map(fn ($h) => $this->normaliseHeader($h), $row);
                 while ($headers !== [] && end($headers) === '') {
                     array_pop($headers);
                 }
                 continue;
             }
 
-            // Pad short rows so array_combine never fails on trailing empty columns.
             if (count($row) < count($headers)) {
                 $row = array_pad($row, count($headers), '');
             }
 
-            $data    = array_combine($headers, array_slice($row, 0, count($headers)));
-            $parsed  = $this->parseDataRow($data);
+            $data = array_combine($headers, array_slice($row, 0, count($headers)));
+            $parsed = $this->parseDataRow($data, $rowIdx);
             if ($parsed !== null) {
                 $observations[] = $parsed;
             }
@@ -142,14 +154,11 @@ class CsvImportProvider implements ExternalDataProviderInterface
         return $observations;
     }
 
-    /**
-     * Detect comma, semicolon or tab separators automatically.
-     */
     private function detectDelimiter($handle): string
     {
         $firstLine = '';
         while (($line = fgets($handle)) !== false) {
-            $trimmed = trim($line);
+            $trimmed = trim(preg_replace('/^\xEF\xBB\xBF/', '', $line));
             if ($trimmed !== '') {
                 $firstLine = $trimmed;
                 break;
@@ -157,9 +166,10 @@ class CsvImportProvider implements ExternalDataProviderInterface
         }
 
         $counts = [
-            ',' => substr_count($firstLine, ','),
-            ';' => substr_count($firstLine, ';'),
+            ';'  => substr_count($firstLine, ';'),
+            ','  => substr_count($firstLine, ','),
             "\t" => substr_count($firstLine, "\t"),
+            '|'  => substr_count($firstLine, '|'),
         ];
 
         arsort($counts);
@@ -170,78 +180,245 @@ class CsvImportProvider implements ExternalDataProviderInterface
 
     private function parseXlsx(string $path): array
     {
-        if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
-            Log::warning('CsvImportProvider: phpoffice/phpspreadsheet not installed; attempting CSV parse');
+        if (class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+            try {
+                $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+                $sheet       = $spreadsheet->getActiveSheet();
+                $rows        = $sheet->toArray();
+
+                if (count($rows) >= 2) {
+                    $headers = array_map(fn ($h) => $this->normaliseHeader($h), array_shift($rows));
+                    $observations = [];
+                    $idx = 0;
+                    foreach ($rows as $row) {
+                        $idx++;
+                        if (empty(array_filter($row, fn ($c) => trim((string)$c) !== ''))) continue;
+                        if (count($row) < count($headers)) {
+                            $row = array_pad($row, count($headers), '');
+                        }
+                        $data = array_combine($headers, array_slice(array_map('strval', $row), 0, count($headers)));
+                        $parsed = $this->parseDataRow($data, $idx);
+                        if ($parsed !== null) {
+                            $observations[] = $parsed;
+                        }
+                    }
+                    return $observations;
+                }
+            } catch (\Throwable $e) {
+                Log::warning('PhpSpreadsheet parse error: ' . $e->getMessage());
+            }
+        }
+
+        if (!class_exists(\ZipArchive::class)) {
             return $this->parseCsvFile($path);
         }
 
-        try {
-            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
-            $sheet       = $spreadsheet->getActiveSheet();
-            $rows        = $sheet->toArray();
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return $this->parseCsvFile($path);
+        }
 
-            if (count($rows) < 2) {
-                return [];
-            }
-
-            $headers = array_map(fn ($h) => strtolower(trim((string) $h)), array_shift($rows));
-            $observations = [];
-
-            foreach ($rows as $row) {
-                $data   = array_combine($headers, array_map('strval', $row));
-                $parsed = $this->parseDataRow($data);
-                if ($parsed !== null) {
-                    $observations[] = $parsed;
+        $sharedStrings = [];
+        $stringsXml = $zip->getFromName('xl/sharedStrings.xml');
+        if ($stringsXml) {
+            $sxml = @simplexml_load_string($stringsXml);
+            if ($sxml && isset($sxml->si)) {
+                foreach ($sxml->si as $si) {
+                    if (isset($si->t)) {
+                        $sharedStrings[] = (string) $si->t;
+                    } elseif (isset($si->r)) {
+                        $text = '';
+                        foreach ($si->r as $r) {
+                            $text .= (string) $r->t;
+                        }
+                        $sharedStrings[] = $text;
+                    } else {
+                        $sharedStrings[] = '';
+                    }
                 }
             }
+        }
 
-            return $observations;
-        } catch (\Throwable $e) {
-            Log::error('CsvImportProvider: XLSX parse error', ['message' => $e->getMessage()]);
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        if (!$sheetXml) {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $name = $zip->getNameIndex($i);
+                if (str_starts_with($name, 'xl/worksheets/sheet') && str_ends_with($name, '.xml')) {
+                    $sheetXml = $zip->getFromIndex($i);
+                    break;
+                }
+            }
+        }
+        $zip->close();
+
+        if (!$sheetXml) {
             return [];
         }
+
+        $xml = @simplexml_load_string($sheetXml);
+        if (!$xml || !isset($xml->sheetData->row)) {
+            return [];
+        }
+
+        $rows = [];
+        foreach ($xml->sheetData->row as $r) {
+            $rowValues = [];
+            foreach ($r->c as $c) {
+                $ref = (string) $c['r'];
+                preg_match('/([A-Z]+)/', $ref, $m);
+                $colLetters = $m[1] ?? 'A';
+                $colIndex = 0;
+                for ($len = strlen($colLetters), $k = 0; $k < $len; $k++) {
+                    $colIndex = $colIndex * 26 + (ord($colLetters[$k]) - 64);
+                }
+                $colIndex -= 1;
+
+                $type = (string) $c['t'];
+                $val = (string) $c->v;
+                if ($type === 's' && isset($sharedStrings[(int) $val])) {
+                    $val = $sharedStrings[(int) $val];
+                } elseif ($type === 'inlineStr' && isset($c->is->t)) {
+                    $val = (string) $c->is->t;
+                }
+                $rowValues[$colIndex] = $val;
+            }
+
+            if ($rowValues !== []) {
+                $maxKey = max(array_keys($rowValues));
+                $filled = [];
+                for ($idx = 0; $idx <= $maxKey; $idx++) {
+                    $filled[$idx] = $rowValues[$idx] ?? '';
+                }
+                $rows[] = $filled;
+            }
+        }
+
+        if (count($rows) < 2) {
+            return [];
+        }
+
+        $headers = array_map(fn ($h) => $this->normaliseHeader($h), array_shift($rows));
+        $observations = [];
+        $idx = 0;
+        foreach ($rows as $row) {
+            $idx++;
+            if (empty(array_filter($row, fn ($c) => trim((string)$c) !== ''))) continue;
+            if (count($row) < count($headers)) {
+                $row = array_pad($row, count($headers), '');
+            }
+            $data = array_combine($headers, array_slice($row, 0, count($headers)));
+            $parsed = $this->parseDataRow($data, $idx);
+            if ($parsed !== null) {
+                $observations[] = $parsed;
+            }
+        }
+
+        return $observations;
     }
 
-    private function parseDataRow(array $row): ?NormalisedObservation
+    private function parseDataRow(array $row, int $rowIdx = 0): ?NormalisedObservation
     {
-        $code = trim($row['code'] ?? $row['code_station'] ?? '');
-        $name = trim($row['nom'] ?? $row['nom_station'] ?? $row['name'] ?? $code);
+        $pointMesureId = $this->firstValue($row, ['point_mesure_id', 'id_point_mesure', 'point_id', 'id_point']);
+        $rawReference = trim((string) $this->firstValue($row, ['reference', 'ref', 'code_mesure', 'ref_mesure']));
+        $cleanReference = null;
+        if ($rawReference !== '') {
+            $cleanReference = preg_replace('/^DEMO[-_]/i', 'MES-', $rawReference);
+        }
+
+        $infrastructureReference = trim((string) $this->firstValue($row, [
+            'infrastructure_reference', 'infrastructure_code', 'reference_infrastructure',
+            'infrastructure', 'infra_ref', 'infra'
+        ]));
+        $infrastructureId = trim((string) $this->firstValue($row, [
+            'infrastructure_id', 'id_infrastructure', 'infra_id'
+        ]));
+
+        $derivedName = null;
+        if ($rawReference !== '') {
+            $stripped = preg_replace('/^(DEMO|MES|REF)[-_]/i', '', $rawReference);
+            $stripped = preg_replace('/[-_][0-9]+$/', '', $stripped);
+            if (!empty($stripped)) {
+                $derivedName = ucwords(strtolower(str_replace(['-', '_'], ' ', $stripped)));
+            }
+        }
+
+        $code = trim((string) $this->firstValue($row, [
+            'code', 'code_station', 'station_code', 'code_point', 'point_code',
+            'code_prelevement', 'sampling_point'
+        ]));
+
+        if ($code === '' && $derivedName) {
+            $code = 'PT-' . strtoupper(Str::slug($derivedName));
+        } elseif ($code === '' && $pointMesureId) {
+            $code = 'PT-' . str_pad($pointMesureId, 3, '0', STR_PAD_LEFT);
+        } elseif ($code === '' && $infrastructureReference !== '') {
+            $code = $infrastructureReference;
+        } elseif ($code === '' && $infrastructureId !== '') {
+            $code = 'INF-' . $infrastructureId;
+        }
+
+        $name = trim((string) $this->firstValue($row, [
+            'nom', 'nom_station', 'station_name', 'nom_point', 'point_nom',
+            'station', 'libelle', 'designation', 'name'
+        ]));
+
+        if ($name === '' && $derivedName) {
+            $name = str_starts_with(strtolower($derivedName), 'station') ? $derivedName : ('Station ' . $derivedName);
+        } elseif ($name === '' && $code !== '') {
+            $name = $code;
+        }
 
         if ($code === '') {
+            $code = 'PT-IMP-' . ($rowIdx > 0 ? $rowIdx : random_int(100, 999));
+            $name = $name ?: $code;
+        }
+
+        $lat = $this->floatOrNull($this->firstValue($row, ['latitude', 'lat']));
+        $lon = $this->floatOrNull($this->firstValue($row, ['longitude', 'lon', 'lng']));
+
+        $dateRaw = $this->firstValue($row, [
+            'date_mesure', 'date', 'date_prelevement', 'date_prel', 'date_analyse',
+            'date_observation', 'date_heure', 'horodatage', 'datetime', 'timestamp',
+            'date_collecte', 'created_at'
+        ]);
+        $date = $this->parseDateOrNull($dateRaw) ?? new \DateTimeImmutable();
+
+        $ph    = $this->floatOrNull($this->firstValue($row, [
+            'ph', 'ph_value', 'potential_hydrogen', 'valeur_ph', 'potentiel_hydrogene',
+            'ph_eau', 'ph_mesure', 'unite_ph', 'ph_unites'
+        ]));
+        $turb  = $this->floatOrNull($this->firstValue($row, [
+            'turbidite', 'turbidity', 'turbidity_ntu', 'turbidite_ntu', 'turb', 'turb_ntu',
+            'turbidite_nfu', 'ntu', 'valeur_turbidite'
+        ]));
+        $no3   = $this->floatOrNull($this->firstValue($row, [
+            'nitrates', 'nitrate', 'nitrates_mg_l', 'nitrate_mg_l', 'no3', 'no3_mg_l',
+            'nitrates_no3', 'nitrate_no3', 'valeur_nitrates'
+        ]));
+        $clore = $this->floatOrNull($this->firstValue($row, [
+            'chlore_residuel', 'chlore_residuel_mg_l', 'chlore_residuel_en_mg_l',
+            'chlore', 'chlore_mg_l', 'chlorine', 'chlorine_mg_l', 'residual_chlorine',
+            'residual_chlorine_mg_l', 'free_chlorine', 'cl2', 'chlore_libre', 'chlore_total',
+            'valeur_chlore'
+        ]));
+        $plomb = $this->floatOrNull($this->firstValue($row, [
+            'plomb', 'plomb_ug_l', 'plomb_ppb', 'plomb_pb_ug_l', 'plomb_pb_ppb',
+            'lead', 'lead_ug_l', 'lead_ppb', 'lead_concentration', 'pb', 'pb_ug_l',
+            'plomb_mg_l', 'valeur_plomb'
+        ]));
+
+        if ($ph === null && $turb === null && $no3 === null && $clore === null && $plomb === null) {
             return null;
         }
 
-        $lat = isset($row['latitude'])  && $row['latitude']  !== '' ? (float) $row['latitude']  : null;
-        $lon = isset($row['longitude']) && $row['longitude'] !== '' ? (float) $row['longitude'] : null;
-
-        $dateRaw = $row['date_mesure'] ?? $row['date'] ?? null;
-        $date    = null;
-        if ($dateRaw && trim($dateRaw) !== '') {
-            try {
-                $date = new \DateTimeImmutable(trim($dateRaw));
-            } catch (\Throwable) {
-                $date = null;
-            }
-        }
-        $date ??= new \DateTimeImmutable();
-
-        $ph    = $this->floatOrNull($row['ph'] ?? null);
-        $turb  = $this->floatOrNull($row['turbidite'] ?? $row['turbidity'] ?? null);
-        $no3   = $this->floatOrNull($row['nitrates'] ?? null);
-        $clore = $this->floatOrNull($row['chlore_residuel'] ?? $row['chlorine'] ?? null);
-        $plomb = $this->floatOrNull($row['plomb'] ?? $row['lead'] ?? null);
-
-        if ($ph === null && $turb === null && $no3 === null) {
-            return null; // No measurable parameters — skip
-        }
-
-        $externalId = 'csv-' . md5("{$code}-{$dateRaw}-{$this->sourceName}");
+        $dateKey = $date->format('YmdHi');
+        $externalId = 'csv-' . md5("{$code}-{$dateKey}-{$rowIdx}-{$this->sourceName}");
 
         return new NormalisedObservation(
             externalId:      $externalId,
             provider:        'csv',
             stationCode:     $code,
-            stationName:     $name ?: $code,
+            stationName:     $name,
             latitude:        $lat ?? 0.0,
             longitude:       $lon ?? 0.0,
             observationDate: $date,
@@ -252,19 +429,162 @@ class CsvImportProvider implements ExternalDataProviderInterface
             plomb:           $plomb,
             qualityFlag:     null,
             rawMeta: [
-                'zone'        => $row['zone'] ?? $row['gouvernorat'] ?? null,
-                'type_station'=> $row['type'] ?? $row['type_station'] ?? null,
-                'source_name' => $this->sourceName,
+                'point_mesure_id' => $pointMesureId ? (int)$pointMesureId : null,
+                'custom_reference' => $cleanReference,
+                'zone'            => $row['zone'] ?? $row['zone_name'] ?? $row['zone_nom'] ?? $row['nom_zone'] ?? $row['gouvernorat'] ?? null,
+                'zone_id'         => $row['zone_id'] ?? $row['id_zone'] ?? null,
+                'infrastructure_id' => $infrastructureId ?: null,
+                'infrastructure_reference' => $infrastructureReference ?: null,
+                'type_station'    => $row['type'] ?? $row['type_station'] ?? null,
+                'source_name'     => $this->sourceName,
+                'source_donnee'   => 'manuel',
             ],
         );
     }
 
+    private function normaliseHeader(mixed $header): string
+    {
+        $header = preg_replace('/^\xEF\xBB\xBF/', '', trim((string) $header));
+        $header = Str::ascii(mb_strtolower($header));
+
+        return trim((string) preg_replace('/[^a-z0-9]+/', '_', $header), '_');
+    }
+
+    private function firstValue(array $row, array $aliases): mixed
+    {
+        foreach ($aliases as $alias) {
+            if (array_key_exists($alias, $row) && trim((string) $row[$alias]) !== '') {
+                return $row[$alias];
+            }
+        }
+
+        foreach ($row as $k => $v) {
+            if (trim((string) $v) === '') continue;
+            foreach ($aliases as $alias) {
+                if (!str_ends_with($alias, '_id') && str_ends_with($k, '_id')) {
+                    continue;
+                }
+                if (str_contains($k, $alias)) {
+                    return $v;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveInfrastructure(NormalisedObservation $observation): ?Infrastructure
+    {
+        $id = filter_var($observation->rawMeta['infrastructure_id'] ?? null, FILTER_VALIDATE_INT);
+        if ($id !== false && $id !== null) {
+            $infrastructure = Infrastructure::with('zone')->find($id);
+            if ($infrastructure) {
+                return $infrastructure;
+            }
+        }
+
+        $reference = trim((string) (
+            $observation->rawMeta['infrastructure_reference']
+            ?? $observation->rawMeta['infrastructure_code']
+            ?? ''
+        ));
+        if ($reference !== '') {
+            $infrastructure = Infrastructure::with('zone')->where('reference', $reference)->first();
+            if ($infrastructure) {
+                return $infrastructure;
+            }
+        }
+
+        return Infrastructure::with('zone')->where('reference', $observation->stationCode)->first();
+    }
+
+    private function resolveZone(NormalisedObservation $observation): ?Zone
+    {
+        $id = filter_var($observation->rawMeta['zone_id'] ?? null, FILTER_VALIDATE_INT);
+        if ($id !== false && $id !== null) {
+            $zone = Zone::find($id);
+            if ($zone) {
+                return $zone;
+            }
+        }
+
+        $name = trim((string) ($observation->rawMeta['zone'] ?? $observation->rawMeta['gouvernorat'] ?? ''));
+        if ($name === '') {
+            return null;
+        }
+
+        return Zone::query()
+            ->where('nom', $name)
+            ->orWhere('localisation', $name)
+            ->first();
+    }
+
     private function floatOrNull(mixed $val): ?float
+    {
+        if ($val === null) {
+            return null;
+        }
+
+        $str = trim((string) $val);
+        $str = str_replace(["\xc2\xa0", "\u{00A0}", ' '], '', $str);
+
+        if ($str === '' || in_array(strtolower($str), ['nd', 'na', 'n/a', 'null', 'none', '-'], true)) {
+            return null;
+        }
+
+        $str = str_replace(',', '.', $str);
+
+        if (preg_match('/[-+]?[0-9]*\.?[0-9]+/', $str, $matches)) {
+            return (float) $matches[0];
+        }
+
+        return null;
+    }
+
+    private function parseDateOrNull(mixed $val): ?\DateTimeImmutable
     {
         if ($val === null || trim((string) $val) === '') {
             return null;
         }
-        $f = filter_var(str_replace(',', '.', $val), FILTER_VALIDATE_FLOAT);
-        return $f === false ? null : $f;
+
+        $raw = trim((string) $val);
+
+        if (is_numeric($raw) && (float) $raw > 30000 && (float) $raw < 70000) {
+            $seconds = ((float) $raw - 25569) * 86400;
+            return (new \DateTimeImmutable())->setTimestamp((int) round($seconds));
+        }
+
+        if (str_contains($raw, '/')) {
+            $formats = [
+                'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y',
+                'd/m/y H:i:s', 'd/m/y H:i', 'd/m/y',
+                'm/d/Y H:i:s', 'm/d/Y H:i', 'm/d/Y',
+            ];
+            foreach ($formats as $fmt) {
+                $d = \DateTimeImmutable::createFromFormat($fmt, $raw);
+                if ($d !== false) {
+                    return $d;
+                }
+            }
+        }
+
+        if (str_contains($raw, '-')) {
+            $formats = [
+                'Y-m-d H:i:s', 'Y-m-d H:i', 'Y-m-d',
+                'd-m-Y H:i:s', 'd-m-Y H:i', 'd-m-Y',
+            ];
+            foreach ($formats as $fmt) {
+                $d = \DateTimeImmutable::createFromFormat($fmt, $raw);
+                if ($d !== false) {
+                    return $d;
+                }
+            }
+        }
+
+        try {
+            return new \DateTimeImmutable($raw);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

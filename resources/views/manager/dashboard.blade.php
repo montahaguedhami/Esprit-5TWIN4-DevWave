@@ -11,6 +11,7 @@
     $reclamations = PlaceholderData::adminAllReclamations();
     $monthly      = PlaceholderData::analyticsMonthly();
     $projects     = PlaceholderData::projects();
+    $qualityData  = PlaceholderData::waterQualityRecords();
     $funding      = PlaceholderData::fundingData();
 
     $firstName    = explode(' ', $user['name'])[0];
@@ -33,8 +34,8 @@
 @endphp
 
 @push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
 <style>
 #mgr-map { height: 320px; border-radius: var(--radius-lg); }
 .leaflet-tile-pane { filter: brightness(.98) contrast(1.02) saturate(.9); }
@@ -60,14 +61,6 @@
             <p class="text-slate-500 text-xs mt-0.5">
                 Suivi opérationnel du réseau et des budgets pour <span id="current-utility-title" class="text-cyan-700 font-semibold">Régie des eaux du Grand Tunis</span>.
             </p>
-            <label for="utility-selector" class="sr-only">Secteur</label>
-            <select id="utility-selector" onchange="switchUtility(this.value)" class="mt-3 max-w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700">
-                @foreach($municipalities as $muni)
-                    <option value="{{ $muni['id'] }}" {{ $muni['active'] ? 'selected' : '' }}>
-                        {{ $muni['name'] }} ({{ $muni['assets'] }} actifs)
-                    </option>
-                @endforeach
-            </select>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('manager.map') }}" class="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold shadow-sm flex items-center gap-1.5 transition-all">
@@ -80,6 +73,22 @@
             </a>
         </div>
     </div>
+
+    <x-infrastructure.risk-top-five :infrastructures="$riskTop5" route-prefix="manager" />
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900/70">
+        <h2 class="font-bold text-slate-900 dark:text-white">Risque moyen par zone</h2>
+        <p class="mb-3 mt-1 text-xs text-slate-500 dark:text-slate-400">Estimation indicative calculée à partir des dernières prédictions.</p>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            @forelse($riskByZone as $zoneRisk)
+                <div class="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
+                    <p class="truncate text-xs text-slate-600 dark:text-slate-300">{{ $zoneRisk['zone'] }}</p>
+                    <p class="mt-1 text-xl font-bold text-slate-900 dark:text-white">{{ $zoneRisk['average'] }}%</p>
+                </div>
+            @empty
+                <p class="text-sm text-slate-500 dark:text-slate-400">Aucune prédiction disponible.</p>
+            @endforelse
+        </div>
+    </section>
 
             {{-- ══ 6 DASHBOARD SUMMARY CARDS (Requirement 3) ═════════════════════ --}}
             <div class="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4 dashboard-kpis">
@@ -198,6 +207,22 @@
                         <canvas id="incidentTrendsChart"></canvas>
                     </div>
                 </div>
+
+                {{-- Chart 2: Historique de la qualité de l'eau (pH, Turbidité, Chlore) --}}
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="flask-conical" class="w-4 h-4 text-teal-400"></i> Indicateurs de qualité de l’eau
+                            </h3>
+                            <p class="text-xs text-slate-400">Résultats de qualité de l'eau et seuils EPA / INNORPI</p>
+                        </div>
+                        <span class="text-xs font-semibold text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-1 rounded-lg">Plage optimale</span>
+                    </div>
+                    <div style="height: 220px;">
+                        <canvas id="qualityHistoryChart"></canvas>
+                    </div>
+                </div>
             </div>
 
             {{-- ══ RECENT INCIDENTS TABLE & BUDGET ALLOCATION ════════════════════ --}}
@@ -296,7 +321,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <script>
 const MAP_ZONES = @json($zones);
 const RECLAMATIONS = @json($reclamations);
@@ -371,6 +396,43 @@ function switchUtility(id) {
                     backgroundColor: 'rgba(45, 212, 191, 0.1)',
                     fill: true,
                     tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+            scales: {
+                x: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+})();
+
+/* ── Chart 2: Water Quality History ──────────────────────── */
+(function() {
+    const ctx = document.getElementById('qualityHistoryChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Tunis Nord', 'Ariana', 'Ben Arous', 'Sousse', 'Sfax'],
+            datasets: [
+                {
+                    label: 'pH Level (Optimal 6.5-8.5)',
+                    data: [7.42, 7.82, 8.45, 7.20, 7.30],
+                    backgroundColor: '#0284c7'
+                },
+                {
+                    label: 'Turbidity (NTU <1.0)',
+                    data: [0.45, 1.25, 2.45, 0.22, 0.41],
+                    backgroundColor: '#0d9488'
+                },
+                {
+                    label: 'Chlore résiduel (mg/L)',
+                    data: [0.85, 0.35, 0.12, 1.10, 0.95],
+                    backgroundColor: '#3b82f6'
                 }
             ]
         },

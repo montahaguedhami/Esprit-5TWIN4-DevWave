@@ -26,6 +26,14 @@
             </nav>
 
             <div class="flex items-center gap-3">
+                <button type="button" class="theme-toggle aq-topbar-acc-btn" onclick="openAccessibilityModal()" aria-label="Paramètres d'accessibilité" title="Accessibilité (Alt+A)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="4.5" r="2.2"/>
+                        <path d="M12 7v6.5"/>
+                        <path d="m5 10 7 1.5 7-1.5"/>
+                        <path d="m7.5 21 4.5-7.5 4.5 7.5"/>
+                    </svg>
+                </button>
                 <x-notification-center />
                 <x-user-menu />
             </div>

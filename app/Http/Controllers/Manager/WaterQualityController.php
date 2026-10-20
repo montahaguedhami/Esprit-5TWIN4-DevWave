@@ -20,7 +20,7 @@ class WaterQualityController extends Controller
 
     public function index(Request $request): View
     {
-        $query = MesureQualite::with('pointMesure');
+        $query = MesureQualite::with('pointMesure.infrastructure');
 
         // Search by keyword (reference, point name, point code, or zone)
         if ($search = trim((string) $request->input('search', ''))) {
@@ -81,7 +81,7 @@ class WaterQualityController extends Controller
         $records = $paginator->getCollection()
             ->map(fn (MesureQualite $mesure) => $this->recordForView($mesure));
 
-        $latestMeasurement = MesureQualite::with('pointMesure')->latest('date_mesure')->first();
+        $latestMeasurement = MesureQualite::with('pointMesure.infrastructure')->latest('date_mesure')->first();
         $latestAssessment  = $latestMeasurement
             ? $this->waterQualityService->assess($latestMeasurement->only([
                 'ph', 'turbidite', 'chlore_residuel', 'plomb', 'nitrates',
@@ -106,7 +106,7 @@ class WaterQualityController extends Controller
             : 0.0;
 
         $chartCutoff  = now()->subDays(30)->format('Y-m-d H:i');
-        $chartRecords = MesureQualite::with('pointMesure')
+        $chartRecords = MesureQualite::with('pointMesure.infrastructure')
             ->where('date_mesure', '>=', $chartCutoff)
             ->oldest('date_mesure')
             ->get()
@@ -121,7 +121,9 @@ class WaterQualityController extends Controller
             ->map(fn (PointMesure $point) => $this->pointForMap($point));
         $user = session('user', ['name' => 'Dr. Selim Dridi', 'role' => 'manager']);
 
-        $allPointsForFilter = PointMesure::orderBy('nom')->get(['id', 'nom', 'code']);
+        $allPointsForFilter = PointMesure::with('infrastructure')
+            ->orderBy('nom')
+            ->get(['id', 'nom', 'code', 'infrastructure_id']);
 
         return view('manager.quality', compact(
             'records',
@@ -145,7 +147,7 @@ class WaterQualityController extends Controller
         abort_unless(PointMesure::where('statut', 'actif')->exists(), 404, 'Créez d\'abord un point de mesure actif.');
 
         return view('manager.quality-measures.create', [
-            'points' => PointMesure::where('statut', 'actif')->orderBy('nom')->get(),
+            'points' => PointMesure::with('infrastructure')->where('statut', 'actif')->orderBy('nom')->get(),
         ]);
     }
 
@@ -176,7 +178,7 @@ class WaterQualityController extends Controller
 
     public function show(MesureQualite $mesure): View
     {
-        $mesure->load('pointMesure');
+        $mesure->load('pointMesure.infrastructure');
 
         return view('manager.quality-measures.show', compact('mesure'));
     }
@@ -185,7 +187,7 @@ class WaterQualityController extends Controller
     {
         return view('manager.quality-measures.edit', [
             'mesure' => $mesure,
-            'points' => PointMesure::orderBy('nom')->get(),
+            'points' => PointMesure::with('infrastructure')->orderBy('nom')->get(),
         ]);
     }
 
@@ -227,6 +229,36 @@ class WaterQualityController extends Controller
         return redirect()->route('manager.quality')->with('success', 'La mesure a été supprimée avec succès.');
     }
 
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'mesure_ids' => ['required', 'array', 'min:1', 'max:25'],
+            'mesure_ids.*' => ['required', 'integer', 'distinct', 'exists:mesures_qualites,id'],
+        ]);
+
+        $mesures = MesureQualite::whereIn('id', $validated['mesure_ids'])->get();
+        foreach ($mesures as $mesure) {
+            $this->authorize('delete', $mesure);
+        }
+
+        DB::transaction(function () use ($mesures) {
+            foreach ($mesures as $mesure) {
+                $reference = $mesure->reference;
+                $id = $mesure->id;
+                $mesure->delete();
+
+                AuditLog::record('measurement_deleted', 'MesureQualite', null, [
+                    'measurement_id' => $id,
+                    'reference' => $reference,
+                    'bulk' => true,
+                ], auth()->user());
+            }
+        });
+
+        return redirect()->route('manager.quality')
+            ->with('success', count($validated['mesure_ids']) . ' mesure(s) supprimée(s) avec succès.');
+    }
+
     public function validateMeasurement(MesureQualite $mesure): RedirectResponse
     {
         $this->authorize('validate', $mesure);
@@ -264,7 +296,9 @@ class WaterQualityController extends Controller
         return [
             'id'                 => $mesure->reference,
             'measurement_id'     => $mesure->id,
+            'point_mesure_id'    => $mesure->point_mesure_id,
             'sampling_point'     => $mesure->pointMesure?->nom ?? 'Point supprimé',
+            'infrastructure'     => $mesure->pointMesure?->infrastructure?->nom,
             'zone'               => $mesure->pointMesure?->zone ?? '—',
             'date'               => $mesure->date_mesure?->format('Y-m-d H:i') ?? '-',
             'pH'                 => (float) ($mesure->ph ?? 0),

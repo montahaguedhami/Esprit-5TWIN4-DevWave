@@ -1,4 +1,4 @@
-@extends('layouts.technician')
+@extends('layouts.manager')
 
 @section('title', 'Mon équipement')
 
@@ -13,7 +13,7 @@
     ];
 @endphp
 
-@section('technician-content')
+@section('manager-content')
 <div class="container mx-auto px-4 py-8">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">

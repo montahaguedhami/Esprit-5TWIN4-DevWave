@@ -14,6 +14,12 @@
 </style>
 <div class="aqua-light-page min-h-screen bg-slate-50">
     <div class="container mx-auto px-4 py-8">
+        @if(session('success'))
+            <div role="status" class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div role="alert" class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ session('error') }}</div>
+        @endif
         <!-- Header -->
         <div class="flex items-center gap-4 mb-8">
             <a href="javascript:history.back()" class="p-2 rounded-lg glass hover:glass-strong transition-all">
@@ -63,7 +69,7 @@
                         <div class="space-y-6">
                             <!-- Language -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-2">Langue</label>
+                                <label for="language" class="block text-sm font-medium text-slate-400 mb-2">Langue</label>
                                 <x-forms.select name="language">
                                     <option value="fr" selected>Français</option>
                                     <option value="ar">العربية</option>
@@ -74,7 +80,7 @@
 
                             <!-- Timezone -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-2">Fuseau horaire</label>
+                                <label for="timezone" class="block text-sm font-medium text-slate-400 mb-2">Fuseau horaire</label>
                                 <x-forms.select name="timezone">
                                     <option value="Africa/Tunis" selected>Africa/Tunis (GMT+1)</option>
                                     <option value="Europe/Paris">Europe/Paris (GMT+1)</option>
@@ -84,7 +90,7 @@
 
                             <!-- Date Format -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-2">Format de date</label>
+                                <label for="date_format" class="block text-sm font-medium text-slate-400 mb-2">Format de date</label>
                                 <x-forms.select name="date_format">
                                     <option value="dd/mm/yyyy" selected>JJ/MM/AAAA (26/09/2026)</option>
                                     <option value="mm/dd/yyyy">MM/JJ/AAAA (09/26/2026)</option>
@@ -123,7 +129,7 @@
                                     <div class="text-xs text-slate-400 mt-1">{{ $notif['desc'] }}</div>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" {{ $notif['checked'] ? 'checked' : '' }} class="sr-only peer">
+                                    <input type="checkbox" aria-label="{{ $notif['label'] }}" {{ $notif['checked'] ? 'checked' : '' }} class="sr-only peer">
                                     <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                                 </label>
                             </div>
@@ -198,24 +204,32 @@
                                     Sessions actives
                                 </h4>
                                 <div class="space-y-3">
-                                    @foreach([
-                                        ['device' => 'Windows - Chrome', 'location' => 'Tunis, Tunisie', 'time' => 'Session actuelle', 'current' => true],
-                                        ['device' => 'Android - Chrome', 'location' => 'Tunis, Tunisie', 'time' => 'Il y a 2 jours', 'current' => false],
-                                    ] as $session)
+                                    @forelse($sessions as $session)
                                     <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/50">
                                         <div class="flex items-center gap-3">
                                             <i data-lucide="{{ $session['current'] ? 'monitor' : 'smartphone' }}" class="w-5 h-5 text-slate-400"></i>
                                             <div>
-                                                <div class="text-sm font-medium text-white">{{ $session['device'] }}</div>
+                                                <div class="text-sm font-medium text-white">{{ $session['device'] }} @if($session['current'])<span class="ml-2 text-emerald-400">Session actuelle</span>@endif</div>
                                                 <div class="text-xs text-slate-400">{{ $session['location'] }} • {{ $session['time'] }}</div>
                                             </div>
                                         </div>
-                                        @if(!$session['current'])
-                                        <button class="text-red-400 hover:text-red-300 text-sm">Révoquer</button>
-                                        @endif
+                                        @unless($session['current'])
+                                        <form method="POST" action="{{ route('settings.sessions.revoke', $session['id']) }}" onsubmit="return confirm('Revoke this session?')">
+                                            @csrf @method('DELETE')
+                                            <button class="text-red-400 hover:text-red-300 text-sm">Révoquer</button>
+                                        </form>
+                                        @endunless
                                     </div>
-                                    @endforeach
+                                    @empty
+                                    <p class="text-sm text-slate-400">Aucune session enregistrée avec le stockage actuel.</p>
+                                    @endforelse
                                 </div>
+                                @if($sessions->contains(fn ($session) => ! $session['current']))
+                                    <form method="POST" action="{{ route('settings.sessions.revoke-others') }}" class="mt-4" onsubmit="return confirm('Fermer toutes les autres sessions de votre compte ?')">
+                                        @csrf
+                                        <button class="btn btn-secondary">Fermer toutes les autres sessions</button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </x-ui.card>
@@ -238,7 +252,7 @@
                                     <div class="text-xs text-slate-400 mt-1">{{ $privacy['desc'] }}</div>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" {{ $privacy['checked'] ? 'checked' : '' }} class="sr-only peer">
+                                    <input type="checkbox" aria-label="{{ $privacy['label'] }}" {{ $privacy['checked'] ? 'checked' : '' }} class="sr-only peer">
                                     <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                                 </label>
                             </div>
@@ -262,7 +276,7 @@
                         <div class="space-y-6">
                             <!-- Theme -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-3">Thème</label>
+                                <p class="block text-sm font-medium text-slate-400 mb-3">Thème</p>
                                 <div class="grid grid-cols-3 gap-4">
                                     @foreach([
                                         ['id' => 'dark', 'label' => 'Sombre', 'active' => true],
@@ -279,7 +293,7 @@
 
                             <!-- Density -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-3">Densité</label>
+                                <label for="density" class="block text-sm font-medium text-slate-400 mb-3">Densité</label>
                                 <x-forms.select name="density">
                                     <option value="comfortable" selected>Confortable</option>
                                     <option value="compact">Compacte</option>

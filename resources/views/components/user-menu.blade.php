@@ -85,8 +85,7 @@
             </a>
 
             <!-- Divider -->
-            <div class="my-2 border-t border-white/10"></div>
-
+            <div class="my-2 border-t border-slate-100"></div>
 
             <!-- Help -->
             <a href="#" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group">

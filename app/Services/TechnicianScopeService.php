@@ -9,6 +9,7 @@ use App\Models\Technicien;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class TechnicianScopeService
 {
@@ -17,54 +18,90 @@ class TechnicianScopeService
      */
     public static function currentTechnicien(): ?Technicien
     {
-        $user = session('user');
+        // 1. Compte connecté : la fiche est retrouvée par sa clé étrangère user_id
+        $userId = Auth::id() ?? session('user.id');
+        if ($userId) {
+            $tech = Technicien::where('user_id', $userId)->first();
+            if ($tech) {
+                return $tech;
+            }
+        }
+
+        // 2. Identifiant de fiche placé en session côté serveur (tests de fonctionnalités)
+        $technicienId = session('user.technicien_id');
+        if ($technicienId) {
+            $tech = Technicien::find($technicienId);
+            if ($tech) {
+                return $tech;
+            }
+        }
+
+        // 3. Compte technicien réel sans fiche : même règle de rattachement que availableTechniciansForAssignment()
+        if ($userId) {
+            return self::provisionForTechnicianAccount((int) $userId);
+        }
+
+        // 4. Session de démonstration sans compte (/switch-role), jamais en production
+        if (app()->environment(['local', 'testing'])) {
+            return self::demoTechnicienFromSessionName(session('user.name'));
+        }
+
+        // Aucun rattachement : les contrôleurs répondent 403
+        return null;
+    }
+
+    private static function provisionForTechnicianAccount(int $userId): ?Technicien
+    {
+        $user = User::query()
+            ->whereKey($userId)
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $query) => $query->where('slug', Role::TECHNICIEN))
+            ->first();
+
         if (! $user) {
             return null;
         }
 
-        $userId = isset($user['id']) ? (int) $user['id'] : null;
+        // Nom exact uniquement, et seulement une fiche encore libre : évite de s'approprier la fiche d'un autre
+        $tech = Technicien::where('nom', $user->name)->whereNull('user_id')->first();
+        if ($tech) {
+            $tech->user()->associate($user);
+            $tech->save();
 
-        if ($userId) {
-            $linkedTechnician = Technicien::where('user_id', $userId)->first();
-            if ($linkedTechnician) {
-                return $linkedTechnician;
-            }
+            return $tech;
         }
-
-        // 1. Si l'ID du technicien est explicitement en session
-        if (! empty($user['technicien_id'])) {
-            $tech = Technicien::find($user['technicien_id']);
-            if ($tech) {
-                return $tech;
-            }
-        }
-
-        // 2. Recherche par nom (nettoyé de libellés additionnels comme "(Field Technician)")
-        $name = $user['name'] ?? null;
-        if ($name) {
-            $cleanName = trim(explode('(', $name)[0]);
-            $tech = Technicien::where(function (Builder $query) use ($cleanName): void {
-                $query->where('nom', $cleanName)
-                    ->orWhere('nom', 'like', "%{$cleanName}%");
-            })
-                ->when($userId, fn (Builder $query) => $query->where(fn (Builder $q) => $q->whereNull('user_id')->orWhere('user_id', $userId)))
-                ->first();
-            if ($tech) {
-                if ($userId && ! $tech->user_id) {
-                    $tech->forceFill(['user_id' => $userId])->save();
-                }
-
-                return $tech;
-            }
-        }
-
-        // 3. Fallback automatique pour environnement démo ou tests
-        $identity = $userId ? ['user_id' => $userId] : ['nom' => $cleanName ?? 'Amira Ben Ali'];
 
         return Technicien::firstOrCreate(
-            $identity,
+            ['user_id' => $user->id],
             [
-                'nom' => $cleanName ?? 'Amira Ben Ali',
+                'nom' => $user->name,
+                'specialite' => 'Canalisations',
+                'telephone' => 'Non renseigné',
+                'disponibilite' => 'Disponible',
+            ]
+        );
+    }
+
+    private static function demoTechnicienFromSessionName(?string $name): ?Technicien
+    {
+        if (! $name) {
+            return null;
+        }
+
+        // Nettoie les libellés additionnels comme "(Field Technician)"
+        $cleanName = trim(explode('(', $name)[0]);
+        if ($cleanName === '') {
+            return null;
+        }
+
+        $tech = Technicien::where(function (Builder $query) use ($cleanName): void {
+            $query->where('nom', $cleanName)
+                ->orWhere('nom', 'like', "%{$cleanName}%");
+        })->first();
+
+        return $tech ?? Technicien::firstOrCreate(
+            ['nom' => $cleanName],
+            [
                 'specialite' => 'Canalisations',
                 'telephone' => '+216 22 123 456',
                 'disponibilite' => 'Disponible',
@@ -134,25 +171,15 @@ class TechnicianScopeService
      */
     public static function zonesQuery(Technicien $technicien): Builder
     {
-        $hasScopedZones = \App\Models\Zone::whereHas('infrastructures.interventions', function (Builder $query) use ($technicien): void {
-            $query->where('technicien_id', $technicien->id);
-        })->exists();
-
-        // Si le technicien a des infrastructures assignées, limiter à ses zones, sinon afficher les zones actives
-        $builder = \App\Models\Zone::query();
-        if ($hasScopedZones) {
-            $builder->whereHas('infrastructures.interventions', function (Builder $query) use ($technicien): void {
+        return \App\Models\Zone::query()
+            ->whereHas('infrastructures.interventions', function (Builder $query) use ($technicien): void {
                 $query->where('technicien_id', $technicien->id);
-            });
-        }
-
-        return $builder->withCount(['infrastructures' => function (Builder $query) use ($technicien, $hasScopedZones): void {
-            if ($hasScopedZones) {
-                $query->whereHas('interventions', function (Builder $q) use ($technicien): void {
-                    $q->where('technicien_id', $technicien->id);
+            })
+            ->withCount(['infrastructures' => function (Builder $query) use ($technicien): void {
+                $query->whereHas('interventions', function (Builder $interventions) use ($technicien): void {
+                    $interventions->where('technicien_id', $technicien->id);
                 });
-            }
-        }]);
+            }]);
     }
 
     /**
@@ -160,7 +187,7 @@ class TechnicianScopeService
      */
     public static function canAccessZone(Technicien $technicien, \App\Models\Zone $zone): bool
     {
-        return true; // En consultation terrain, toutes les zones sectorielles sont lisibles
+        return self::zonesQuery($technicien)->whereKey($zone->getKey())->exists();
     }
 
     /**

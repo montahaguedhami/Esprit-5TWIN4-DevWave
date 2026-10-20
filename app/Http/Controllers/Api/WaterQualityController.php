@@ -25,7 +25,7 @@ class WaterQualityController extends Controller
             return response()->json(['message' => 'Accès refusé : permission measurements.view requise.'], 403);
         }
 
-        $query = PointMesure::query();
+        $query = PointMesure::with('infrastructure.zone');
 
         if ($search = trim((string) $request->input('search', ''))) {
             $query->where(function ($q) use ($search) {
@@ -55,7 +55,7 @@ class WaterQualityController extends Controller
             return response()->json(['message' => 'Accès refusé : permission measurements.view requise.'], 403);
         }
 
-        $query = MesureQualite::with('pointMesure')->latest('date_mesure');
+        $query = MesureQualite::with('pointMesure.infrastructure')->latest('date_mesure');
 
         // Citizens can only view validated/public measurements
         if ($user && $user->isCitizen() && ! $user->hasRole([Role::MANAGER, Role::ADMINISTRATEUR, Role::TECHNICIEN])) {
@@ -111,7 +111,7 @@ class WaterQualityController extends Controller
             }
         }
 
-        return response()->json(['data' => $mesure->load('pointMesure')]);
+        return response()->json(['data' => $mesure->load('pointMesure.infrastructure')]);
     }
 
     public function store(Request $request): JsonResponse
@@ -177,7 +177,7 @@ class WaterQualityController extends Controller
 
         return response()->json([
             'message'    => 'La mesure a été enregistrée avec succès.',
-            'data'       => $mesure->load('pointMesure'),
+            'data'       => $mesure->load('pointMesure.infrastructure'),
             'assessment' => $assessment,
         ], 201);
     }
@@ -228,7 +228,7 @@ class WaterQualityController extends Controller
 
         return response()->json([
             'message'    => 'La mesure a été mise à jour.',
-            'data'       => $mesure->load('pointMesure'),
+            'data'       => $mesure->load('pointMesure.infrastructure'),
             'assessment' => $assessment,
         ]);
     }
@@ -265,7 +265,7 @@ class WaterQualityController extends Controller
 
         return response()->json([
             'message' => "La mesure {$mesure->reference} a été validée avec succès.",
-            'data'    => $mesure->load('pointMesure'),
+            'data'    => $mesure->load('pointMesure.infrastructure'),
         ]);
     }
 

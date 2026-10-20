@@ -9,6 +9,8 @@ class Incident extends Model
 {
     use HasFactory;
 
+    public ?int $ancienneInfrastructureId = null;
+
     protected $fillable = [
         'titre',
         'description',

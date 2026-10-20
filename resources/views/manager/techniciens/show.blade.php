@@ -19,6 +19,11 @@
             <p class="text-xs font-semibold text-cyan-100/50 mb-2">Disponibilité</p>
             <x-maintenance.badge :value="$technicien->disponibilite" />
             <p class="text-sm text-cyan-100/80 mt-3 flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-cyan-300"></i>{{ $technicien->telephone }}</p>
+            @if($technicien->user)
+                <p class="text-sm text-cyan-100/80 mt-2 flex items-center gap-2" title="Compte de connexion"><i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i>{{ $technicien->user->email }}</p>
+            @else
+                <p class="text-sm text-amber-300/90 mt-2 flex items-center gap-2"><i data-lucide="user-x" class="w-4 h-4"></i>Aucun compte de connexion</p>
+            @endif
         </x-ui.card>
         <x-ui.card padding="sm">
             <p class="text-xs font-semibold text-cyan-100/50 mb-1">Interventions</p>

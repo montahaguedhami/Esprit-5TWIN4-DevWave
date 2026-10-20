@@ -19,12 +19,14 @@
     </button>
 
     {{-- Mobile Navigation Overlay --}}
-    <div 
-        id="mobile-nav-overlay" 
+    <button
+        type="button"
+        id="mobile-nav-overlay"
         class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"
         onclick="toggleMobileNav()"
-        aria-hidden="true"
-    ></div>
+        tabindex="-1"
+        aria-label="Fermer le menu"
+    ></button>
 
     {{-- Mobile Navigation Menu --}}
     <nav 
@@ -45,7 +47,7 @@
             </div>
 
             {{-- Navigation Links --}}
-            <ul class="space-y-2" role="list">
+            <ul class="space-y-2">
                 @if($role === 'citizen')
                     <li><a href="/citizen/dashboard" class="mobile-nav-link {{ $currentRoute === 'citizen.dashboard' ? 'active' : '' }}">
                         <i data-lucide="layout-dashboard"></i>

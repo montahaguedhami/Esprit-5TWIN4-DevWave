@@ -1,613 +1,604 @@
 @extends('layouts.manager')
 
-@section('title', 'AquaSecure — Qualité de l\'eau')
+@section('title', 'AquaSecure — Supervision Qualité de l\'eau')
 
 @push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
 @include('manager.shared.light-shell')
+
 <style>
-#quality-map { height: 300px; border-radius: .75rem; }
-.leaflet-tile-pane { filter: brightness(.98) contrast(1.02) saturate(.9); }
-.leaflet-control-zoom a {
-    background: #fff !important;
-    border-color: #dce6ef !important;
-    color: #087e9b !important;
+/* ── Visual Tokens & Dark/Light Theming ── */
+.aq-quality-dashboard {
+    color: var(--text-primary, #152b42);
 }
-.leaflet-popup-content-wrapper {
-    background: #fff !important;
-    border: 1px solid #dce6ef !important;
-    border-radius: .75rem !important;
-    color: #152b42 !important;
-    box-shadow: 0 8px 24px rgba(16,42,67,.10) !important;
-}
-.leaflet-popup-tip { background: #fff !important; }
 
-/* ── Stat cards ── */
-.aq-stat-card {
-    background: #fff;
-    border: 1px solid #dce6ef;
-    border-radius: 1rem;
+.aq-glass-panel {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #dce6ef);
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 18px rgba(16, 42, 67, 0.04);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+[data-theme="dark"] .aq-glass-panel {
+    background: var(--bg-card, #0c1624);
+    border-color: var(--border, #1e293b);
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.35);
+}
+
+/* ── KPI Stat Cards ── */
+.aq-kpi-card {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #dce6ef);
+    border-radius: 1.125rem;
     padding: 1.25rem 1.5rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    box-shadow: 0 2px 12px rgba(16,42,67,.05);
-    transition: box-shadow .15s;
+    gap: 1.125rem;
+    box-shadow: 0 2px 12px rgba(16, 42, 67, 0.04);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.aq-stat-card:hover { box-shadow: 0 6px 20px rgba(16,42,67,.09); }
-.aq-stat-icon {
-    width: 3rem;
-    height: 3rem;
-    border-radius: .875rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.aq-stat-value { font-size: 1.5rem; font-weight: 700; color: #152b42; line-height: 1.1; }
-.aq-stat-label { font-size: .7rem; color: #52677d; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; margin-top: .125rem; }
-.aq-stat-sub { font-size: .75rem; color: #52677d; margin-top: .25rem; }
 
-/* ── Parameter card ── */
-.aq-param-card {
-    background: #fff;
-    border: 1px solid #dce6ef;
-    border-radius: 1rem;
-    padding: 1rem 1.25rem;
-    box-shadow: 0 2px 10px rgba(16,42,67,.04);
+.aq-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
 }
-.aq-param-card .param-name { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #52677d; }
-.aq-param-card .param-value { font-size: 1.35rem; font-weight: 800; color: #152b42; margin: .3rem 0 .15rem; }
-.aq-param-card .param-unit { font-size: .7rem; font-weight: 400; color: #718397; }
-.aq-progress { height: 6px; background: #e8eef4; border-radius: 99px; overflow: hidden; margin-top: .6rem; }
-.aq-progress-bar { height: 100%; border-radius: 99px; transition: width .4s ease; }
-.aq-param-badge { font-size: .6rem; font-weight: 700; border-radius: .375rem; padding: .15rem .5rem; }
 
-/* ── Section card ── */
-.aq-card {
-    background: #fff;
-    border: 1px solid #dce6ef;
-    border-radius: 1rem;
-    box-shadow: 0 2px 12px rgba(16,42,67,.04);
+[data-theme="dark"] .aq-kpi-card {
+    background: var(--bg-card, #0f1c2e);
+    border-color: var(--border, #1e2e42);
+}
+
+[data-theme="dark"] .aq-kpi-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    border-color: #0284c7;
+}
+
+/* ── Parameter Telemetry Cards ── */
+.aq-telemetry-box {
+    background: var(--bg-card, #ffffff);
+    border: 1px solid var(--border, #dce6ef);
+    border-radius: 1.125rem;
+    padding: 1.125rem 1.25rem;
+    position: relative;
     overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.aq-card-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #dce6ef;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: .75rem;
-    flex-wrap: wrap;
-    background: #f8fbfd;
-}
-.aq-card-title { font-size: .875rem; font-weight: 700; color: #152b42; display: flex; align-items: center; gap: .5rem; }
 
-/* ── Banner gradient (maquette top banner) ── */
-.aq-banner {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 40%, #dbeafe 100%);
-    border: 1px solid #bae6fd;
-    border-radius: 1rem;
+.aq-telemetry-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 42, 67, 0.07);
+}
+
+[data-theme="dark"] .aq-telemetry-box {
+    background: var(--bg-card, #0f1c2e);
+    border-color: var(--border, #1e2e42);
+}
+
+/* ── Progress Indicators ── */
+.aq-mini-bar {
+    height: 6px;
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-top: 0.625rem;
+}
+
+.aq-mini-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.4s ease;
+}
+
+/* ── Live Banner ── */
+.aq-hero-banner {
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(14, 116, 144, 0.04) 50%, rgba(59, 130, 246, 0.08) 100%);
+    border: 1px solid rgba(8, 145, 178, 0.25);
+    border-radius: 1.25rem;
     padding: 1.25rem 1.5rem;
-    display: flex;
+}
+
+[data-theme="dark"] .aq-hero-banner {
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.16) 0%, rgba(14, 116, 144, 0.08) 50%, rgba(59, 130, 246, 0.12) 100%);
+    border-color: rgba(8, 145, 178, 0.35);
+}
+
+/* ── Map & Chart container ── */
+#quality-map {
+    height: 340px;
+    border-radius: 0.875rem;
+    z-index: 1;
+}
+
+.aq-chart-container {
+    height: 340px;
+    position: relative;
+}
+
+.leaflet-tile-pane {
+    filter: brightness(0.98) contrast(1.02) saturate(0.95);
+}
+
+[data-theme="dark"] .leaflet-tile-pane {
+    filter: brightness(0.75) invert(1) contrast(3) hue-rotate(200deg) saturate(0.35);
+}
+
+.leaflet-popup-content-wrapper {
+    background: var(--bg-card, #ffffff) !important;
+    border: 1px solid var(--border, #dce6ef) !important;
+    border-radius: 0.875rem !important;
+    color: var(--text-primary, #152b42) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--bg-card, #ffffff) !important;
+}
+
+/* ── Badges ── */
+.badge-chip {
+    display: inline-flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
 }
 
-/* ── Table ── */
-.aq-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .75rem; color: #152b42; }
-.aq-table thead th { background: #f3f7fb; padding: .625rem 1rem; text-align: left; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #52677d; border-bottom: 1px solid #dce6ef; white-space: nowrap; }
-.aq-table tbody td { padding: .75rem 1rem; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
-.aq-table tbody tr:last-child td { border-bottom: none; }
-.aq-table tbody tr:hover td { background: #f4f9fb; }
-
-/* ── Status badges ── */
-.badge { display: inline-flex; align-items: center; gap: .3rem; font-size: .625rem; font-weight: 700; border-radius: 99px; padding: .2rem .6rem; white-space: nowrap; border-width: 1px; border-style: solid; }
-.badge-green  { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-.badge-amber  { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
-.badge-red    { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
-.badge-blue   { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
-.badge-slate  { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
-.badge-violet { background: #ede9fe; color: #5b21b6; border-color: #ddd6fe; }
-
-/* ── Chart.js in light mode ── */
-.aq-chart-wrap { position: relative; height: 240px; }
-
-/* ── Filter bar ── */
-.aq-filter-bar { padding: 1rem 1.5rem; background: #f8fbfd; border-bottom: 1px solid #dce6ef; }
-.aq-filter-bar label { display: block; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #52677d; margin-bottom: .3rem; }
-.aq-filter-bar input,
-.aq-filter-bar select {
-    width: 100%;
-    border: 1px solid #cbd8e4;
-    border-radius: .625rem;
-    padding: .375rem .75rem;
-    font-size: .75rem;
-    color: #152b42;
-    background: #fff;
-    outline: none;
-    transition: border-color .15s;
+.badge-green {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.25);
 }
-.aq-filter-bar input:focus,
-.aq-filter-bar select:focus { border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8,145,178,.1); }
-.aq-filter-bar .search-wrap { position: relative; }
-.aq-filter-bar .search-wrap svg { position: absolute; left: .625rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
-.aq-filter-bar .search-wrap input { padding-left: 2rem; }
-
-/* ── Compliance score ring (donut text) ── */
-.compliance-ring-wrap { position: relative; width: 7rem; height: 7rem; margin: 0 auto; }
-.compliance-ring-wrap canvas { width: 100% !important; height: 100% !important; }
-.compliance-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-.compliance-ring-label .val { font-size: 1.25rem; font-weight: 800; color: #152b42; line-height: 1; }
-.compliance-ring-label .sub { font-size: .6rem; color: #52677d; font-weight: 600; }
-
-/* ══════════════════════════════════════════════════════
-   DARK MODE OVERRIDES
-   ══════════════════════════════════════════════════════ */
-[data-theme="dark"] .aq-stat-card {
-    background: var(--bg-card, #1e293b);
-    border-color: var(--border, #334155);
-    box-shadow: 0 2px 12px rgba(0,0,0,.25);
-}
-[data-theme="dark"] .aq-stat-card:hover {
-    box-shadow: 0 6px 20px rgba(0,0,0,.35);
-}
-[data-theme="dark"] .aq-stat-value { color: #f1f5f9; }
-[data-theme="dark"] .aq-stat-label { color: #94a3b8; }
-[data-theme="dark"] .aq-stat-sub   { color: #64748b; }
-
-[data-theme="dark"] .aq-stat-icon.bg-cyan-50    { background: rgba(8,145,178,.15); }
-[data-theme="dark"] .aq-stat-icon.bg-blue-50    { background: rgba(59,130,246,.15); }
-[data-theme="dark"] .aq-stat-icon.bg-emerald-50 { background: rgba(16,185,129,.15); }
-[data-theme="dark"] .aq-stat-icon.bg-red-50     { background: rgba(239,68,68,.15); }
-[data-theme="dark"] .aq-stat-icon.bg-slate-50   { background: rgba(100,116,139,.15); }
-
-[data-theme="dark"] .aq-param-card {
-    background: var(--bg-card, #1e293b);
-    border-color: var(--border, #334155);
-    box-shadow: 0 2px 10px rgba(0,0,0,.20);
-}
-[data-theme="dark"] .aq-param-card .param-name  { color: #94a3b8; }
-[data-theme="dark"] .aq-param-card .param-value { color: #f1f5f9; }
-[data-theme="dark"] .aq-param-card .param-unit  { color: #64748b; }
-[data-theme="dark"] .aq-progress               { background: #334155; }
-[data-theme="dark"] .aq-param-badge.bg-cyan-50   { background: rgba(8,145,178,.2);  color: #67e8f9; border-color: rgba(8,145,178,.3); }
-[data-theme="dark"] .aq-param-badge.bg-blue-50   { background: rgba(59,130,246,.2); color: #93c5fd; border-color: rgba(59,130,246,.3); }
-[data-theme="dark"] .aq-param-badge.bg-indigo-50 { background: rgba(99,102,241,.2); color: #a5b4fc; border-color: rgba(99,102,241,.3); }
-[data-theme="dark"] .aq-param-badge.bg-amber-50  { background: rgba(245,158,11,.2); color: #fcd34d; border-color: rgba(245,158,11,.3); }
-[data-theme="dark"] .aq-param-badge.bg-violet-50 { background: rgba(139,92,246,.2); color: #c4b5fd; border-color: rgba(139,92,246,.3); }
-[data-theme="dark"] .aq-param-badge.bg-slate-50  { background: rgba(100,116,139,.2);color: #94a3b8; border-color: rgba(100,116,139,.3); }
-
-/* text colours in param cards under dark */
-[data-theme="dark"] .aq-param-card p { color: #94a3b8; }
-
-[data-theme="dark"] .aq-card {
-    background: var(--bg-card, #1e293b);
-    border-color: var(--border, #334155);
-    box-shadow: 0 2px 12px rgba(0,0,0,.25);
-}
-[data-theme="dark"] .aq-card-header {
-    background: var(--bg-muted, #0f172a);
-    border-bottom-color: var(--border, #334155);
-}
-[data-theme="dark"] .aq-card-title { color: #f1f5f9; }
-
-[data-theme="dark"] .aq-banner {
-    background: linear-gradient(135deg, rgba(8,145,178,.18) 0%, rgba(14,116,144,.15) 40%, rgba(30,64,175,.12) 100%);
-    border-color: rgba(8,145,178,.3);
-}
-[data-theme="dark"] .aq-banner p.text-cyan-900  { color: #e0f2fe; }
-[data-theme="dark"] .aq-banner p.text-cyan-700  { color: #a5f3fc; }
-[data-theme="dark"] .aq-banner .text-emerald-700 { color: #6ee7b7; }
-[data-theme="dark"] .aq-banner .text-amber-700   { color: #fcd34d; }
-[data-theme="dark"] .aq-banner .text-red-700     { color: #fca5a5; }
-[data-theme="dark"] .aq-banner .bg-emerald-100   { background: rgba(16,185,129,.2); color: #6ee7b7; border-color: rgba(16,185,129,.3); }
-[data-theme="dark"] .aq-banner .bg-amber-100     { background: rgba(245,158,11,.2);  color: #fcd34d; border-color: rgba(245,158,11,.3); }
-[data-theme="dark"] .aq-banner .bg-red-100       { background: rgba(239,68,68,.2);   color: #fca5a5; border-color: rgba(239,68,68,.3); }
-
-[data-theme="dark"] .aq-table { color: #cbd5e1; }
-[data-theme="dark"] .aq-table thead th {
-    background: var(--bg-muted, #0f172a);
-    color: #64748b;
-    border-bottom-color: var(--border, #334155);
-}
-[data-theme="dark"] .aq-table tbody td { border-bottom-color: #1e293b; }
-[data-theme="dark"] .aq-table tbody tr:hover td { background: rgba(255,255,255,.04); }
-[data-theme="dark"] .aq-table .text-slate-600 { color: #94a3b8; }
-[data-theme="dark"] .aq-table .text-slate-500 { color: #64748b; }
-[data-theme="dark"] .aq-table .text-slate-700 { color: #cbd5e1; }
-[data-theme="dark"] .aq-table .text-slate-400 { color: #475569; }
-[data-theme="dark"] .aq-table .text-cyan-700  { color: #67e8f9; }
-[data-theme="dark"] .aq-table .text-red-600   { color: #fca5a5; }
-[data-theme="dark"] .aq-table .text-amber-600 { color: #fcd34d; }
-
-[data-theme="dark"] .badge-green  { background: rgba(16,185,129,.15);  color: #6ee7b7; border-color: rgba(16,185,129,.3); }
-[data-theme="dark"] .badge-amber  { background: rgba(245,158,11,.15);   color: #fcd34d; border-color: rgba(245,158,11,.3); }
-[data-theme="dark"] .badge-red    { background: rgba(239,68,68,.15);    color: #fca5a5; border-color: rgba(239,68,68,.3); }
-[data-theme="dark"] .badge-blue   { background: rgba(59,130,246,.15);   color: #93c5fd; border-color: rgba(59,130,246,.3); }
-[data-theme="dark"] .badge-slate  { background: rgba(100,116,139,.15);  color: #94a3b8; border-color: rgba(100,116,139,.3); }
-[data-theme="dark"] .badge-violet { background: rgba(139,92,246,.15);   color: #c4b5fd; border-color: rgba(139,92,246,.3); }
-
-[data-theme="dark"] .aq-filter-bar {
-    background: var(--bg-muted, #0f172a);
-    border-bottom-color: var(--border, #334155);
-}
-[data-theme="dark"] .aq-filter-bar label { color: #64748b; }
-[data-theme="dark"] .aq-filter-bar input,
-[data-theme="dark"] .aq-filter-bar select {
-    background: var(--bg-input, #1e293b);
-    border-color: var(--border, #334155);
-    color: #f1f5f9;
-}
-[data-theme="dark"] .aq-filter-bar input::placeholder { color: #475569; }
-[data-theme="dark"] .aq-filter-bar input:focus,
-[data-theme="dark"] .aq-filter-bar select:focus {
-    border-color: #0891b2;
-    box-shadow: 0 0 0 3px rgba(8,145,178,.2);
+[data-theme="dark"] .badge-green {
+    background: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.35);
 }
 
-/* Leaflet dark */
-[data-theme="dark"] .leaflet-control-zoom a {
-    background: #1e293b !important;
-    border-color: #334155 !important;
-    color: #67e8f9 !important;
+.badge-amber {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.25);
 }
-[data-theme="dark"] .leaflet-popup-content-wrapper {
-    background: #1e293b !important;
-    border-color: #334155 !important;
-    color: #e2e8f0 !important;
+[data-theme="dark"] .badge-amber {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.35);
 }
-[data-theme="dark"] .leaflet-popup-tip { background: #1e293b !important; }
 
-/* Threshold modal dark */
-[data-theme="dark"] #threshold-modal > div {
-    background: var(--bg-card, #1e293b);
-    border-color: var(--border, #334155);
+.badge-red {
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.25);
 }
-[data-theme="dark"] #threshold-modal h3 { color: #f1f5f9; }
-[data-theme="dark"] #threshold-modal .text-slate-900 { color: #f1f5f9; }
-[data-theme="dark"] #threshold-modal .text-slate-600 { color: #94a3b8; }
-[data-theme="dark"] #threshold-modal .text-slate-500 { color: #64748b; }
-[data-theme="dark"] #threshold-modal .text-slate-800 { color: #e2e8f0; }
-[data-theme="dark"] #threshold-modal .bg-cyan-50   { background: rgba(8,145,178,.15); border-color: rgba(8,145,178,.25); color: #a5f3fc; }
-[data-theme="dark"] #threshold-modal .bg-amber-50  { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.3); color: #fcd34d; }
-[data-theme="dark"] #threshold-modal .bg-amber-100 { background: rgba(245,158,11,.2); }
-[data-theme="dark"] #threshold-modal .border-slate-100 { border-color: #334155; }
-[data-theme="dark"] #threshold-modal .bg-slate-100 { background: #334155; color: #cbd5e1; }
-[data-theme="dark"] #threshold-modal .bg-slate-100:hover { background: #475569; }
-
-/* compliance-ring dark */
-[data-theme="dark"] .compliance-ring-label .val { color: #f1f5f9; }
-[data-theme="dark"] .compliance-ring-label .sub { color: #64748b; }
-
-/* header action buttons dark */
-[data-theme="dark"] .aqua-manager-standalone .border-slate-300.bg-white {
-    background: var(--bg-card, #1e293b) !important;
-    border-color: var(--border, #334155) !important;
-    color: #cbd5e1 !important;
+[data-theme="dark"] .badge-red {
+    background: rgba(239, 68, 68, 0.18);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.35);
 }
-[data-theme="dark"] .aqua-manager-standalone .border-slate-300.bg-white:hover {
-    background: var(--bg-hover, #334155) !important;
+
+.badge-blue {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+    border: 1px solid rgba(2, 132, 199, 0.25);
+}
+[data-theme="dark"] .badge-blue {
+    background: rgba(2, 132, 199, 0.18);
+    color: #38bdf8;
+    border-color: rgba(2, 132, 199, 0.35);
+}
+
+.badge-violet {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(139, 92, 246, 0.25);
+}
+[data-theme="dark"] .badge-violet {
+    background: rgba(139, 92, 246, 0.18);
+    color: #a78bfa;
+    border-color: rgba(139, 92, 246, 0.35);
+}
+
+/* ── Modal blur backdrops ── */
+.modal-overlay-blur {
+    background-color: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
 }
 </style>
 @endpush
 
 @section('manager-content')
-<div class="aqua-manager-standalone w-full space-y-5">
+<div class="aq-quality-dashboard w-full space-y-6 pb-12">
 
-    {{-- ── Page header ── --}}
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-[11px] font-semibold mb-1.5">
-                <i data-lucide="droplets" class="w-3 h-3"></i>
-                Surveillance qualité
+    {{-- ══ 1. HEADER & GLOBAL ACTIONS ══════════════════════════════════════════ --}}
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+        <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-700 dark:text-cyan-300 text-xs font-bold tracking-wide">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Supervision Réseau National
+                </span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">· Système actif</span>
             </div>
-            <h1 class="text-2xl font-display font-bold text-slate-900 tracking-tight">Qualité de l'eau</h1>
-            <p class="text-slate-500 text-xs mt-0.5">Analyses, seuils de contrôle et alertes de contamination.</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                Qualité &amp; Conformité de l'Eau
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                Surveillance continue sur <strong class="text-slate-700 dark:text-slate-200">{{ $activePointsCount }} stations</strong> · <strong class="text-slate-700 dark:text-slate-200">{{ $paginator->total() }} relevés</strong> analysés et vérifiés.
+            </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <button onclick="openThresholdModal()"
-                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all">
-                <i data-lucide="sliders" class="w-3.5 h-3.5 text-cyan-600"></i> Seuils
+
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button type="button" onclick="openThresholdModal()"
+                    class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-xs transition cursor-pointer">
+                <i data-lucide="sliders" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+                <span>Seuils réglementaires</span>
             </button>
+
             <a href="{{ route('manager.points-mesure.index') }}"
-               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-cyan-600"></i> Points
+               class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-xs transition cursor-pointer">
+                <i data-lucide="map-pin" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+                <span>Stations de prélèvement</span>
             </a>
+
             @can('create', App\Models\MesureQualite::class)
                 @if($activePointsCount > 0)
                     <a href="{{ route('manager.quality.mesures.create') }}"
-                       class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold shadow-sm transition-all">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nouvelle mesure
+                       class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-md shadow-cyan-600/20 transition cursor-pointer">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Nouvelle mesure</span>
                     </a>
                 @else
                     <a href="{{ route('manager.points-mesure.create') }}"
-                       class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold shadow-sm transition-all">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Créer un point
+                       class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-md shadow-cyan-600/20 transition cursor-pointer">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Créer un point</span>
                     </a>
                 @endif
             @endcan
-            <button onclick="showToast('Export CSV en cours…', 'success')"
-                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-sm transition-all">
-                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i> Exporter CSV
+
+            <button type="button" onclick="showToast('Export CSV en cours…', 'success')"
+                    class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-xs transition cursor-pointer">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+                <span>Exporter CSV</span>
             </button>
         </div>
     </div>
 
-    {{-- ── Banner (maquette-style) ── --}}
+    {{-- ══ 2. LIVE TELEMETRY BANNER (DERNIÈRE ANALYSE ENREGISTRÉE) ═════════════ --}}
     @if($latestMeasurement)
-    <div class="aq-banner">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-md">
-            <i data-lucide="flask-conical" class="w-6 h-6 text-white"></i>
+        <div class="aq-hero-banner flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+            <div class="flex items-center gap-4 min-w-0">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0 text-white shadow-md shadow-cyan-500/20">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-cyan-800 dark:text-cyan-300">Dernier relevé télémétrique</span>
+                        <a href="{{ route('manager.quality.mesures.show', $latestMeasurement) }}" class="font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:underline">
+                            #{{ $latestMeasurement->reference }}
+                        </a>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-300 mt-1">
+                        <span class="font-semibold text-slate-900 dark:text-white">{{ $latestMeasurement->pointMesure?->nom ?? 'Station réseau' }}</span>
+                        <span>·</span>
+                        <span>{{ $latestMeasurement->date_mesure->format('d/m/Y à H:i') }}</span>
+                        <span>·</span>
+                        <span>pH: <strong class="font-mono">{{ $latestMeasurement->ph ?? '—' }}</strong></span>
+                        <span>·</span>
+                        <span>Turb: <strong class="font-mono">{{ $latestMeasurement->turbidite ?? '—' }} NTU</strong></span>
+                        <span>·</span>
+                        <span>Chlore: <strong class="font-mono">{{ $latestMeasurement->chlore_residuel ?? '—' }} mg/L</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="text-right hidden sm:block">
+                    <div class="text-[11px] text-slate-500 uppercase tracking-wide font-semibold">Conformité globale</div>
+                    <div class="text-base font-black font-mono {{ ($latestAssessment['overall_compliance'] ?? 0) >= 80 ? 'text-emerald-600 dark:text-emerald-400' : (($latestAssessment['overall_compliance'] ?? 0) >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400') }}">
+                        {{ $latestAssessment['overall_compliance'] ?? '—' }} %
+                    </div>
+                </div>
+
+                <a href="{{ route('manager.quality.mesures.show', $latestMeasurement) }}" class="badge-chip
+                    {{ ($latestAssessment['status'] ?? '') === 'Compliant'
+                        ? 'badge-green'
+                        : (($latestAssessment['status'] ?? '') === 'Alert'
+                            ? 'badge-amber'
+                            : 'badge-red') }}">
+                    <i data-lucide="{{ ($latestAssessment['status'] ?? '') === 'Compliant' ? 'check-circle' : 'alert-triangle' }}" class="w-3.5 h-3.5"></i>
+                    <span>{{ $latestAssessment['status'] ?? 'Évalué' }}</span>
+                </a>
+            </div>
         </div>
-        <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-cyan-900">Dernière analyse — {{ $latestMeasurement->reference }}</p>
-            <p class="text-xs text-cyan-700 mt-0.5">
-                {{ $latestMeasurement->pointMesure?->nom ?? '—' }} ·
-                {{ $latestMeasurement->date_mesure->format('d/m/Y H:i') }} ·
-                Conformité globale :
-                <strong class="{{ ($latestAssessment['overall_compliance'] ?? 0) >= 80 ? 'text-emerald-700' : (($latestAssessment['overall_compliance'] ?? 0) >= 50 ? 'text-amber-700' : 'text-red-700') }}">
-                    {{ $latestAssessment['overall_compliance'] ?? '—' }}%
-                </strong>
-            </p>
-        </div>
-        <span class="px-3 py-1 rounded-full text-xs font-bold
-            {{ ($latestAssessment['status'] ?? '') === 'Compliant'
-                ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                : (($latestAssessment['status'] ?? '') === 'Alert'
-                    ? 'bg-amber-100 text-amber-700 border border-amber-200'
-                    : 'bg-red-100 text-red-700 border border-red-200') }}">
-            {{ $latestAssessment['status'] ?? 'N/A' }}
-        </span>
-    </div>
     @endif
 
-    {{-- ── 4 summary stat cards ── --}}
+    {{-- ══ 3. 4 KPI STAT CARDS ═════════════════════════════════════════════════ --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {{-- Conformité moyenne --}}
-        <div class="aq-stat-card">
-            <div class="aq-stat-icon bg-cyan-50">
-                <i data-lucide="percent" class="w-5 h-5 text-cyan-600"></i>
+        <div class="aq-kpi-card">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0">
+                <i data-lucide="percent" class="w-6 h-6"></i>
             </div>
-            <div>
-                <div class="aq-stat-value text-cyan-700">{{ $averageCompliance !== null ? $averageCompliance.'%' : '—' }}</div>
-                <div class="aq-stat-label">Conformité moy.</div>
-                <div class="aq-stat-sub">Sur {{ $records->count() }} mesures</div>
+            <div class="min-w-0">
+                <div class="text-2xl font-black font-mono text-slate-900 dark:text-white">
+                    {{ $averageCompliance !== null ? $averageCompliance.'%' : '—' }}
+                </div>
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Conformité moyenne</div>
+                <div class="text-[11px] text-slate-400 mt-0.5 truncate">Sur {{ $records->count() }} relevés paginés</div>
             </div>
         </div>
+
         {{-- Points actifs --}}
-        <div class="aq-stat-card">
-            <div class="aq-stat-icon bg-blue-50">
-                <i data-lucide="map-pin" class="w-5 h-5 text-blue-600"></i>
+        <div class="aq-kpi-card">
+            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <i data-lucide="map-pin" class="w-6 h-6"></i>
             </div>
-            <div>
-                <div class="aq-stat-value text-blue-700">{{ $activePointsCount }}</div>
-                <div class="aq-stat-label">Points actifs</div>
-                <div class="aq-stat-sub">de prélèvement</div>
+            <div class="min-w-0">
+                <div class="text-2xl font-black font-mono text-slate-900 dark:text-white">
+                    {{ $activePointsCount }}
+                </div>
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Stations actives</div>
+                <div class="text-[11px] text-slate-400 mt-0.5 truncate">Points de contrôle en service</div>
             </div>
         </div>
+
         {{-- Mesures vérifiées --}}
-        <div class="aq-stat-card">
-            <div class="aq-stat-icon bg-emerald-50">
-                <i data-lucide="badge-check" class="w-5 h-5 text-emerald-600"></i>
+        <div class="aq-kpi-card">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
             </div>
-            <div>
-                <div class="aq-stat-value text-emerald-700">{{ $records->where('is_verified', true)->count() }}</div>
-                <div class="aq-stat-label">Vérifiées</div>
-                <div class="aq-stat-sub">Sur {{ $records->count() }} au total</div>
+            <div class="min-w-0">
+                <div class="text-2xl font-black font-mono text-slate-900 dark:text-white">
+                    {{ $records->where('is_verified', true)->count() }}
+                </div>
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Analyses validées</div>
+                <div class="text-[11px] text-slate-400 mt-0.5 truncate">Sur {{ $records->count() }} sur cette page</div>
             </div>
         </div>
-        {{-- Alertes --}}
+
+        {{-- Alertes sanitaires --}}
         @php $alerts = $records->whereIn('status', ['Alert', 'Non-Compliant'])->count(); @endphp
-        <div class="aq-stat-card">
-            <div class="aq-stat-icon {{ $alerts > 0 ? 'bg-red-50' : 'bg-slate-50' }}">
-                <i data-lucide="triangle-alert" class="w-5 h-5 {{ $alerts > 0 ? 'text-red-500' : 'text-slate-400' }}"></i>
+        <div class="aq-kpi-card">
+            <div class="w-12 h-12 rounded-2xl {{ $alerts > 0 ? 'bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400' : 'bg-slate-500/10 text-slate-400' }} flex items-center justify-center shrink-0">
+                <i data-lucide="triangle-alert" class="w-6 h-6"></i>
             </div>
-            <div>
-                <div class="aq-stat-value {{ $alerts > 0 ? 'text-red-600' : 'text-slate-400' }}">{{ $alerts }}</div>
-                <div class="aq-stat-label">Alertes / NC</div>
-                <div class="aq-stat-sub">Nécessitent attention</div>
+            <div class="min-w-0">
+                <div class="text-2xl font-black font-mono {{ $alerts > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-400' }}">
+                    {{ $alerts }}
+                </div>
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Alertes &amp; Déviations</div>
+                <div class="text-[11px] text-slate-400 mt-0.5 truncate">Nécessitant investigation</div>
             </div>
         </div>
     </div>
 
-    {{-- ── 5 parameter cards (maquette Water Quality Metrics) ── --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    {{-- ══ 4. 5 PARAMETER TELEMETRY CARDS (NORMES NT 09.14) ═══════════════════ --}}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
 
-        {{-- pH --}}
-        <div class="aq-param-card">
-            <div class="flex items-center justify-between mb-1">
-                <span class="param-name">pH</span>
-                <span class="aq-param-badge bg-cyan-50 text-cyan-700 border border-cyan-100">6.5–8.5</span>
+        {{-- 1. pH --}}
+        <div class="aq-telemetry-box">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">pH</span>
+                <span class="badge-chip badge-violet text-[10px] px-2 py-0.5">6.5–8.5</span>
             </div>
-            <div class="param-value">{{ $latestMeasurement?->ph ?? '—' }}<span class="param-unit"> pH</span></div>
-            <div class="aq-progress">
-                <div class="aq-progress-bar bg-cyan-400" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->ph/14)*100,100) : 0 }}%"></div>
+            <div class="mt-2 text-xl font-black font-mono text-slate-900 dark:text-white">
+                {{ $latestMeasurement?->ph ?? '—' }} <span class="text-xs font-normal text-slate-400">pH</span>
             </div>
-            <p class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
+            <div class="aq-mini-bar">
+                <div class="aq-mini-fill bg-violet-500" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->ph/14)*100, 100) : 0 }}%"></div>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400">
                 <span>Dernière mesure</span>
-                <span class="{{ ($latestAssessment['parameter_statuses']['ph'] ?? '') === 'Compliant' ? 'text-emerald-600' : 'text-amber-600' }} font-semibold">
+                <span class="{{ ($latestAssessment['parameter_statuses']['ph'] ?? '') === 'Compliant' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600' }} font-bold">
                     {{ $latestAssessment['parameter_statuses']['ph'] ?? '—' }}
                 </span>
-            </p>
+            </div>
         </div>
 
-        {{-- Turbidité --}}
-        <div class="aq-param-card">
-            <div class="flex items-center justify-between mb-1">
-                <span class="param-name">Turbidité</span>
-                <span class="aq-param-badge bg-blue-50 text-blue-700 border border-blue-100">&lt;1.0 NTU</span>
+        {{-- 2. Turbidité --}}
+        <div class="aq-telemetry-box">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Turbidité</span>
+                <span class="badge-chip badge-blue text-[10px] px-2 py-0.5">&lt; 1.0 NTU</span>
             </div>
-            <div class="param-value">{{ $latestMeasurement?->turbidite ?? '—' }}<span class="param-unit"> NTU</span></div>
-            <div class="aq-progress">
-                <div class="aq-progress-bar bg-blue-400" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->turbidite/2)*100,100) : 0 }}%"></div>
+            <div class="mt-2 text-xl font-black font-mono text-slate-900 dark:text-white">
+                {{ $latestMeasurement?->turbidite ?? '—' }} <span class="text-xs font-normal text-slate-400">NTU</span>
             </div>
-            <p class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
+            <div class="aq-mini-bar">
+                <div class="aq-mini-fill bg-cyan-500" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->turbidite/2.5)*100, 100) : 0 }}%"></div>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400">
                 <span>Dernière mesure</span>
-                <span class="{{ ($latestAssessment['parameter_statuses']['turbidite'] ?? '') === 'Compliant' ? 'text-emerald-600' : 'text-amber-600' }} font-semibold">
+                <span class="{{ ($latestAssessment['parameter_statuses']['turbidite'] ?? '') === 'Compliant' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600' }} font-bold">
                     {{ $latestAssessment['parameter_statuses']['turbidite'] ?? '—' }}
                 </span>
-            </p>
+            </div>
         </div>
 
-        {{-- Chlore --}}
-        <div class="aq-param-card">
-            <div class="flex items-center justify-between mb-1">
-                <span class="param-name">Chlore rés.</span>
-                <span class="aq-param-badge bg-indigo-50 text-indigo-700 border border-indigo-100">0.2–2.0 mg/L</span>
+        {{-- 3. Chlore résiduel --}}
+        <div class="aq-telemetry-box">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Chlore rés.</span>
+                <span class="badge-chip badge-green text-[10px] px-2 py-0.5">0.2–2.0 mg/L</span>
             </div>
-            <div class="param-value">{{ $latestMeasurement?->chlore_residuel ?? '—' }}<span class="param-unit"> mg/L</span></div>
-            <div class="aq-progress">
-                <div class="aq-progress-bar bg-indigo-400" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->chlore_residuel/2)*100,100) : 0 }}%"></div>
-            </div>
-            <p class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
-                <span>Dernière mesure</span>
-                <span class="{{ ($latestAssessment['parameter_statuses']['chlore_residuel'] ?? '') === 'Compliant' ? 'text-emerald-600' : 'text-amber-600' }} font-semibold">
-                    {{ $latestAssessment['parameter_statuses']['chlore_residuel'] ?? '—' }}
-                </span>
-            </p>
-        </div>
-
-        {{-- Plomb --}}
-        <div class="aq-param-card">
-            <div class="flex items-center justify-between mb-1">
-                <span class="param-name">Plomb (Pb)</span>
-                <span class="aq-param-badge bg-amber-50 text-amber-700 border border-amber-100">&lt;15 ppb</span>
-            </div>
-            <div class="param-value">{{ $latestMeasurement?->plomb ?? '—' }}<span class="param-unit"> ppb</span></div>
-            <div class="aq-progress">
-                <div class="aq-progress-bar bg-amber-400" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->plomb/15)*100,100) : 0 }}%"></div>
-            </div>
-            <p class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
-                <span>Dernière mesure</span>
-                <span class="{{ ($latestAssessment['parameter_statuses']['plomb'] ?? '') === 'Compliant' ? 'text-emerald-600' : 'text-red-600' }} font-semibold">
-                    {{ $latestAssessment['parameter_statuses']['plomb'] ?? '—' }}
-                </span>
-            </p>
-        </div>
-
-        {{-- Nitrates --}}
-        <div class="aq-param-card">
-            <div class="flex items-center justify-between mb-1">
-                <span class="param-name">Nitrates</span>
-                @if(config('water_quality.nitrates_max') !== null)
-                    <span class="aq-param-badge bg-violet-50 text-violet-700 border border-violet-100">&le;{{ config('water_quality.nitrates_max') }}</span>
+            <div class="mt-2 text-xl font-black font-mono text-slate-900 dark:text-white">
+                @if($latestMeasurement?->chlore_residuel !== null)
+                    {{ $latestMeasurement->chlore_residuel }} <span class="text-xs font-normal text-slate-400">mg/L</span>
                 @else
-                    <span class="aq-param-badge bg-slate-50 text-slate-500 border border-slate-200">—</span>
+                    <span class="text-sm font-medium text-slate-400">Non renseigné</span>
                 @endif
             </div>
-            <div class="param-value">{{ $latestMeasurement?->nitrates ?? '—' }}<span class="param-unit"> mg/L</span></div>
-            <div class="aq-progress">
-                <div class="aq-progress-bar bg-violet-400" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->nitrates/100)*100,100) : 0 }}%"></div>
+            <div class="aq-mini-bar">
+                <div class="aq-mini-fill bg-emerald-500" style="width:{{ $latestMeasurement?->chlore_residuel !== null ? min(((float)$latestMeasurement->chlore_residuel/2.0)*100, 100) : 0 }}%"></div>
             </div>
-            <p class="text-[10px] text-slate-400 mt-1.5 flex justify-between">
-                <span>{{ config('water_quality.nitrates_max') !== null ? 'Max '.config('water_quality.nitrates_max').' mg/L' : 'Non configuré' }}</span>
-                <span class="text-violet-600 font-semibold">
-                    {{ $latestAssessment['parameter_statuses']['nitrates'] ?? ($latestMeasurement ? '—' : '—') }}
+            <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+                <span>Dernière mesure</span>
+                <span class="{{ ($latestAssessment['parameter_statuses']['chlore_residuel'] ?? '') === 'Compliant' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600' }} font-bold">
+                    {{ $latestAssessment['parameter_statuses']['chlore_residuel'] ?? 'Non fourni' }}
                 </span>
-            </p>
+            </div>
         </div>
+
+        {{-- 4. Plomb --}}
+        <div class="aq-telemetry-box">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Plomb (Pb)</span>
+                <span class="badge-chip badge-amber text-[10px] px-2 py-0.5">&le; 15 ppb</span>
+            </div>
+            <div class="mt-2 text-xl font-black font-mono text-slate-900 dark:text-white">
+                @if($latestMeasurement?->plomb !== null)
+                    {{ $latestMeasurement->plomb }} <span class="text-xs font-normal text-slate-400">ppb</span>
+                @else
+                    <span class="text-sm font-medium text-slate-400">Non renseigné</span>
+                @endif
+            </div>
+            <div class="aq-mini-bar">
+                <div class="aq-mini-fill bg-amber-500" style="width:{{ $latestMeasurement?->plomb !== null ? min(((float)$latestMeasurement->plomb/15.0)*100, 100) : 0 }}%"></div>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+                <span>Dernière mesure</span>
+                <span class="{{ ($latestAssessment['parameter_statuses']['plomb'] ?? '') === 'Compliant' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600' }} font-bold">
+                    {{ $latestAssessment['parameter_statuses']['plomb'] ?? 'Non fourni' }}
+                </span>
+            </div>
+        </div>
+
+        {{-- 5. Nitrates --}}
+        <div class="aq-telemetry-box">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Nitrates (NO₃)</span>
+                <span class="badge-chip badge-blue text-[10px] px-2 py-0.5">&le; 50 mg/L</span>
+            </div>
+            <div class="mt-2 text-xl font-black font-mono text-slate-900 dark:text-white">
+                {{ $latestMeasurement?->nitrates ?? '—' }} <span class="text-xs font-normal text-slate-400">mg/L</span>
+            </div>
+            <div class="aq-mini-bar">
+                <div class="aq-mini-fill bg-blue-500" style="width:{{ $latestMeasurement ? min(((float)$latestMeasurement->nitrates/60.0)*100, 100) : 0 }}%"></div>
+            </div>
+            <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+                <span>Plafond 50 mg/L</span>
+                <span class="{{ ($latestAssessment['parameter_statuses']['nitrates'] ?? '') === 'Compliant' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600' }} font-bold">
+                    {{ $latestAssessment['parameter_statuses']['nitrates'] ?? '—' }}
+                </span>
+            </div>
+        </div>
+
     </div>
 
-    {{-- ── Map + Trend chart (maquette: graph section) ── --}}
-    <div class="grid lg:grid-cols-2 gap-5">
+    {{-- ══ 5. TWO COLUMNS : LEAFLET MAP & 30-DAY TREND CHART ══════════════════ --}}
+    <div class="grid lg:grid-cols-2 gap-6">
 
-        {{-- Leaflet map --}}
-        <div class="aq-card">
-            <div class="aq-card-header">
-                <h3 class="aq-card-title">
-                    <i data-lucide="map-pin" class="w-4 h-4 text-cyan-600"></i>
-                    Carte des stations de prélèvement
+        {{-- Map Card --}}
+        <div class="aq-glass-panel p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="map" class="w-4 h-4 text-cyan-600"></i>
+                    Cartographie des stations de prélèvement
                 </h3>
-                <span class="text-xs text-slate-500 font-medium">{{ $activePointsCount }} point(s) actif(s)</span>
+                <span class="badge-chip badge-blue text-[10px]">
+                    {{ $activePointsCount }} station(s) géolocalisée(s)
+                </span>
             </div>
-            <div class="p-4">
-                <div id="quality-map"></div>
-            </div>
+            <div id="quality-map"></div>
         </div>
 
-        {{-- Trend chart (maquette: "Your Ward - Water Usage" style) ── --}}
-        <div class="aq-card">
-            <div class="aq-card-header">
-                <h3 class="aq-card-title">
-                    <i data-lucide="line-chart" class="w-4 h-4 text-cyan-600"></i>
-                    Conformité sur 30 jours
+        {{-- 30-Day Trend Chart Card --}}
+        <div class="aq-glass-panel p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-cyan-600"></i>
+                    Évolution de la conformité sur 30 jours
                 </h3>
                 @if($averageCompliance !== null)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-[11px] font-semibold">
-                        <i data-lucide="trending-up" class="w-3 h-3"></i>
-                        {{ $averageCompliance }}% moy.
+                    <span class="badge-chip badge-green text-[10px]">
+                        {{ $averageCompliance }}% moyenne
                     </span>
                 @endif
             </div>
-            <div class="p-4">
-                <div class="aq-chart-wrap">
-                    <canvas id="qualityTrendChart"></canvas>
-                </div>
+            <div class="aq-chart-container">
+                <canvas id="qualityTrendChart"></canvas>
             </div>
         </div>
+
     </div>
 
-    {{-- ── Measurements table ── --}}
-    <div class="aq-card">
-        <div class="aq-card-header">
+    {{-- ══ 6. TABLE DES RÉSULTATS D'ANALYSES & FILTRES ═════════════════════════ --}}
+    <div class="aq-glass-panel overflow-hidden">
+        {{-- Card Header --}}
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 bg-slate-50/60 dark:bg-slate-850">
             <div>
-                <h3 class="aq-card-title">
+                <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                     <i data-lucide="clipboard-list" class="w-4 h-4 text-cyan-600"></i>
-                    Résultats d'analyses
-                </h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">Relevés vérifiés et en attente de validation.</p>
+                    Résultats d'analyses &amp; Relevés terrain
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Historique certifié des mesures de conformité physico-chimique.
+                </p>
             </div>
-            <span class="text-xs text-slate-500 font-medium font-mono">
-                {{ $paginator->total() }} mesure(s)
+            <span class="font-mono text-xs font-bold px-3 py-1 rounded-lg bg-slate-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {{ $paginator->total() }} relevé(s) au total
             </span>
         </div>
 
-        {{-- Filters --}}
-        <div class="aq-filter-bar">
+        {{-- Filter Bar --}}
+        <div class="p-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
             <form method="GET" action="{{ route('manager.quality') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6 items-end">
-                <div class="lg:col-span-2 search-wrap">
-                    <label>Recherche (Réf., point, zone)</label>
-                    <i data-lucide="search" class="w-3.5 h-3.5" style="position:absolute;left:.625rem;top:calc(50% + .7rem);transform:translateY(-50%);color:#94a3b8;pointer-events:none"></i>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Ex: WQR-2026 ou Belvédère" style="padding-left:2rem">
+                <div class="lg:col-span-2">
+                    <label for="search" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Recherche (Réf., point, zone)</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        <input id="search" type="text" name="search" value="{{ request('search') }}" placeholder="Ex: WQR-2026, Grand Tunis..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                    </div>
                 </div>
+
                 <div>
-                    <label>Point de prélèvement</label>
-                    <select name="point_mesure_id">
+                    <label for="point-mesure-id" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Station / Point</label>
+                    <select id="point-mesure-id" name="point_mesure_id" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
                         <option value="">Tous les points</option>
                         @foreach($allPointsForFilter ?? [] as $pt)
-                            <option value="{{ $pt->id }}" @selected((string) request('point_mesure_id') === (string) $pt->id)>{{ $pt->nom }} ({{ $pt->code }})</option>
+                            <option value="{{ $pt->id }}" @selected((string) request('point_mesure_id') === (string) $pt->id)>
+                                {{ $pt->nom }} ({{ $pt->code }})
+                            </option>
                         @endforeach
                     </select>
                 </div>
+
                 <div>
-                    <label>Conformité</label>
-                    <select name="status">
+                    <label for="status" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Conformité</label>
+                    <select id="status" name="status" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
                         <option value="">Tous les états</option>
                         <option value="Compliant"     @selected(request('status') === 'Compliant')>Conforme</option>
                         <option value="Alert"         @selected(request('status') === 'Alert')>Alerte</option>
                         <option value="Non-Compliant" @selected(request('status') === 'Non-Compliant')>Non conforme</option>
                     </select>
                 </div>
+
                 <div>
-                    <label>Provenance</label>
-                    <select name="source_donnee">
+                    <label for="source-donnee" class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Provenance</label>
+                    <select id="source-donnee" name="source_donnee" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer">
                         <option value="">Toutes sources</option>
                         <option value="manuel"      @selected(request('source_donnee') === 'manuel')>Manuel (terrain)</option>
                         <option value="laboratoire" @selected(request('source_donnee') === 'laboratoire')>Laboratoire</option>
-                        <option value="simule"      @selected(request('source_donnee') === 'simule')>Simulé</option>
+                        <option value="csv"         @selected(request('source_donnee') === 'csv')>Import CSV</option>
                     </select>
                 </div>
-                <div class="flex items-end gap-2">
-                    <button type="submit"
-                            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold shadow-sm transition-all">
-                        <i data-lucide="filter" class="w-3.5 h-3.5"></i> Filtrer
+
+                <div class="flex items-center gap-2">
+                    <button type="submit" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-sm transition cursor-pointer">
+                        <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                        <span>Filtrer</span>
                     </button>
                     @if(request()->hasAny(['search','point_mesure_id','status','source_donnee']))
-                        <a href="{{ route('manager.quality') }}"
-                           class="inline-flex items-center justify-center px-2.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-500 text-xs transition-all"
-                           title="Réinitialiser">
+                        <a href="{{ route('manager.quality') }}" class="inline-flex items-center justify-center px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-500 text-xs transition cursor-pointer" title="Réinitialiser">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </a>
                     @endif
@@ -615,86 +606,158 @@
             </form>
         </div>
 
+        {{-- Bulk Selection Bar --}}
+        @if(auth()->user()?->hasPermission('measurements.delete'))
+            <form id="bulk-delete-measurements" method="POST" action="{{ route('manager.quality.mesures.bulk-destroy') }}">
+                @csrf
+                @method('DELETE')
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 px-4 py-2.5 bg-slate-50/40 dark:bg-slate-850">
+                    <div class="flex items-center gap-3">
+                        <button type="button" id="select-all-measurements" class="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 cursor-pointer">
+                            Tout sélectionner (page)
+                        </button>
+                        <span id="selected-measurements-count" class="text-xs text-slate-500 font-medium">Aucune mesure sélectionnée</span>
+                    </div>
+                    <button type="submit" id="delete-selected-measurements" disabled class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        <span>Supprimer la sélection</span>
+                    </button>
+                </div>
+        @endif
+
         {{-- Table --}}
         <div class="overflow-x-auto">
-            <table class="aq-table">
-                <thead>
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-850 border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                     <tr>
-                        <th>Réf. &amp; Point</th>
-                        <th>Zone</th>
-                        <th>Date</th>
-                        <th>pH</th>
-                        <th>Turbidité</th>
-                        <th>Chlore</th>
-                        <th>Plomb</th>
-                        <th>Nitrates</th>
-                        <th>Validation</th>
-                        <th>Provenance</th>
-                        <th style="text-align:right">Conformité</th>
+                        @if(auth()->user()?->hasPermission('measurements.delete'))
+                            <th class="w-10 px-3 py-3"><span class="sr-only">Sélection</span></th>
+                        @endif
+                        <th class="px-4 py-3">Réf. &amp; Point</th>
+                        <th class="px-3 py-3">Zone</th>
+                        <th class="px-3 py-3">Date</th>
+                        <th class="px-3 py-3">pH</th>
+                        <th class="px-3 py-3">Turbidité</th>
+                        <th class="px-3 py-3">Chlore</th>
+                        <th class="px-3 py-3">Plomb</th>
+                        <th class="px-3 py-3">Nitrates</th>
+                        <th class="px-3 py-3">Validation</th>
+                        <th class="px-3 py-3">Provenance</th>
+                        <th class="px-4 py-3 text-right">Conformité</th>
+                        <th class="px-3 py-3 text-center">Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($records as $rec)
-                        <tr>
-                            <td>
-                                <a href="{{ route('manager.quality.mesures.show', $rec['measurement_id']) }}"
-                                   class="font-mono text-[11px] text-cyan-700 hover:underline font-semibold">{{ $rec['id'] }}</a>
-                                <div class="text-[11px] text-slate-500 mt-0.5">
-                                    <a href="{{ route('manager.points-mesure.index') }}" class="hover:text-cyan-700">{{ $rec['sampling_point'] }}</a>
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                            @if(auth()->user()?->hasPermission('measurements.delete'))
+                                <td class="px-3 py-3 text-center">
+                                    <input type="checkbox" name="mesure_ids[]" value="{{ $rec['measurement_id'] }}" class="measurement-row-checkbox h-4 w-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer" aria-label="Sélectionner la mesure {{ $rec['id'] }}">
+                                </td>
+                            @endif
+
+                            {{-- Reference & Point --}}
+                            <td class="px-4 py-3">
+                                <a href="{{ route('manager.quality.mesures.show', $rec['measurement_id']) }}" class="font-mono text-xs font-bold text-cyan-700 dark:text-cyan-400 hover:underline">
+                                    {{ $rec['id'] }}
+                                </a>
+                                <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+                                    <i data-lucide="map-pin" class="w-3 h-3 text-slate-400"></i>
+                                    @if($rec['point_mesure_id'])
+                                        <a href="{{ route('manager.points-mesure.show', $rec['point_mesure_id']) }}" class="hover:text-cyan-700 dark:hover:text-cyan-300 font-medium">
+                                            {{ $rec['sampling_point'] }}
+                                        </a>
+                                    @else
+                                        <span>{{ $rec['sampling_point'] }}</span>
+                                    @endif
                                 </div>
+                                @if($rec['infrastructure'])
+                                    <div class="text-[10px] text-cyan-600 dark:text-cyan-400 font-medium">Infra: {{ $rec['infrastructure'] }}</div>
+                                @endif
                             </td>
-                            <td class="text-slate-600">{{ $rec['zone'] }}</td>
-                            <td class="text-slate-500 whitespace-nowrap">{{ $rec['date'] }}</td>
-                            <td class="font-mono font-semibold {{ (float)$rec['pH'] < 6.5 || (float)$rec['pH'] > 8.5 ? 'text-red-600' : 'text-slate-700' }}">
+
+                            {{-- Zone --}}
+                            <td class="px-3 py-3 text-slate-600 dark:text-slate-300 font-medium">
+                                {{ $rec['zone'] }}
+                            </td>
+
+                            {{-- Date --}}
+                            <td class="px-3 py-3 text-slate-500 whitespace-nowrap font-mono text-[11px]">
+                                {{ $rec['date'] }}
+                            </td>
+
+                            {{-- pH --}}
+                            <td class="px-3 py-3 font-mono font-bold {{ (float)$rec['pH'] < 6.5 || (float)$rec['pH'] > 8.5 ? 'text-red-600' : 'text-slate-800 dark:text-slate-200' }}">
                                 {{ $rec['pH'] }}
                             </td>
-                            <td class="font-mono font-semibold {{ (float)$rec['turbidity'] > 1.0 ? 'text-amber-600' : 'text-slate-700' }}">
-                                {{ $rec['turbidity'] }} <span class="font-normal text-slate-400">NTU</span>
+
+                            {{-- Turbidite --}}
+                            <td class="px-3 py-3 font-mono font-bold {{ (float)$rec['turbidity'] > 1.0 ? 'text-amber-600' : 'text-slate-800 dark:text-slate-200' }}">
+                                {{ $rec['turbidity'] }} <span class="font-normal text-slate-400 text-[10px]">NTU</span>
                             </td>
-                            <td class="font-mono font-semibold {{ (float)$rec['residual_chlorine'] < 0.2 ? 'text-red-600' : 'text-slate-700' }}">
-                                {{ $rec['residual_chlorine'] }} <span class="font-normal text-slate-400">mg/L</span>
+
+                            {{-- Chlore --}}
+                            <td class="px-3 py-3 font-mono font-bold {{ (float)$rec['residual_chlorine'] < 0.2 ? 'text-red-600' : 'text-slate-800 dark:text-slate-200' }}">
+                                {{ $rec['residual_chlorine'] }} <span class="font-normal text-slate-400 text-[10px]">mg/L</span>
                             </td>
-                            <td class="font-mono font-semibold {{ (float)$rec['lead_pb'] > 15 ? 'text-red-600' : 'text-slate-700' }}">
-                                {{ $rec['lead_pb'] }} <span class="font-normal text-slate-400">ppb</span>
+
+                            {{-- Plomb --}}
+                            <td class="px-3 py-3 font-mono font-bold {{ (float)$rec['lead_pb'] > 15 ? 'text-red-600' : 'text-slate-800 dark:text-slate-200' }}">
+                                {{ $rec['lead_pb'] }} <span class="font-normal text-slate-400 text-[10px]">ppb</span>
                             </td>
-                            <td class="font-mono text-slate-600">{{ $rec['nitrates'] }} <span class="text-slate-400">mg/L</span></td>
-                            <td>
+
+                            {{-- Nitrates (Must preserve exact "$rec['nitrates'] mg/L" for tests) --}}
+                            <td class="px-3 py-3 font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ $rec['nitrates'] }} mg/L</td>
+
+                            {{-- Validation --}}
+                            <td class="px-3 py-3">
                                 @if($rec['is_verified'])
-                                    <span class="badge badge-green">
+                                    <span class="badge-chip badge-green text-[10px]">
                                         <i data-lucide="check-circle-2" class="w-3 h-3"></i> Vérifié
                                     </span>
                                 @else
-                                    <span class="badge badge-amber">
+                                    <span class="badge-chip badge-amber text-[10px]">
                                         <i data-lucide="clock" class="w-3 h-3"></i> En attente
                                     </span>
                                 @endif
                             </td>
-                            <td>
+
+                            {{-- Provenance --}}
+                            <td class="px-3 py-3">
                                 @php $src = $rec['source_donnee'] ?? 'manuel'; @endphp
                                 @if($src === 'laboratoire')
-                                    <span class="badge badge-blue">Laboratoire</span>
-                                @elseif($src === 'simule')
-                                    <span class="badge badge-slate">Simulé</span>
+                                    <span class="badge-chip badge-blue text-[10px]">Laboratoire</span>
+                                @elseif($src === 'simule' || $src === 'csv')
+                                    <span class="badge-chip badge-blue text-[10px]">Import</span>
                                 @else
-                                    <span class="badge badge-violet">Manuel</span>
+                                    <span class="badge-chip badge-violet text-[10px]">Manuel</span>
                                 @endif
                             </td>
-                            <td style="text-align:right">
+
+                            {{-- Conformite --}}
+                            <td class="px-4 py-3 text-right">
                                 @php
                                     $compCls = $rec['status'] === 'Compliant'
                                         ? 'badge-green'
                                         : ($rec['status'] === 'Alert' ? 'badge-amber' : 'badge-red');
                                 @endphp
-                                <span class="badge {{ $compCls }}">
+                                <span class="badge-chip {{ $compCls }} text-[10px]">
                                     {{ $rec['status'] }} · {{ $rec['overall_compliance'] }}%
                                 </span>
+                            </td>
+
+                            {{-- Action --}}
+                            <td class="px-3 py-3 text-center">
+                                <a href="{{ route('manager.quality.mesures.show', $rec['measurement_id']) }}" class="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-cyan-600 hover:text-white text-slate-600 dark:text-slate-300 transition" title="Consulter le relevé">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" style="text-align:center;padding:3rem 1rem;color:#52677d">
-                                <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300" style="display:block"></i>
-                                Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.
+                            <td colspan="{{ auth()->user()?->hasPermission('measurements.delete') ? 13 : 12 }}" class="text-center py-12 text-slate-400">
+                                <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600 block"></i>
+                                <span>Aucune mesure enregistrée. Créez un point de prélèvement puis ajoutez une mesure.</span>
                             </td>
                         </tr>
                     @endforelse
@@ -702,68 +765,164 @@
             </table>
         </div>
 
+        @if(auth()->user()?->hasPermission('measurements.delete'))
+            </form>
+
+            {{-- Bulk delete confirmation modal --}}
+            <div id="bulk-delete-confirmation" class="modal-overlay-blur fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="bulk-delete-title">
+                <div class="w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400">
+                            <i data-lucide="trash-2" class="h-6 w-6"></i>
+                        </div>
+                        <div>
+                            <h2 id="bulk-delete-title" class="text-lg font-bold text-slate-900 dark:text-white">Supprimer les mesures sélectionnées ?</h2>
+                            <p id="bulk-delete-description" class="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Vous allez supprimer définitivement <strong id="bulk-delete-confirm-count" class="text-slate-900 dark:text-white">0 mesure</strong>. Cette action est irréversible.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button" id="cancel-bulk-delete" class="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 cursor-pointer">
+                            Annuler
+                        </button>
+                        <button type="button" id="confirm-bulk-delete" class="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-red-600/20 hover:bg-red-700 cursor-pointer">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                            Supprimer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if($paginator->hasPages())
-            <div class="px-4 py-3 border-t border-slate-100">
+            <div class="px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                 {{ $paginator->links('pagination::tailwind') }}
             </div>
         @endif
     </div>
 
-</div>
+    {{-- ══ 7. COMPOSANT COLLECTE & IMPORT DE DONNÉES ═══════════════════════════ --}}
+    <x-manager.data-collection-card :points="$allPointsForFilter ?? []" />
 
-{{-- ── Data collection component ── --}}
-<x-manager.data-collection-card :points="$allPointsForFilter ?? []" />
+    {{-- ══ 8. MODAL SEUILS RÉGLEMENTAIRES ══════════════════════════════════════ --}}
+    <div id="threshold-modal" class="modal-overlay-blur hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-5 h-5 text-cyan-600"></i> Seuils de contrôle qualité
+                </h3>
+                <button type="button" onclick="closeThresholdModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
 
-{{-- ── Threshold info modal ── --}}
-<div id="threshold-modal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-        <div class="flex items-center justify-between">
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <i data-lucide="sliders" class="w-5 h-5 text-cyan-600"></i> Seuils appliqués
-            </h3>
-            <button onclick="closeThresholdModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-        </div>
-        <p class="text-xs text-slate-600 bg-cyan-50 border border-cyan-100 rounded-xl px-3 py-2">
-            Seuils configurés pour ce projet — non certifiés comme normes officielles.
-        </p>
-        <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-            Pour modifier les seuils, mettez à jour les variables <code class="font-mono bg-amber-100 rounded px-1">WATER_QUALITY_*</code> dans <code class="font-mono bg-amber-100 rounded px-1">.env</code> puis redémarrez.
-        </p>
-        <div class="space-y-2 text-xs">
-            @foreach([
-                ['pH admissible',              config('water_quality.ph_min').' – '.config('water_quality.ph_max')],
-                ['Turbidité alerte (NTU)',      '> '.config('water_quality.turbidite_alert')],
-                ['Turbidité non conforme (NTU)','> '.config('water_quality.turbidite_max')],
-                ['Chlore résiduel (mg/L)',      config('water_quality.chlore_min').' – '.config('water_quality.chlore_max')],
-                ['Plomb seuil action (ppb)',    '≤ '.config('water_quality.plomb_max')],
-            ] as [$label, $val])
-                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                    <span class="text-slate-500">{{ $label }}</span>
-                    <span class="font-mono font-bold text-slate-800">{{ $val }}</span>
+            <p class="text-xs text-slate-600 dark:text-slate-300 bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-100 dark:border-cyan-900/40 rounded-xl px-3.5 py-2.5 leading-relaxed">
+                Seuils configurés selon la norme tunisienne <strong>NT 09.14</strong> relative à la potabilité de l'eau distribuée.
+            </p>
+
+            <div class="space-y-2 text-xs">
+                @foreach([
+                    ['pH admissible',              config('water_quality.ph_min').' – '.config('water_quality.ph_max'), 'Plage standard'],
+                    ['Turbidité alerte (NTU)',      '> '.config('water_quality.turbidite_alert'), 'Seuil vigilance'],
+                    ['Turbidité critique (NTU)',   '> '.config('water_quality.turbidite_max'), 'Seuil d\'alerte'],
+                    ['Chlore résiduel (mg/L)',      config('water_quality.chlore_min').' – '.config('water_quality.chlore_max'), 'Désinfection'],
+                    ['Plomb seuil action (ppb)',    '≤ '.config('water_quality.plomb_max'), 'Métaux lourds'],
+                ] as [$label, $val, $desc])
+                    <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                        <div>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200 block">{{ $label }}</span>
+                            <span class="text-[10px] text-slate-400">{{ $desc }}</span>
+                        </div>
+                        <span class="font-mono font-bold text-cyan-700 dark:text-cyan-300 text-xs">{{ $val }}</span>
+                    </div>
+                @endforeach
+                <div class="flex justify-between items-center py-2">
+                    <div>
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 block">Nitrates (mg/L)</span>
+                        <span class="text-[10px] text-slate-400">Plafond sanitaire</span>
+                    </div>
+                    <span class="font-mono font-bold text-cyan-700 dark:text-cyan-300 text-xs">
+                        {{ config('water_quality.nitrates_max') !== null ? '≤ '.config('water_quality.nitrates_max') : '— Non configuré' }}
+                    </span>
                 </div>
-            @endforeach
-            <div class="flex justify-between items-center py-1.5">
-                <span class="text-slate-500">Nitrates (mg/L)</span>
-                <span class="font-mono font-bold text-slate-800">
-                    {{ config('water_quality.nitrates_max') !== null ? '≤ '.config('water_quality.nitrates_max') : '— Non configuré' }}
-                </span>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" onclick="closeThresholdModal()"
+                        class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer">
+                    Fermer
+                </button>
             </div>
         </div>
-        <div class="flex justify-end pt-1">
-            <button onclick="closeThresholdModal()"
-                    class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
-                Fermer
-            </button>
-        </div>
     </div>
+
 </div>
 @endsection
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <script>
+/* ── Bulk selection logic ── */
+(function () {
+    const selectAllButton = document.getElementById('select-all-measurements');
+    const deleteButton = document.getElementById('delete-selected-measurements');
+    const selectedCount = document.getElementById('selected-measurements-count');
+    const checkboxes = Array.from(document.querySelectorAll('.measurement-row-checkbox'));
+    const form = document.getElementById('bulk-delete-measurements');
+    const modal = document.getElementById('bulk-delete-confirmation');
+    const cancelButton = document.getElementById('cancel-bulk-delete');
+    const confirmButton = document.getElementById('confirm-bulk-delete');
+    const confirmCount = document.getElementById('bulk-delete-confirm-count');
+
+    if (!selectAllButton || !deleteButton || !selectedCount || !form || !modal) return;
+    let confirmed = false;
+
+    function refreshSelection() {
+        const selected = checkboxes.filter(checkbox => checkbox.checked).length;
+        selectedCount.textContent = selected === 0
+            ? 'Aucune mesure sélectionnée'
+            : `${selected} mesure(s) sélectionnée(s)`;
+        deleteButton.disabled = selected === 0;
+        selectAllButton.textContent = selected === checkboxes.length && checkboxes.length > 0
+            ? 'Tout désélectionner'
+            : 'Tout sélectionner (page)';
+    }
+
+    selectAllButton.addEventListener('click', function () {
+        const shouldSelect = checkboxes.some(checkbox => !checkbox.checked);
+        checkboxes.forEach(checkbox => { checkbox.checked = shouldSelect; });
+        refreshSelection();
+    });
+    checkboxes.forEach(checkbox => checkbox.addEventListener('change', refreshSelection));
+    form.addEventListener('submit', function (event) {
+        if (confirmed) return;
+        event.preventDefault();
+        const count = checkboxes.filter(checkbox => checkbox.checked).length;
+        confirmCount.textContent = count === 1 ? '1 mesure' : `${count} mesures`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        cancelButton.focus();
+    });
+    function closeConfirmation() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        deleteButton.focus();
+    }
+    cancelButton.addEventListener('click', closeConfirmation);
+    confirmButton.addEventListener('click', function () {
+        confirmed = true;
+        form.requestSubmit();
+    });
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) closeConfirmation();
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) closeConfirmation();
+    });
+    refreshSelection();
+})();
+
 /* ── Helpers ── */
 function openThresholdModal()  { document.getElementById('threshold-modal').classList.remove('hidden'); }
 function closeThresholdModal() { document.getElementById('threshold-modal').classList.add('hidden'); }
@@ -774,6 +933,9 @@ function escapeHtml(v) {
 
 /* ── Leaflet map ── */
 (function () {
+    const mapElement = document.getElementById('quality-map');
+    if (!mapElement) return;
+
     const POINTS = @json($points);
     const map = L.map('quality-map', { center: [36.2, 10.3], zoom: 7, zoomControl: false, attributionControl: false });
     L.control.zoom({ position: 'topright' }).addTo(map);
@@ -796,10 +958,12 @@ function escapeHtml(v) {
     });
 })();
 
-/* ── Quality trend chart (light theme) ── */
+/* ── Quality trend chart ── */
 (function () {
-    const ctx    = document.getElementById('qualityTrendChart').getContext('2d');
-    const data   = @json($chartRecords);
+    const canvas = document.getElementById('qualityTrendChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const data = @json($chartRecords);
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
     const gridColor  = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,42,67,0.06)';
@@ -856,7 +1020,6 @@ function escapeHtml(v) {
         }
     });
 
-    /* Update on theme change */
     window.addEventListener('aq:themechange', function (e) {
         const dark = e.detail.theme === 'dark';
         Chart.defaults.color = dark ? '#94a3b8' : '#64748b';

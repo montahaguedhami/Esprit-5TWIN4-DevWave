@@ -16,6 +16,7 @@ class PointMesure extends Model
         'nom',
         'zone',
         'zone_id',
+        'infrastructure_id',
         'adresse',
         'latitude',
         'longitude',
@@ -35,6 +36,11 @@ class PointMesure extends Model
     public function zone(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Zone::class);
+    }
+
+    public function infrastructure(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Infrastructure::class);
     }
 
     public function mesuresQualites(): HasMany

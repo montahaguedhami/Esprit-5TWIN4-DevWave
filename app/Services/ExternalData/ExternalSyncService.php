@@ -7,6 +7,7 @@ use App\Models\PointMesure;
 use App\Models\ProviderSyncLog;
 use App\Services\WaterQualityService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -54,6 +55,7 @@ class ExternalSyncService
         $skipped    = 0;
         $failed     = 0;
         $errorMessage = null;
+        $rowErrors = [];
 
         try {
             $observations = $provider->fetchObservations(['fill_simulated' => $fillSimulated]);
@@ -70,6 +72,13 @@ class ExternalSyncService
             }
 
             if ($this->alreadyImported($observation)) {
+                // CSVs may add columns over time. Backfill missing values on an
+                // existing row without replacing measurements already stored.
+                if ($observation->provider === 'csv' && $this->backfillCsvMeasurement($observation)) {
+                    $imported++;
+                    continue;
+                }
+
                 $skipped++;
 
                 continue;
@@ -77,8 +86,20 @@ class ExternalSyncService
 
             try {
                 $this->import($observation, $provider);
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
                 $failed++;
+                $rowError = [
+                    'external_id' => $observation->externalId,
+                    'station_code' => $observation->stationCode,
+                    'message' => $e->getMessage(),
+                ];
+                Log::warning('External data row import failed', [
+                    'provider' => $provider->getProviderSlug(),
+                    ...$rowError,
+                ]);
+                if (count($rowErrors) < 5) {
+                    $rowErrors[] = $rowError;
+                }
 
                 continue;
             }
@@ -90,9 +111,15 @@ class ExternalSyncService
         $log->records_imported = $imported;
         $log->records_skipped = $skipped;
         $log->records_failed = $failed;
+        if ($errorMessage === null && $failed > 0) {
+            $errorMessage = "{$failed} ligne(s) en échec. " . implode(' | ', array_map(
+                fn (array $rowError) => "{$rowError['station_code']}: {$rowError['message']}",
+                $rowErrors,
+            ));
+        }
         $log->error_message = $errorMessage;
         $log->finish(
-            $errorMessage !== null ? 'failed' : 'success',
+            $failed > 0 && $imported > 0 ? 'partial' : ($errorMessage !== null ? 'failed' : 'success'),
             $errorMessage,
         );
         $log->save();
@@ -103,6 +130,7 @@ class ExternalSyncService
             'skipped'  => $skipped,
             'failed'   => $failed,
             'error'    => $errorMessage,
+            'errors'   => $rowErrors,
         ];
     }
 
@@ -170,26 +198,86 @@ class ExternalSyncService
 
         $assessment = app(WaterQualityService::class)->assess($values);
 
+        $ref = $observation->rawMeta['custom_reference'] ?? $this->buildReference($observation);
+        if (MesureQualite::where('reference', $ref)->exists()) {
+            $ref = $ref . '-' . bin2hex(random_bytes(2));
+        }
+
+        $source = $observation->sourceDonnee();
+        if (in_array(strtolower($source), ['simule', 'simulé', 'simulation'], true)) {
+            $source = 'manuel';
+        }
+
         $mesure = MesureQualite::create([
-            'reference'               => $this->buildReference($observation),
-            'point_mesure_id'        => $point?->id,
-            'date_mesure'            => $observation->observationDate,
-            'ph'                     => $observation->ph,
-            'turbidite'              => $observation->turbidite,
-            'chlore_residuel'        => $observation->chloreResiduel,
-            'plomb'                  => $observation->plomb,
-            'nitrates'               => $observation->nitrates,
-            'source_donnee'         => $observation->sourceDonnee(),
-            'source_type'           => $observation->provider === 'simulation' ? 'simulated' : 'real',
+            'reference'             => $ref,
+            'point_mesure_id'       => $point?->id,
+            'date_mesure'           => $observation->observationDate,
+            'ph'                    => $observation->ph,
+            'turbidite'             => $observation->turbidite,
+            'chlore_residuel'       => $observation->chloreResiduel,
+            'plomb'                 => $observation->plomb,
+            'nitrates'              => $observation->nitrates,
+            'source_donnee'         => $source,
+            'source_type'           => 'real',
             'provider'              => $observation->provider,
-            'external_id'          => $observation->externalId,
-            'observation_date'     => $observation->observationDate,
+            'external_id'           => $observation->externalId,
+            'observation_date'      => $observation->observationDate,
             'external_quality_flag' => $observation->qualityFlag,
-            'overall_compliance'   => $assessment['overall_compliance'],
+            'overall_compliance'    => $assessment['overall_compliance'],
             'status'                => $assessment['status'],
         ]);
 
         return $mesure;
+    }
+
+    private function isSimulatedObservation(NormalisedObservation $observation): bool
+    {
+        return false;
+    }
+
+    private function backfillCsvMeasurement(NormalisedObservation $observation): bool
+    {
+        $mesure = MesureQualite::where('provider', $observation->provider)
+            ->where('external_id', $observation->externalId)
+            ->first();
+
+        if (! $mesure) {
+            return false;
+        }
+
+        $availableValues = [
+            'ph' => $observation->ph,
+            'turbidite' => $observation->turbidite,
+            'chlore_residuel' => $observation->chloreResiduel,
+            'plomb' => $observation->plomb,
+            'nitrates' => $observation->nitrates,
+        ];
+        $updates = [];
+
+        foreach ($availableValues as $field => $value) {
+            if ($mesure->{$field} === null && $value !== null) {
+                $updates[$field] = $value;
+            }
+        }
+
+        if ($this->isSimulatedObservation($observation) && $mesure->source_type !== 'simulated') {
+            $updates['source_type'] = 'simulated';
+        }
+
+        if ($updates === []) {
+            return false;
+        }
+
+        $assessment = app(WaterQualityService::class)->assess(array_merge(
+            $mesure->only(array_keys($availableValues)),
+            $updates,
+        ));
+        $mesure->fill($updates + [
+            'overall_compliance' => $assessment['overall_compliance'],
+            'status' => $assessment['status'],
+        ])->save();
+
+        return true;
     }
 
     /**

@@ -37,10 +37,10 @@
             <form method="GET" action="{{ route('manager.points-mesure.index') }}" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end">
                 {{-- Search Keyword --}}
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Recherche (nom, code, zone...)</label>
+                    <label for="search" class="block text-xs font-semibold text-slate-400 mb-1">Recherche (nom, code, zone...)</label>
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                        <input 
+                        <input id="search" 
                             type="text" 
                             name="search" 
                             value="{{ request('search') }}" 
@@ -52,8 +52,8 @@
 
                 {{-- Filter Statut --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Statut</label>
-                    <select name="statut" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-teal-400 focus:outline-none">
+                    <label for="statut" class="block text-xs font-semibold text-slate-400 mb-1">Statut</label>
+                    <select id="statut" name="statut" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-teal-400 focus:outline-none">
                         <option value="">Tous les statuts</option>
                         <option value="actif" @selected(request('statut') === 'actif')>Actif</option>
                         <option value="inactif" @selected(request('statut') === 'inactif')>Inactif</option>
@@ -62,8 +62,8 @@
 
                 {{-- Filter Type --}}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Type d'ouvrage</label>
-                    <select name="type" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-teal-400 focus:outline-none">
+                    <label for="type" class="block text-xs font-semibold text-slate-400 mb-1">Type d'ouvrage</label>
+                    <select id="type" name="type" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-teal-400 focus:outline-none">
                         <option value="">Tous les types</option>
                         @foreach(['Station', 'Puits', 'Réservoir', 'Réseau', 'Autre'] as $t)
                             <option value="{{ $t }}" @selected(request('type') === $t)>{{ $t }}</option>
@@ -108,6 +108,9 @@
                                     {{ $point->nom }}
                                 </a>
                                 <div class="text-xs text-slate-400">{{ $point->zone ?: 'Zone non définie' }}</div>
+                                @if($point->infrastructure)
+                                    <div class="mt-1 text-[11px] text-cyan-300">Infrastructure : {{ $point->infrastructure->nom }}</div>
+                                @endif
                             </td>
                             <td class="p-4">
                                 <span class="px-2 py-0.5 rounded text-xs bg-slate-800 border border-slate-700 text-slate-300 font-medium">

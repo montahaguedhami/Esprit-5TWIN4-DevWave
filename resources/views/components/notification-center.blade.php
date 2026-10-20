@@ -1,31 +1,42 @@
 @php
     $currentUser = auth()->user();
+    $couleurs = [
+        'cyan' => 'bg-cyan-500/20 text-cyan-500',
+        'amber' => 'bg-amber-500/20 text-amber-500',
+        'rose' => 'bg-rose-500/20 text-rose-500',
+        'emerald' => 'bg-emerald-500/20 text-emerald-500',
+    ];
+
     $notifications = $currentUser
-        ? $currentUser->notifications()->latest()->limit(8)->get()->map(function ($notification) {
-            $data = $notification->data ?? [];
+        ? $currentUser->notifications()->latest()->limit(8)->get()->map(function ($n) use ($couleurs) {
+            $data = $n->data ?? [];
             $actionTitle = $data['action_title'] ?? null;
             $isStatusUpdate = ($data['type'] ?? null) === 'action_corrective_status';
 
             return [
-                'id' => (string) $notification->id,
-                'title' => $isStatusUpdate
-                    ? 'Statut d’action mis à jour : ' . ($actionTitle ?? 'Action corrective')
-                    : ($actionTitle ? 'Nouvelle action corrective : ' . $actionTitle : ($data['incident_title'] ?? 'Nouvelle notification')),
+                'id' => (string) $n->id,
+                'title' => $data['titre']
+                    ?? ($isStatusUpdate
+                        ? 'Statut d’action mis à jour : ' . ($actionTitle ?? 'Action corrective')
+                        : ($actionTitle
+                            ? 'Nouvelle action corrective : ' . $actionTitle
+                            : ($data['incident_title'] ?? 'Notification'))),
                 'message' => $data['message'] ?? 'Une mise à jour est disponible.',
-                'read' => $notification->read_at !== null,
-                'time' => $notification->created_at?->diffForHumans() ?? 'Récemment',
-                'color' => 'cyan',
-                'icon' => 'wrench',
-                'action' => isset($data['incident_id'])
-                    ? ['url' => route('incidents.show', $data['incident_id']), 'label' => 'Voir l’incident']
-                    : null,
+                'icon' => $data['icone'] ?? 'bell',
+                'classes' => $couleurs[$data['couleur'] ?? 'cyan'] ?? $couleurs['cyan'],
+                'time' => $n->created_at?->locale('fr')->diffForHumans() ?? 'Récemment',
+                'read' => $n->read_at !== null,
+                'url' => route('notifications.ouvrir', $n->id),
             ];
         })->all()
-        : \App\Data\PlaceholderData::globalNotifications();
-    $unreadCount = count(array_filter($notifications, fn($n) => !$n['read']));
+        : [];
+
+    $unreadCount = $currentUser ? $currentUser->unreadNotifications()->count() : 0;
+
     $pollUrl = $currentUser && request()->routeIs('citizen.*', 'incidents.*')
         ? route('citizen.alerts.poll')
         : null;
+
     $viewAllUrl = request()->routeIs('citizen.*', 'incidents.*')
         ? route('citizen.notifications')
         : route('notifications.index');
@@ -33,8 +44,8 @@
 
 <!-- Notification Bell Button -->
 <div class="relative notification-center" @if($pollUrl) data-notification-poll-url="{{ $pollUrl }}" @endif>
-    <button 
-        onclick="toggleNotifications()" 
+    <button
+        onclick="toggleNotifications()"
         class="relative p-2 rounded-lg glass hover:glass-strong transition-all group"
         aria-label="Notifications"
     >
@@ -47,8 +58,8 @@
     </button>
 
     <!-- Notification Dropdown -->
-    <div 
-        id="notification-dropdown" 
+    <div
+        id="notification-dropdown"
         class="hidden absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-9999"
         style="max-height: 600px;"
     >
@@ -58,8 +69,8 @@
                 <h3 class="text-lg font-bold text-slate-900">Notifications</h3>
                 <p id="notification-unread-label" class="text-xs text-slate-500">{{ $unreadCount }} non lues</p>
             </div>
-            <button 
-                onclick="markAllAsRead()" 
+            <button
+                onclick="markAllAsRead()"
                 class="text-xs text-cyan-700 hover:text-cyan-900 transition-colors font-medium"
             >
                 Tout marquer comme lu
@@ -69,12 +80,14 @@
         <!-- Notifications List -->
         <div id="notification-items" class="overflow-y-auto" style="max-height: 450px;" aria-live="polite">
             @forelse($notifications as $notification)
-            <div data-notification-id="{{ $notification['id'] }}" data-read="{{ $notification['read'] ? 'true' : 'false' }}" class="notification-item p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer {{ !$notification['read'] ? 'bg-cyan-500/5' : '' }}"
-                 onclick="markAsRead('{{ $notification['id'] }}')">
+            <a href="{{ $notification['url'] }}"
+               data-notification-id="{{ $notification['id'] }}"
+               data-read="{{ $notification['read'] ? 'true' : 'false' }}"
+               class="notification-item block p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer {{ !$notification['read'] ? 'bg-cyan-500/5' : '' }}">
                 <div class="flex items-start gap-3">
                     <!-- Icon -->
-                    <div class="shrink-0 w-10 h-10 rounded-lg bg-{{ $notification['color'] }}-500/20 flex items-center justify-center">
-                        <i data-lucide="{{ $notification['icon'] }}" class="w-5 h-5 text-{{ $notification['color'] }}-400"></i>
+                    <div class="shrink-0 w-10 h-10 rounded-lg {{ $notification['classes'] }} flex items-center justify-center">
+                        <i data-lucide="{{ $notification['icon'] }}" class="w-5 h-5"></i>
                     </div>
 
                     <!-- Content -->
@@ -86,17 +99,10 @@
                             @endif
                         </div>
                         <p class="text-xs text-slate-600 line-clamp-2 mb-2">{{ $notification['message'] }}</p>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs text-slate-400">{{ $notification['time'] }}</span>
-                            @if(isset($notification['action']))
-                            <a href="{{ $notification['action']['url'] }}" class="text-xs text-cyan-700 hover:text-cyan-900 font-medium">
-                                {{ $notification['action']['label'] }} →
-                            </a>
-                            @endif
-                        </div>
+                        <span class="text-xs text-slate-400">{{ $notification['time'] }}</span>
                     </div>
                 </div>
-            </div>
+            </a>
             @empty
             <div class="p-8 text-center">
                 <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
@@ -121,56 +127,56 @@
     function toggleNotifications() {
         const dropdown = document.getElementById('notification-dropdown');
         const isHidden = dropdown.classList.contains('hidden');
-        
+
         // Close all other dropdowns first
         document.querySelectorAll('.notification-center [id$="-dropdown"]').forEach(d => {
             if (d.id !== 'notification-dropdown') {
                 d.classList.add('hidden');
             }
         });
-        
+
         if (isHidden) {
             dropdown.classList.remove('hidden');
             dropdown.style.animation = 'slideDown 0.2s ease-out';
         } else {
             dropdown.classList.add('hidden');
         }
-        
+
         // Reinitialize icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
     }
 
-    function markAsRead(id) {
-        // Simulate marking as read
-        const item = event.currentTarget;
-        item.classList.remove('bg-cyan-500/5');
-        const badge = item.querySelector('.bg-cyan-400');
-        if (badge) badge.remove();
-        
-        // Update counter
-        updateUnreadCount();
-        
-        showToast('Notification marquée comme lue', 'success');
-    }
-
     function markAllAsRead() {
-        document.querySelectorAll('.notification-item').forEach(item => {
-            item.classList.remove('bg-cyan-500/5');
-            const badge = item.querySelector('.bg-cyan-400');
-            if (badge) badge.remove();
+        fetch(@json(route('notifications.tout-lire')), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        }).then(response => {
+            if (! response.ok) { return; }
+
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.remove('bg-cyan-500/5');
+                item.dataset.read = 'true';
+                const dot = item.querySelector('.bg-cyan-400');
+                if (dot) dot.remove();
+            });
+
+            updateUnreadCount();
+            if (typeof showToast === 'function') {
+                showToast('Toutes les notifications sont marquées comme lues', 'success');
+            }
         });
-        
-        updateUnreadCount();
-        showToast('Toutes les notifications sont marquées comme lues', 'success');
     }
 
     function updateUnreadCount() {
         const unreadItems = document.querySelectorAll('.notification-item[data-read="false"]').length;
         const badge = document.getElementById('notification-unread-badge');
         const unreadText = document.getElementById('notification-unread-label');
-        
+
         if (badge) {
             if (unreadItems === 0) {
                 badge.remove();
@@ -178,47 +184,53 @@
                 badge.textContent = unreadItems > 9 ? '9+' : unreadItems;
             }
         }
-        
+
         if (unreadText) {
             unreadText.textContent = unreadItems + ' non lues';
         }
     }
 
     function renderNotification(notification) {
-        const item = document.createElement('div');
+        const url = notification.url || (notification.action && notification.action.url) || null;
+
+        const item = document.createElement(url ? 'a' : 'div');
+        if (url) item.href = url;
         item.dataset.notificationId = notification.id;
         item.dataset.read = notification.read ? 'true' : 'false';
-        item.className = 'notification-item p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer' + (notification.read ? '' : ' bg-cyan-500/5');
+        item.className = 'notification-item block p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer' + (notification.read ? '' : ' bg-cyan-500/5');
 
         const content = document.createElement('div');
         content.className = 'flex items-start gap-3';
+
         const iconWrap = document.createElement('div');
-        iconWrap.className = 'flex-shrink-0 w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center';
+        iconWrap.className = 'shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ' + (notification.classes || 'bg-cyan-500/20 text-cyan-500');
         const icon = document.createElement('i');
-        icon.dataset.lucide = 'wrench';
-        icon.className = 'w-5 h-5 text-cyan-500';
+        icon.dataset.lucide = notification.icon || 'wrench';
+        icon.className = 'w-5 h-5';
         iconWrap.appendChild(icon);
 
         const text = document.createElement('div');
         text.className = 'flex-1 min-w-0';
+
+        const header = document.createElement('div');
+        header.className = 'flex items-start justify-between gap-2 mb-1';
         const title = document.createElement('h4');
         title.className = 'text-sm font-semibold text-slate-800 line-clamp-1';
         title.textContent = notification.title;
+        header.appendChild(title);
+        if (!notification.read) {
+            const dot = document.createElement('span');
+            dot.className = 'shrink-0 w-2 h-2 rounded-full bg-cyan-400';
+            header.appendChild(dot);
+        }
+
         const message = document.createElement('p');
         message.className = 'text-xs text-slate-600 line-clamp-2 mb-2';
         message.textContent = notification.message;
         const time = document.createElement('span');
         time.className = 'text-xs text-slate-400';
         time.textContent = notification.time;
-        text.append(title, message, time);
-
-        if (notification.url) {
-            const link = document.createElement('a');
-            link.href = notification.url;
-            link.className = 'block mt-2 text-xs text-cyan-700 hover:text-cyan-900 font-medium';
-            link.textContent = 'Voir l’incident';
-            text.appendChild(link);
-        }
+        text.append(header, message, time);
 
         content.append(iconWrap, text);
         item.appendChild(content);
@@ -242,6 +254,7 @@
             const newItems = payload.notifications.filter(notification => !existingIds.has(notification.id));
 
             list.replaceChildren(...payload.notifications.map(renderNotification));
+
             const badge = document.getElementById('notification-unread-badge');
             if (payload.unread_count > 0) {
                 const count = payload.unread_count > 9 ? '9+' : payload.unread_count;

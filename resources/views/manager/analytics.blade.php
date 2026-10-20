@@ -140,7 +140,8 @@
         </div>
         <div class="flex items-center gap-2">
             {{-- Period selector --}}
-            <select onchange="showToast('Période mise à jour', 'info')"
+            <label for="periode" class="sr-only">Période</label>
+            <select id="periode" onchange="showToast('Période mise à jour', 'info')"
                     class="glass px-4 py-2 rounded-xl text-sm text-cyan-200 border border-cyan-400/20 bg-transparent focus:outline-none focus:border-cyan-400/50 cursor-pointer">
                 <option>12 derniers mois</option>
                 <option>6 derniers mois</option>
