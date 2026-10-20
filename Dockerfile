@@ -55,7 +55,8 @@ RUN npm run build
 FROM base AS app
 
 RUN apk add --no-cache nginx supervisor curl \
- && mkdir -p /run/nginx /var/log/supervisor
+ && mkdir -p /run/nginx /var/lib/nginx/tmp /var/log/nginx \
+ && chown -R www-data:www-data /run/nginx /var/lib/nginx /var/log/nginx
 
 COPY docker/php.ini /usr/local/etc/php/conf.d/zz-aquasecure.ini
 COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/zz-aquasecure.conf
@@ -71,12 +72,16 @@ RUN chmod +x /usr/local/bin/entrypoint.sh \
  && php artisan package:discover --ansi \
  && mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions \
         storage/framework/views storage/logs \
+ && ln -s ../storage/app/public public/storage \
  && chown -R www-data:www-data storage bootstrap/cache
 
-EXPOSE 80
+# Aucun processus ne tourne en root (Nginx écoute sur un port non privilégié)
+USER www-data
+
+EXPOSE 8080
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
-    CMD curl -fs http://localhost/up > /dev/null || exit 1
+    CMD curl -fs http://localhost:8080/up > /dev/null || exit 1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["supervisord", "-c", "/etc/supervisord.conf"]
