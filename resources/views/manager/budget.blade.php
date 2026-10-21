@@ -8,6 +8,11 @@
 
 @push('styles')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
+<style>
+    /* Le chevron natif du <summary> laisse place à l'icône Lucide. */
+    #export-report-menu > summary::-webkit-details-marker { display: none; }
+    #export-report-menu > summary::marker { content: ''; }
+</style>
 @include('manager.shared.light-shell')
 @endpush
 
@@ -28,9 +33,36 @@
                         <i data-lucide="eye" class="w-3.5 h-3.5"></i> <span id="view-mode-label">Vue de gestion</span>
                     </button>
                 </div>
-                <button onclick="showToast('Export du rapport financier PDF...', 'success')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20">
-                    <i data-lucide="download" class="w-4 h-4"></i> Exporter le rapport (PDF / CSV)
-                </button>
+                {{-- Export du rapport : deux formats réellement téléchargeables --}}
+                <details class="relative" id="export-report-menu">
+                    <summary class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer select-none"
+                             style="list-style:none;">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exporter le rapport (PDF / CSV)
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                    </summary>
+                    <div class="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl shadow-black/50 z-40 overflow-hidden">
+                        <a href="{{ route('manager.budget.export.pdf') }}"
+                           class="flex items-center gap-3 px-4 py-3 text-xs text-slate-200 hover:bg-slate-800 transition-colors border-b border-slate-800">
+                            <span class="w-9 h-9 rounded-lg bg-red-500/15 text-red-400 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="file-text" class="w-4 h-4"></i>
+                            </span>
+                            <span>
+                                <span class="block font-bold text-white">Rapport PDF</span>
+                                <span class="block text-[10px] text-slate-400">A4 paysage — KPI, projets, sources, détail</span>
+                            </span>
+                        </a>
+                        <a href="{{ route('manager.budget.export.csv') }}"
+                           class="flex items-center gap-3 px-4 py-3 text-xs text-slate-200 hover:bg-slate-800 transition-colors">
+                            <span class="w-9 h-9 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="sheet" class="w-4 h-4"></i>
+                            </span>
+                            <span>
+                                <span class="block font-bold text-white">Données CSV</span>
+                                <span class="block text-[10px] text-slate-400">Excel / LibreOffice — 4 sections</span>
+                            </span>
+                        </a>
+                    </div>
+                </details>
             </div>
         </div>
 
@@ -316,6 +348,23 @@ function togglePublicMode() {
                 }
             }
         }
+    });
+})();
+</script>
+<script>
+// Menu d'export : refermé au clic extérieur (le <details> gère déjà l'ouverture).
+(function() {
+    const menu = document.getElementById('export-report-menu');
+    if (!menu) return;
+
+    document.addEventListener('click', function (event) {
+        if (!menu.contains(event.target)) menu.removeAttribute('open');
+    });
+
+    menu.querySelectorAll('a').forEach(function (lien) {
+        lien.addEventListener('click', function () {
+            setTimeout(() => menu.removeAttribute('open'), 150);
+        });
     });
 })();
 </script>

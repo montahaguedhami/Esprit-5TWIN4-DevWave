@@ -35,28 +35,42 @@ return [
         ],
     ],
 
-    'gemini' => [
-        'api_key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-3.8-flash'),
-        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
-        'timeout' => (int) env('GEMINI_TIMEOUT', 30),
-        'cache_minutes' => (int) env('GEMINI_CACHE_MINUTES', 360),
-    ],
-    'failure_risk' => [
-        'api_key' => env('FAILURE_RISK_AI_API_KEY'),
-        'model' => env('FAILURE_RISK_AI_MODEL', 'gpt-4o-mini'),
-        'endpoint' => env('FAILURE_RISK_AI_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
-        'timeout_seconds' => (int) env('FAILURE_RISK_AI_TIMEOUT', 5),
-        'cache_hours' => 24,
-        'max_requests_per_minute' => 1,
+    /*
+    |--------------------------------------------------------------------------
+    | Google OAuth (Laravel Socialite)
+    |--------------------------------------------------------------------------
+    |
+    | Create the credentials on https://console.cloud.google.com/apis/credentials
+    | (OAuth 2.0 Client ID, Web application) then set them here via .env.
+    | NEVER commit real values.
+    |
+    | GOOGLE_CLIENT_ID=
+    | GOOGLE_CLIENT_SECRET=
+    | GOOGLE_REDIRECT_URI="${APP_URL}/auth/google/callback"
+    |
+    */
+
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
-    'recommendation_ai' => [
-        'api_key' => env('RECOMMENDATION_AI_API_KEY'),
-        'model' => env('RECOMMENDATION_AI_MODEL', 'gpt-4o-mini'),
-        'endpoint' => env('RECOMMENDATION_AI_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
-        'timeout_seconds' => (int) env('RECOMMENDATION_AI_TIMEOUT', 8),
-        'cache_hours' => 24,
+    // Service IA des collègues (analyse risque infrastructure)
+    'gemini' => [
+        'api_key'       => env('GEMINI_API_KEY'),
+        'model'         => env('GEMINI_MODEL', 'gemini-3.8-flash'),
+        'base_url'      => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
+        'timeout'       => (int) env('GEMINI_TIMEOUT', 30),
+        'cache_minutes' => (int) env('GEMINI_CACHE_MINUTES', 360),
+    ],
+
+    'failure_risk' => [
+        'api_key'                 => env('FAILURE_RISK_AI_API_KEY'),
+        'model'                   => env('FAILURE_RISK_AI_MODEL', 'gpt-4o-mini'),
+        'endpoint'                => env('FAILURE_RISK_AI_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
+        'timeout_seconds'         => (int) env('FAILURE_RISK_AI_TIMEOUT', 5),
+        'cache_hours'             => 24,
         'max_requests_per_minute' => 1,
     ],
 

@@ -43,6 +43,7 @@
     <main class="technician-main" id="main-content">
         @yield('technician-content')
     </main>
+    <x-accessibility-menu />
 </div>
 
 @push('scripts')

@@ -78,7 +78,7 @@
                             <path d="M3 6.75A1.75 1.75 0 014.75 5h14.5A1.75 1.75 0 0121 6.75v10.5A1.75 1.75 0 0119.25 19H4.75A1.75 1.75 0 013 17.25V6.75z" stroke="currentColor" stroke-width="1.7"/>
                             <path d="m4 6 8 6 8-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="admin@aquasecure.tn" autocomplete="username">
+                        <input id="email" type="email" name="email" value="{{ old('email') }}" required placeholder="admin@aquasecure.tn" autocomplete="email">
                     </div>
                 </div>
 
@@ -103,6 +103,12 @@
                     </div>
                 </div>
 
+                {{-- reCAPTCHA sits as a sibling of the fields, not inside one:
+                     the form lays its children out with a flex gap, so being
+                     a direct child is what gives it the same rhythm as every
+                     other block. --}}
+                <x-recaptcha action="login" form=".auth-login__form" />
+
                 <a href="{{ route('auth.forgot-password') }}" class="auth-login__forgot">Mot de passe oublié ?</a>
 
                 <button type="submit" class="auth-login__submit">
@@ -112,6 +118,30 @@
                     </svg>
                 </button>
             </form>
+
+            @if (\App\Http\Controllers\Auth\GoogleAuthController::configured())
+                <div class="auth-login__divider" aria-hidden="true"><span>ou</span></div>
+
+                <a href="{{ route('auth.google') }}" class="auth-login__google">
+                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                        <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29A11.86 11.86 0 000 12c0 1.94.46 3.77 1.29 5.38l3.98-3.09z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"/>
+                    </svg>
+                    Continuer avec Google
+                </a>
+            @elseif (! app()->environment('production'))
+                <div class="auth-login__google-hint">
+                    Connexion Google non configurée — renseignez <code>GOOGLE_CLIENT_ID</code> et <code>GOOGLE_CLIENT_SECRET</code> dans <code>.env</code>.
+                </div>
+            @endif
+
+            <aside class="auth-login__demo">
+                <strong>Compte de démonstration</strong>
+                <span>Email : <b>admin@aquasecure.tn</b></span>
+                <span>Utilisez le mot de passe associé à ce compte.</span>
+            </aside>
         </section>
     </div>
 </div>
@@ -346,7 +376,7 @@
     .auth-login__input-wrap input {
         width: 100%;
         min-height: 3.15rem;
-        padding: .8rem 3rem .8rem 2.9rem !important;
+        padding: .8rem 3rem .8rem 2.9rem;
         border: 1px solid #dce7ec;
         border-radius: .85rem;
         outline: none;
@@ -358,14 +388,6 @@
 
     .auth-login__input-wrap input::placeholder { color: #a4b3bf; }
     .auth-login__input-wrap input:focus { border-color: #45bfd0; background: #fff; box-shadow: 0 0 0 4px rgba(6, 174, 202, .11); }
-
-    .auth-login__input-wrap input:-webkit-autofill,
-    .auth-login__input-wrap input:-webkit-autofill:hover,
-    .auth-login__input-wrap input:-webkit-autofill:focus {
-        padding-left: 2.9rem !important;
-        -webkit-text-fill-color: #18334b;
-        -webkit-box-shadow: 0 0 0 1000px #fbfdfe inset;
-    }
 
     .auth-login__password-toggle {
         position: absolute;
@@ -424,6 +446,84 @@
         font-size: .82rem;
     }
 
+    .auth-login__demo {
+        display: flex;
+        flex-direction: column;
+        gap: .35rem;
+        margin-top: 1.5rem;
+        padding: .95rem 1rem;
+        border: 1px solid #d8f0f3;
+        border-radius: .85rem;
+        color: #62798b;
+        background: #f3fbfc;
+        font-size: .72rem;
+    }
+
+    .auth-login__demo strong { margin-bottom: .1rem; color: #167f93; font-size: .76rem; }
+    .auth-login__demo b { color: #34556c; font-weight: 700; }
+
+    .auth-login__divider {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin: 1.25rem 0;
+        color: #9aabb9;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .auth-login__divider::before,
+    .auth-login__divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #e2ecf1;
+    }
+
+    .auth-login__google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .7rem;
+        min-height: 3.1rem;
+        border: 1px solid #dce7ec;
+        border-radius: .85rem;
+        color: #2d4760;
+        background: #fff;
+        font-size: .87rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .auth-login__google:hover {
+        border-color: #b9d4de;
+        background: #fbfdfe;
+        box-shadow: 0 6px 16px rgba(12, 42, 74, .08);
+    }
+
+    .auth-login__google-hint {
+        margin-top: 1rem;
+        padding: .7rem .85rem;
+        border: 1px dashed #d6e4ec;
+        border-radius: .75rem;
+        color: #7b8fa1;
+        background: #f7fbfd;
+        font-size: .71rem;
+        line-height: 1.6;
+    }
+
+    .auth-login__google-hint code {
+        padding: .05rem .3rem;
+        border-radius: .3rem;
+        color: #167f93;
+        background: #e8f5f8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: .68rem;
+    }
+
     @media (max-width: 767px) {
         .auth-login { min-height: 100vh; padding: 6rem 1rem 2rem; }
         .auth-login__card { display: block; width: min(100%, 31rem); min-height: auto; border-radius: 1.3rem; }
@@ -460,6 +560,8 @@
             toggle.setAttribute('aria-label', 'Afficher le mot de passe');
         }
     }
+
+    // Removed reCAPTCHA
 </script>
 @endpush
 @endsection

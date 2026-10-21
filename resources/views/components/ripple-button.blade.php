@@ -23,7 +23,7 @@
 <button 
     type="{{ $type }}"
     {{ $attributes->merge(['class' => "ripple-btn rounded-xl font-semibold transition-all duration-300 cursor-pointer {$classes}"]) }}
-    onclick="handleRipple(event, this)"
+    onmousedown="handleRipple(event, this)"
 >
     {{ $slot }}
 </button>
@@ -32,6 +32,7 @@
 @push('scripts')
 <script>
     function handleRipple(event, button) {
+        // Effet visuel uniquement — ne bloque PAS la soumission du formulaire
         const rect = button.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
@@ -45,6 +46,7 @@
         button.appendChild(circle);
 
         setTimeout(() => circle.remove(), 600);
+        // Pas de preventDefault() — le form se soumet normalement
     }
 </script>
 @endpush

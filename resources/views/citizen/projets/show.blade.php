@@ -62,6 +62,18 @@
                 </p>
                 @endif
             </div>
+
+            {{-- ── Favori : action explicite du citoyen ────────────────────── --}}
+            <button type="button"
+                    class="favori-toggle flex-shrink-0 w-11 h-11 rounded-xl inline-flex items-center justify-center border transition-colors {{ ($estFavori ?? false) ? 'bg-amber-400/15 border-amber-400/40 text-amber-300' : 'bg-white/5 border-white/10 text-cyan-100/60 hover:text-white hover:border-cyan-400/40' }}"
+                    data-projet-id="{{ $projet->id }}"
+                    data-url="{{ route('citizen.projets.favori.basculer', $projet) }}"
+                    data-etat="{{ ($estFavori ?? false) ? '1' : '0' }}"
+                    aria-pressed="{{ ($estFavori ?? false) ? 'true' : 'false' }}"
+                    title="{{ ($estFavori ?? false) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}"
+                    aria-label="{{ ($estFavori ?? false) ? 'Retirer ce projet de vos favoris' : 'Ajouter ce projet à vos favoris' }}">
+                <i data-lucide="star" class="w-5 h-5 {{ ($estFavori ?? false) ? 'fill-current' : '' }}"></i>
+            </button>
         </div>
     </div>
 
@@ -146,6 +158,40 @@
         </div>
         @endif
     </div>
+
+    {{-- ── Bouton Contribuer à ce projet ── --}}
+    @if($projet->estEligibleAuFinancementCitoyen())
+    <div class="glass rounded-2xl p-6 border border-cyan-400/20">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="hand-coins" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="font-bold text-white text-base mb-0.5">Soutenez ce projet</h3>
+                <p class="text-cyan-100/55 text-sm">
+                    Il reste <strong class="text-cyan-300">{{ number_format((float)$projet->budget_disponible, 0, ',', ' ') }} TND</strong>
+                    à financer. Votre contribution fait la différence.
+                </p>
+                <p class="text-amber-300/70 text-[11px] mt-1.5 flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                    Contribution simulée à des fins académiques — aucun argent réel n'est transféré.
+                </p>
+            </div>
+            <a href="{{ route('citizen.demandes.create', ['projet_id' => $projet->id]) }}"
+               class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm hover:opacity-90 active:scale-[.98] transition-all flex-shrink-0 whitespace-nowrap">
+                <i data-lucide="hand-coins" class="w-4 h-4"></i>
+                Contribuer à ce projet
+            </a>
+        </div>
+    </div>
+    @elseif(in_array($projet->statut, ['planifie', 'en_cours']) && $projet->budget_disponible <= 0)
+    <div class="glass rounded-2xl p-4 border border-teal-400/20">
+        <p class="text-teal-300 text-sm flex items-center gap-2">
+            <i data-lucide="badge-check" class="w-4 h-4"></i>
+            Ce projet est entièrement financé. Merci à tous les contributeurs !
+        </p>
+    </div>
+    @endif
 
     <!-- Funding Sources -->
     @if($projet->financements->count() > 0)
@@ -291,5 +337,59 @@
         marker.bindPopup('<strong>{{ addslashes($projet->nom) }}</strong><br>{{ addslashes($projet->adresse ?? '') }}').openPopup();
     });
     @endif
+
+    // ── Toggle Favori (étoile) ──
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.querySelector('.favori-toggle');
+        if (!btn) return;
+
+        btn.addEventListener('click', function() {
+            var url = btn.getAttribute('data-url');
+            var etatActuel = btn.getAttribute('data-etat') === '1';
+            var nouvelEtat = !etatActuel;
+            var icon = btn.querySelector('i[data-lucide="star"]');
+
+            fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ etat: nouvelEtat ? 1 : 0 })
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Erreur serveur');
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                // Mise à jour visuelle de l'étoile
+                btn.setAttribute('data-etat', nouvelEtat ? '1' : '0');
+                btn.setAttribute('aria-pressed', nouvelEtat ? 'true' : 'false');
+                btn.setAttribute('title', nouvelEtat ? 'Retirer des favoris' : 'Ajouter aux favoris');
+                btn.setAttribute('aria-label', nouvelEtat ? 'Retirer ce projet de vos favoris' : 'Ajouter ce projet à vos favoris');
+
+                if (nouvelEtat) {
+                    btn.classList.remove('bg-white/5', 'border-white/10', 'text-cyan-100/60', 'hover:text-white', 'hover:border-cyan-400/40');
+                    btn.classList.add('bg-amber-400/15', 'border-amber-400/40', 'text-amber-300');
+                    icon.classList.add('fill-current');
+                } else {
+                    btn.classList.remove('bg-amber-400/15', 'border-amber-400/40', 'text-amber-300');
+                    btn.classList.add('bg-white/5', 'border-white/10', 'text-cyan-100/60', 'hover:text-white', 'hover:border-cyan-400/40');
+                    icon.classList.remove('fill-current');
+                }
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            })
+            .catch(function(error) {
+                console.error('Erreur favoris:', error);
+                // Optionnel : afficher un toast d'erreur
+            });
+        });
+    });
 </script>
 @endpush

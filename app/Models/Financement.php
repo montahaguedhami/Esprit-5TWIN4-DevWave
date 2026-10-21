@@ -13,6 +13,9 @@ class Financement extends Model
     /**
      * The attributes that are mass assignable.
      *
+     * `user_id` is deliberately NOT mass assignable: it is always set
+     * explicitly by the service that confirms a citizen payment.
+     *
      * @var array<string>
      */
     protected $fillable = [
@@ -41,5 +44,14 @@ class Financement extends Model
     public function projet(): BelongsTo
     {
         return $this->belongsTo(Projet::class);
+    }
+
+    /**
+     * The citizen whose confirmed payment produced this funding.
+     * NULL for financements entered manually by a manager.
+     */
+    public function citoyen(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

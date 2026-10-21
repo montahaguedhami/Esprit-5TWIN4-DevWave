@@ -12,17 +12,33 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Exclude JWT cookies from Laravel's cookie encryption — tymon reads raw JWTs
+        // Canonicalise the loopback hostname before anything else runs, so a
+        // page opened on 127.0.0.1 lands on localhost and reCAPTCHA sees the
+        // origin its key was issued for. Local environments only.
+        $middleware->web(prepend: [
+            \App\Http\Middleware\NormalizeLocalhost::class,
+        ]);
+
+        // Every auth-protected page ends here once the session is gone.
+        // Laravel redirects guests to a route named "login"; this application
+        // names it "auth.login", so without this the visitor is sent to a
+        // route that does not exist and the request dies with
+        // RouteNotFoundException instead of landing on the login form.
+        $middleware->redirectGuestsTo(fn () => route('auth.login'));
+
+        // Exclude JWT cookies from Laravel's cookie encryption — tymon reads
+        // the raw JWT out of them, so an encrypted value would not decode.
         $middleware->encryptCookies(except: [
             'access_token',
             'refresh_token',
         ]);
 
-        $middleware->alias([
-            'role'       => \App\Http\Middleware\CheckRole::class,
+        // No route is exempt from CSRF: there is no payment provider, so no
+        // server-to-server callback exists that would need it.
+        $middleware->alias([            'role'       => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'jwt.auth'         => \App\Http\Middleware\JwtAuthenticate::class,
             'jwt.authenticate' => \App\Http\Middleware\JwtAuthenticate::class,
-            'jwt.auth'   => \App\Http\Middleware\JwtAuthenticate::class,
             'jwt.role'   => \App\Http\Middleware\JwtCheckRole::class,
             'manager'    => \App\Http\Middleware\EnsureManager::class,
         ]);

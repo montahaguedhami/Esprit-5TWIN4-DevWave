@@ -64,6 +64,21 @@
                     <i data-lucide="briefcase"></i>
                     <span>Projets</span>
                 </a>
+                <a href="{{ route('citizen.favoris') }}"
+                   class="fo-nav-link {{ request()->routeIs('citizen.favoris') ? 'is-active' : '' }}">
+                    <i data-lucide="star"></i>
+                    <span>Mes favoris</span>
+                </a>
+                <a href="{{ route('citizen.recommandations') }}"
+                   class="fo-nav-link {{ request()->routeIs('citizen.recommandations') ? 'is-active' : '' }}">
+                    <i data-lucide="sparkles"></i>
+                    <span>Recommandations</span>
+                </a>
+                <a href="{{ route('citizen.portefeuille') }}"
+                   class="fo-nav-link {{ request()->routeIs('citizen.portefeuille') ? 'is-active' : '' }}">
+                    <i data-lucide="wallet"></i>
+                    <span>Mon portefeuille</span>
+                </a>
                 <a href="{{ route('citizen.notifications') }}"
                    class="fo-nav-link {{ request()->routeIs('citizen.notifications') ? 'is-active' : '' }}">
                     <i data-lucide="bell"></i>
@@ -89,6 +104,9 @@
                             <a href="{{ route('citizen.zones.index') }}"      class="fo-nav-link" style="border-radius:8px;">Zones</a>
                             <a href="{{ route('citizen.infrastructures.index') }}" class="fo-nav-link" style="border-radius:8px;">Infrastructure</a>
                             <a href="{{ route('citizen.projets.index') }}"   class="fo-nav-link" style="border-radius:8px;">Projets</a>
+                            <a href="{{ route('citizen.favoris') }}"         class="fo-nav-link" style="border-radius:8px;">Mes favoris</a>
+                            <a href="{{ route('citizen.recommandations') }}" class="fo-nav-link" style="border-radius:8px;">Recommandations</a>
+                            <a href="{{ route('citizen.portefeuille') }}"    class="fo-nav-link" style="border-radius:8px;">Mon portefeuille</a>
                             <a href="{{ route('citizen.notifications') }}"   class="fo-nav-link" style="border-radius:8px;">Alertes &amp; coupures</a>
                             <a href="{{ route('profile.show') }}"            class="fo-nav-link" style="border-radius:8px;">Profil</a>
                         </div>
@@ -99,14 +117,6 @@
                     <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
                     <svg class="icon-sun"  width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 </button>
-                <button type="button" class="theme-toggle aq-topbar-acc-btn" onclick="openAccessibilityModal()" aria-label="Paramètres d'accessibilité" title="Accessibilité (Alt+A)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="4.5" r="2.2"/>
-                        <path d="M12 7v6.5"/>
-                        <path d="m5 10 7 1.5 7-1.5"/>
-                        <path d="m7.5 21 4.5-7.5 4.5 7.5"/>
-                    </svg>
-                </button>
                 <x-notification-center />
                 <x-user-menu />
             </div>
@@ -115,6 +125,22 @@
 
     {{-- ══ MAIN CONTENT ═══════════════════════════════════════════════════════ --}}
     <main class="fo-main" id="main-content">
+
+        {{-- Zone de messages flash. Conteneur vierge : il ne s'affiche que
+             s'il est rempli, donc aucun changement visuel pour les écrans qui
+             n'en envoient pas. --}}
+        <div id="fo-flash" class="space-y-2 mb-4" aria-live="polite"></div>
+        @if (session('success'))
+        <div class="rounded-xl px-4 py-3 mb-4 text-sm font-semibold bg-teal-500/15 text-teal-300 border border-teal-400/25">
+            {{ session('success') }}
+        </div>
+        @endif
+        @if (session('error'))
+        <div class="rounded-xl px-4 py-3 mb-4 text-sm font-semibold bg-amber-500/15 text-amber-300 border border-amber-400/25">
+            {{ session('error') }}
+        </div>
+        @endif
+
         @yield('frontoffice-content')
         @yield('content')
     </main>

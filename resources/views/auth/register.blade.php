@@ -7,9 +7,6 @@
     .aqua-auth-page > section:first-child { background: linear-gradient(145deg,#123b57,#0d5b76); border-color: #1e7892; }
     .aqua-auth-page > section:first-child .text-white { color: #fff !important; }
     .aqua-auth-page > section:first-child [class*="text-cyan-100/"] { color: #c5e5ef !important; }
-    .aqua-auth-page > section:first-child .glass-strong { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.16) !important; }
-    .aqua-auth-page > section:first-child .glass-strong .text-white { color: #fff !important; }
-    .aqua-auth-page > section:first-child .glass-strong [class*="text-cyan-100/"] { color: #c5e5ef !important; }
     .aqua-auth-page > section:last-child { background: #fff; }
     .aqua-auth-page [class~="text-white"] { color: #102a43 !important; }
     .aqua-auth-page [class~="text-cyan-100/70"], .aqua-auth-page [class~="text-cyan-100/65"] { color: #52677a !important; }
@@ -17,9 +14,6 @@
     .aqua-auth-page [class*="bg-slate-950"] { background-color: #f5f8fb !important; }
     .aqua-auth-page [class*="border-cyan-400/"] { border-color: #d5e2eb !important; }
     .aqua-auth-page input:not([type="checkbox"]), .aqua-auth-page select { color: #102a43; background: #f8fafc; border-color: #cbd9e5; }
-    .aqua-auth-page > section:last-child .relative > input:not([type="checkbox"]) { padding-left: 2.75rem !important; }
-    .aqua-auth-page > section:last-child .relative > input[name="password"],
-    .aqua-auth-page > section:last-child .relative > input[name="password_confirmation"] { padding-right: 2.75rem !important; }
     .aqua-auth-page input::placeholder { color: #94a3b8; }
     .aqua-auth-page [class*="bg-gradient-to-r"],
     .aqua-auth-page [class*="bg-gradient-to-r"] [class~="text-white"],
@@ -94,7 +88,7 @@
         </div>
 
         <!-- Register Form -->
-        <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4" autocomplete="off">
+        <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4">
             @csrf
         @if (session('error') || $errors->any())
                 <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
@@ -113,13 +107,15 @@
                         id="name"
                         required 
                         minlength="3"
-                        value="{{ old('name') }}"
-                        autocomplete="off"
                         placeholder="Ex. Yassine Hamdi" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
                     <i data-lucide="user" class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2"></i>
                 </div>
+                <p class="text-[11px] text-rose-400 mt-1.5 hidden" id="name-error">
+                    <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i>
+                    Lettres, espaces, apostrophes, tirets et points uniquement (3 caractères minimum).
+                </p>
             </div>
 
             <div>
@@ -132,13 +128,15 @@
                         name="email" 
                         id="email"
                         required 
-                        value="{{ old('email') }}"
-                        autocomplete="off"
                         placeholder="vous@exemple.tn" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
                     <i data-lucide="mail" class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2"></i>
                 </div>
+                <p class="text-[11px] text-rose-400 mt-1.5 hidden" id="email-error">
+                    <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i>
+                    Adresse email invalide (ex. vous@exemple.tn).
+                </p>
             </div>
 
             <div>
@@ -149,12 +147,15 @@
                     <input id="phone" 
                         type="tel" 
                         name="phone" 
-                        autocomplete="off"
                         placeholder="+216 XX XXX XXX" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
                     <i data-lucide="phone" class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2"></i>
                 </div>
+                <p class="text-[11px] text-rose-400 mt-1.5 hidden" id="phone-error">
+                    <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i>
+                    Numéro invalide. Format accepté : +216 XX XXX XXX (8 chiffres minimum).
+                </p>
             </div>
 
             <div>
@@ -167,8 +168,7 @@
                         name="password" 
                         id="password" 
                         required 
-                        minlength="6" 
-                        autocomplete="new-password"
+                        minlength="12" 
                         placeholder="••••••••" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -186,8 +186,45 @@
                         <div class="h-1 flex-1 rounded-full bg-slate-800/50" id="strength-bar-3"></div>
                         <div class="h-1 flex-1 rounded-full bg-slate-800/50" id="strength-bar-4"></div>
                     </div>
-                    <p class="text-xs text-cyan-100/50" id="strength-text">Minimum 6 caractères</p>
+                    <p class="text-xs text-cyan-100/50" id="strength-text">12 caractères minimum</p>
                 </div>
+
+                <!-- Exigences en temps réel (miroir exact des règles serveur) -->
+                <ul class="mt-2.5 grid gap-1 text-[11px]" id="pw-rules">
+                    <li class="pw-rule flex items-center gap-1.5 text-cyan-100/45 transition-colors" data-rule="len">
+                        <span class="pw-mark w-3.5 h-3.5 rounded-full border border-current flex items-center justify-center text-[8px] leading-none font-bold shrink-0">✓</span>
+                        12 caractères minimum
+                    </li>
+                    <li class="pw-rule flex items-center gap-1.5 text-cyan-100/45 transition-colors" data-rule="lower">
+                        <span class="pw-mark w-3.5 h-3.5 rounded-full border border-current flex items-center justify-center text-[8px] leading-none font-bold shrink-0">✓</span>
+                        Une lettre minuscule
+                    </li>
+                    <li class="pw-rule flex items-center gap-1.5 text-cyan-100/45 transition-colors" data-rule="upper">
+                        <span class="pw-mark w-3.5 h-3.5 rounded-full border border-current flex items-center justify-center text-[8px] leading-none font-bold shrink-0">✓</span>
+                        Une lettre majuscule
+                    </li>
+                    <li class="pw-rule flex items-center gap-1.5 text-cyan-100/45 transition-colors" data-rule="digit">
+                        <span class="pw-mark w-3.5 h-3.5 rounded-full border border-current flex items-center justify-center text-[8px] leading-none font-bold shrink-0">✓</span>
+                        Un chiffre
+                    </li>
+                    <li class="pw-rule flex items-center gap-1.5 text-cyan-100/45 transition-colors" data-rule="symbol">
+                        <span class="pw-mark w-3.5 h-3.5 rounded-full border border-current flex items-center justify-center text-[8px] leading-none font-bold shrink-0">✓</span>
+                        Un caractère spécial
+                    </li>
+                    <li class="pw-rule flex items-center gap-1.5 text-cyan-100/45 transition-colors" data-rule="common">
+                        <span class="pw-mark w-3.5 h-3.5 rounded-full border border-current flex items-center justify-center text-[8px] leading-none font-bold shrink-0">✓</span>
+                        Différent des mots de passe courants
+                    </li>
+                </ul>
+
+                <button type="button" id="pw-generate" class="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors">
+                    <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
+                    Suggérer un mot de passe sécurisé
+                </button>
+                <p class="text-[11px] text-emerald-400 mt-1.5 hidden" id="pw-generated">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 inline"></i>
+                    Mot de passe généré — copiez-le dans un gestionnaire de mots de passe.
+                </p>
             </div>
 
             <div>
@@ -200,8 +237,7 @@
                         name="password_confirmation" 
                         id="password_confirmation" 
                         required 
-                        minlength="6" 
-                        autocomplete="new-password"
+                        minlength="12" 
                         placeholder="••••••••" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -272,68 +308,208 @@
         }
     }
     
-    // Password strength checker
-    const passwordInput = document.getElementById('password');
-    const strengthBars = [
-        document.getElementById('strength-bar-1'),
-        document.getElementById('strength-bar-2'),
-        document.getElementById('strength-bar-3'),
-        document.getElementById('strength-bar-4'),
+    // ── Password rules ────────────────────────────────────────────────────────
+    // Mirrors the server-side rule in routes/web.php:
+    // Password::min(12)->letters()->mixedCase()->numbers()->symbols()
+    // plus the rejection of well-known passwords.
+    const COMMON_PASSWORDS = [
+        'password', 'password1', 'password123', '123456', '12345678', '123456789',
+        'qwerty', 'azerty', 'iloveyou', 'admin', 'welcome', 'letmein', 'monkey',
+        'dragon', 'sunshine', 'princess', 'football', 'abc123', 'motdepasse',
+        'motdepasse123', 'azertyuiop', 'qwertyuiop', 'aquasecure', 'citoyen',
+        'password123!', 'password1234!', 'welcome12345!', 'qwerty12345!',
+        'azerty12345!', 'admin12345!', 'letmein12345!', 'motdepasse1234!',
     ];
-    const strengthText = document.getElementById('strength-text');
-    
-    passwordInput.addEventListener('input', function() {
-        const password = this.value;
-        let strength = 0;
-        
-        // Reset bars
-        strengthBars.forEach(bar => {
-            bar.style.background = '#1e293b';
-        });
-        
-        if (password.length >= 6) strength++;
-        if (password.length >= 10) strength++;
-        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-        if (/[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) strength++;
-        
-        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
-        const texts = ['Faible', 'Moyen', 'Bon', 'Excellent'];
-        
-        if (strength > 0) {
-            for (let i = 0; i < strength; i++) {
-                strengthBars[i].style.background = colors[strength - 1];
-            }
-            strengthText.textContent = `Force du mot de passe : ${texts[strength - 1]}`;
-            strengthText.style.color = colors[strength - 1];
-        } else {
-            strengthText.textContent = 'Minimum 6 caractères';
-            strengthText.style.color = 'rgba(240, 253, 255, 0.5)';
-        }
-    });
-    
-    // Password match validation
+    const RULES = {
+        len:     (v) => v.length >= 12,
+        lower:   (v) => /[a-z]/.test(v),
+        upper:   (v) => /[A-Z]/.test(v),
+        digit:   (v) => /[0-9]/.test(v),
+        symbol:  (v) => /[^A-Za-z0-9]/.test(v),
+        common:  (v) => ! COMMON_PASSWORDS.includes(v.toLowerCase()),
+    };
+    const OK_COLOR = '#34d399';
+
+    const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('password_confirmation');
     const matchError = document.getElementById('password-match-error');
-    
-    confirmInput.addEventListener('input', function() {
-        if (this.value && this.value !== passwordInput.value) {
-            matchError.classList.remove('hidden');
-            this.classList.add('border-rose-400');
-        } else {
-            matchError.classList.add('hidden');
-            this.classList.remove('border-rose-400');
+    const strengthBars = [1, 2, 3, 4].map(i => document.getElementById('strength-bar-' + i));
+    const strengthText = document.getElementById('strength-text');
+    const ruleItems = Array.from(document.querySelectorAll('#pw-rules .pw-rule'));
+
+    function evaluatePassword(value) {
+        const passed = {};
+        for (const [key, test] of Object.entries(RULES)) {
+            passed[key] = test(value);
         }
+        return passed;
+    }
+
+    function renderPasswordFeedback() {
+        const value = passwordInput.value;
+        const passed = evaluatePassword(value);
+        const satisfied = Object.values(passed).filter(Boolean).length;
+
+        ruleItems.forEach(item => {
+            const ok = passed[item.dataset.rule];
+            item.classList.toggle('pw-ok', ok);
+            item.style.color = ok ? OK_COLOR : 'rgba(194, 231, 242, 0.45)';
+            const mark = item.querySelector('.pw-mark');
+            mark.style.opacity = ok ? '1' : '0.25';
+            mark.style.background = ok ? OK_COLOR : 'transparent';
+            mark.style.borderColor = ok ? OK_COLOR : 'currentColor';
+            mark.style.color = ok ? '#04212b' : 'transparent';
+            mark.style.transform = ok ? 'scale(1)' : 'scale(.85)';
+        });
+
+        // Strength = number of satisfied rules, capped at the 4 bars.
+        const filled = value ? Math.max(1, satisfied) : 0;
+        const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e'];
+        const texts = ['Faible', 'Moyen', 'Bon', 'Excellent'];
+
+        strengthBars.forEach((bar, i) => {
+            bar.style.background = i < filled ? colors[Math.min(filled, 4) - 1] : '#1e293b';
+        });
+
+        if (value) {
+            strengthText.textContent = `Force du mot de passe : ${texts[Math.min(filled, 4) - 1]}`;
+            strengthText.style.color = colors[Math.min(filled, 4) - 1];
+        } else {
+            strengthText.textContent = '12 caractères minimum';
+            strengthText.style.color = 'rgba(240, 253, 255, 0.5)';
+        }
+
+        // The user has typed a password: re-check the confirmation too.
+        renderMatchFeedback();
+    }
+
+    function renderMatchFeedback() {
+        const mismatch = confirmInput.value && confirmInput.value !== passwordInput.value;
+        matchError.classList.toggle('hidden', ! mismatch);
+        confirmInput.classList.toggle('border-rose-400', !! mismatch);
+    }
+
+    passwordInput.addEventListener('input', renderPasswordFeedback);
+    confirmInput.addEventListener('input', renderMatchFeedback);
+
+    // ── Password generator ────────────────────────────────────────────────────
+    // Uses the browser CSPRNG, guarantees one character of every category and
+    // returns a 16-character string (well above the 8-character minimum).
+    function generateStrongPassword(length = 16) {
+        const LOWER = 'abcdefghijkmnopqrstuvwxyz';
+        const UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const DIGIT = '23456789';
+        const SYMBOL = '!@#$%^&*?-_=+';
+        const ALL = LOWER + UPPER + DIGIT + SYMBOL;
+
+        const randomInt = (max) => {
+            // Rejection sampling keeps the distribution uniform.
+            const limit = Math.floor(0xFFFFFFFF / max) * max;
+            const buf = new Uint32Array(1);
+            do { crypto.getRandomValues(buf); } while (buf[0] >= limit);
+            return buf[0] % max;
+        };
+        const pick = (set) => set[randomInt(set.length)];
+
+        const chars = [pick(LOWER), pick(UPPER), pick(DIGIT), pick(SYMBOL)];
+        while (chars.length < length) chars.push(pick(ALL));
+
+        // Fisher–Yates shuffle driven by the CSPRNG.
+        for (let i = chars.length - 1; i > 0; i--) {
+            const j = randomInt(i + 1);
+            [chars[i], chars[j]] = [chars[j], chars[i]];
+        }
+        return chars.join('');
+    }
+
+    const generatedNotice = document.getElementById('pw-generated');
+    document.getElementById('pw-generate').addEventListener('click', () => {
+        const value = generateStrongPassword();
+        passwordInput.value = value;
+        confirmInput.value = value;
+        // Reveal it so the user can copy it before closing the tab.
+        passwordInput.type = 'text';
+        confirmInput.type = 'text';
+        document.querySelectorAll('.eye-icon-password, .eye-icon-confirmation').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.eye-off-icon-password, .eye-off-icon-confirmation').forEach(el => el.classList.remove('hidden'));
+        generatedNotice.classList.remove('hidden');
+        matchError.classList.add('hidden');
+        confirmInput.classList.remove('border-rose-400');
+        renderPasswordFeedback();
     });
-    
-    // Form validation
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
+
+    // ── Field validation (mirrors the server rules) ───────────────────────────
+    const NAME_RE  = /^[\p{L}\p{M}\s'\-\.]+$/u;
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const PHONE_RE = /^\+?[0-9\s\-\(\)]{8,20}$/;
+
+    const nameInput  = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+
+    /**
+     * Attach live validation to a field.
+     *
+     * @param {boolean} optional  An empty value is acceptable (phone only).
+     * @returns {() => boolean}   Current validity of the field.
+     */
+    function bindFieldCheck(input, errorId, test, optional = false) {
+        const error = document.getElementById(errorId);
+        const check = () => {
+            const empty = input.value.trim() === '';
+            // An empty optional field is never flagged while typing.
+            if (empty && optional) {
+                error.classList.add('hidden');
+                input.classList.remove('border-rose-400');
+                return true;
+            }
+            const bad = empty || ! test(input.value.trim());
+            error.classList.toggle('hidden', ! bad);
+            input.classList.toggle('border-rose-400', bad);
+            return ! bad;
+        };
+        input.addEventListener('input', check);
+        input.addEventListener('blur', check);
+        return check;
+    }
+
+    const checks = {
+        name:  bindFieldCheck(nameInput,  'name-error',  v => v.length >= 3 && NAME_RE.test(v)),
+        email: bindFieldCheck(emailInput, 'email-error', v => EMAIL_RE.test(v)),
+        phone: bindFieldCheck(phoneInput, 'phone-error', v => PHONE_RE.test(v), true),
+    };
+
+    // ── Form validation ───────────────────────────────────────────────────────
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
         if (passwordInput.value !== confirmInput.value) {
             e.preventDefault();
-            matchError.classList.remove('hidden');
+            renderMatchFeedback();
             confirmInput.focus();
             return;
         }
+        // Stop an obviously weak password before the round-trip to the server.
+        const passed = evaluatePassword(passwordInput.value);
+        if (Object.values(passed).some(ok => ! ok)) {
+            e.preventDefault();
+            renderPasswordFeedback();
+            passwordInput.focus();
+            return;
+        }
+        // Report every field that fails its own rule, starting with the first.
+        let firstBad = null;
+        for (const [key, check] of Object.entries(checks)) {
+            if (! check() && ! firstBad) {
+                firstBad = key;
+            }
+        }
+        if (firstBad) {
+            e.preventDefault();
+            document.getElementById(firstBad).focus();
+        }
     });
+
+    // Initial paint (also corrects state after a server-side redirect).
+    renderPasswordFeedback();
 </script>
 @endpush
 @endsection

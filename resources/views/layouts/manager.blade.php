@@ -134,6 +134,10 @@
                    class="sidebar-link {{ request()->routeIs('manager.projets.*') ? 'is-active' : '' }}">
                     <i data-lucide="briefcase"></i><span>Projets</span>
                 </a>
+                <a href="{{ route('manager.demandes.index') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.demandes.*') ? 'is-active' : '' }}">
+                    <i data-lucide="hand-coins"></i><span>Demandes de financement</span>
+                </a>
                 <a href="{{ route('manager.budget') }}"
                    class="sidebar-link {{ request()->routeIs('manager.budget*', 'manager.financements.*') ? 'is-active' : '' }}">
                     <i data-lucide="credit-card"></i><span>Budget</span>
@@ -238,6 +242,7 @@
         </main>
 
         <x-ui.confirm-modal />
+        <x-accessibility-menu />
     </div>
 </div>
 
