@@ -12,7 +12,7 @@
     .beach-panel { overflow: hidden; background: var(--bg-card); border: 1px solid var(--border); border-radius: 1rem; box-shadow: var(--shadow-sm); }
     .beach-heading { padding: 1rem 1.1rem; border-bottom: 1px solid var(--border); }
     .beach-heading h2 { font-size: 1rem; font-weight: 750; }
-    .beach-filters { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(180px, .7fr) auto; gap: .75rem; padding: 1rem; }
+    .beach-filters { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(180px, .7fr) minmax(160px, .7fr) auto; gap: .75rem; padding: 1rem; }
     .beach-filters input, .beach-filters select { width: 100%; min-height: 42px; padding: .55rem .75rem; color: var(--text-primary); background: var(--bg-input); border: 1px solid var(--border); border-radius: .7rem; }
     .beach-button { padding: .65rem 1rem; color: white; font-weight: 700; background: var(--role-accent); border: 0; border-radius: .7rem; cursor: pointer; }
     .beach-results { max-height: 560px; overflow-y: auto; padding: .5rem; }
@@ -30,8 +30,8 @@
 <section class="beach-page" aria-labelledby="beach-page-title">
     <header class="beach-header">
         <span class="beach-kicker">Information publique</span>
-        <h1 id="beach-page-title">Interdictions de baignade signal&eacute;es</h1>
-        <p>Consultez les points signal&eacute;s comme interdits et recherchez par nom ou gouvernorat.</p>
+        <h1 id="beach-page-title">Plages tunisiennes</h1>
+        <p>Consultez les plages publi&eacute;es, recherchez par nom et filtrez par gouvernorat ou &eacute;tat de baignade.</p>
     </header>
 
     <section class="beach-panel" aria-labelledby="beach-list-title">
@@ -45,12 +45,19 @@
                 <input id="beach-search" type="search" maxlength="120" placeholder="Rechercher par nom">
             </label>
             <label>
-                <span class="sr-only">Filtrer par gouvernorat</span>
-                <select id="governorate-filter"><option value="">Tous les gouvernorats</option></select>
+            <span class="sr-only">Filtrer par gouvernorat</span>
+            <select id="governorate-filter"><option value="">Tous les gouvernorats</option></select>
+            <label>
+                <span class="sr-only">Filtrer par statut de baignade</span>
+                <select id="bathing-status-filter">
+                    <option value="restricted" selected>Interdiction signal&eacute;e</option>
+                    <option value="unknown">&Eacute;tat inconnu</option>
+                </select>
+            </label>
             </label>
             <button class="beach-button" type="submit">Rechercher</button>
         </form>
-        <p class="beach-message">Relev&eacute; historique dat&eacute; du 20/06/2026. Il ne confirme pas l&rsquo;&eacute;tat actuel de la baignade ; v&eacute;rifiez les consignes locales avant de vous baigner.</p>
+        <p class="beach-message">Un &eacute;tat &laquo; inconnu &raquo; ne signifie pas que la baignade est autoris&eacute;e ou interdite : aucune d&eacute;cision officielle actuelle n&rsquo;a &eacute;t&eacute; v&eacute;rifi&eacute;e. Les interdictions affich&eacute;es sont issues de relev&eacute;s historiques et ne confirment pas l&rsquo;&eacute;tat actuel.</p>
         <div id="beach-results" class="beach-results" aria-live="polite"><p class="beach-message">Chargement des points signal&eacute;s...</p></div>
         <button id="load-more" class="beach-load-more" type="button" hidden>Charger la suite</button>
     </section>
@@ -63,6 +70,7 @@
     const list = document.getElementById('beach-results');
     const summary = document.getElementById('beach-summary');
     const governorateFilter = document.getElementById('governorate-filter');
+    const bathingStatusFilter = document.getElementById('bathing-status-filter');
     const loadMore = document.getElementById('load-more');
     let page = 1;
     let lastPage = 1;
@@ -78,7 +86,7 @@
     function render(points, append) {
         if (!append) list.replaceChildren();
         if (!points.length && !append) {
-            list.innerHTML = '<p class="beach-message">Aucun point avec une restriction signal&eacute;e ne correspond a cette recherche.</p>';
+            list.innerHTML = '<p class="beach-message">Aucune plage publiée ne correspond à cette recherche.</p>';
             return;
         }
         points.forEach((point) => {
@@ -90,7 +98,7 @@
             location.textContent = point.governorate;
             const status = document.createElement('span');
             status.className = 'beach-status';
-            status.textContent = 'Interdiction signal\u00e9e (historique)';
+            status.textContent = point.reported_status === 'unknown' ? '\u00c9tat inconnu' : 'Interdiction signal\u00e9e (historique)';
             row.append(name, location, status);
             const reportedAt = document.createElement('small');
             reportedAt.textContent = `Relev\u00e9 du ${new Date(`${point.reported_at}T00:00:00`).toLocaleDateString('fr-FR')}`;
@@ -115,7 +123,7 @@
     async function loadPoints(append = false) {
         if (!append) page = 1;
         list.setAttribute('aria-busy', 'true');
-        const params = new URLSearchParams({ page: String(page), per_page: '100', status: 'restricted' });
+        const params = new URLSearchParams({ page: String(page), per_page: '100', status: bathingStatusFilter.value });
         const query = document.getElementById('beach-search').value.trim();
         if (query) params.set('q', query);
         if (governorateFilter.value) params.set('governorate', governorateFilter.value);
