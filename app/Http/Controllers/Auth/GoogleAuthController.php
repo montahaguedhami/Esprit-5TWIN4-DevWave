@@ -21,9 +21,10 @@ use Laravel\Socialite\Facades\Socialite;
  *    never taken from the browser nor from Google.
  *  - A disabled account is never reactivated automatically.
  *  - The RBAC / policies of the application are never bypassed.
- *  - A local account sharing the same address is never auto-linked while
- *    browsing anonymously: the user must authenticate first and link
- *    explicitly from a logged-in session.
+ *  - A local account sharing the same address is auto-linked ONLY when
+ *    Google reports the address as verified AND the local account verified
+ *    it through the signed email-verification link. Every other case keeps
+ *    the explicit flow: sign in with the password, then link from profile.
  */
 class GoogleAuthController extends Controller
 {
@@ -156,10 +157,13 @@ class GoogleAuthController extends Controller
             : null;
 
         if ($localAccount) {
-            // Refuse to auto-link while browsing anonymously: the user must
-            // sign in with their own credentials first, then link explicitly.
-            return redirect()->route('auth.login')
-                ->with('error', 'Un compte existe déjà avec cette adresse email. Connectez-vous avec votre mot de passe, puis liez Google depuis votre profil.');
+            return $this->autoLinkVerifiedAccount(
+                $request,
+                $socialUser,
+                $localAccount,
+                $providerId,
+                $providerEmail,
+            );
         }
 
         // Brand new account — always a citizen.
@@ -237,6 +241,61 @@ class GoogleAuthController extends Controller
         }
 
         return redirect()->intended(route(Role::homeRoute($user->primary_role)));
+    }
+
+    /**
+     * Auto-link a Google identity with a local account sharing its address.
+     *
+     * The link is allowed ONLY when BOTH sides have proved ownership of the
+     * same address:
+     *   - Google reports `email_verified: true` for this identity;
+     *   - the local account verified its address through the signed
+     *     email-verification link (`email_verified_at`).
+     *
+     * Any missing proof keeps the previous refusal, and a disabled account
+     * or an identity already attached to another provider is never touched.
+     */
+    private function autoLinkVerifiedAccount(
+        Request $request,
+        object $socialUser,
+        User $localAccount,
+        string $providerId,
+        ?string $providerEmail,
+    ): RedirectResponse {
+        $googleEmailVerified = (bool) ($socialUser->getRaw()['email_verified'] ?? false);
+        $localEmailVerified  = $localAccount->hasVerifiedEmail();
+
+        // One side (or both) never proved the address: keep the explicit
+        // link flow through an authenticated session.
+        if (! $googleEmailVerified || ! $localEmailVerified) {
+            return redirect()->route('auth.login')
+                ->with('error', 'Un compte existe déjà avec cette adresse email. Connectez-vous avec votre mot de passe, puis liez Google depuis votre profil.');
+        }
+
+        // A disabled account is never reactivated nor linked automatically.
+        if (! $localAccount->is_active) {
+            return redirect()->route('auth.login')
+                ->with('error', 'Ce compte a été désactivé par un administrateur.');
+        }
+
+        // Never overwrite an identity already attached to another provider.
+        if (filled($localAccount->provider)) {
+            return redirect()->route('auth.login')
+                ->with('error', 'Un compte existe déjà avec cette adresse email. Connectez-vous avec votre mot de passe, puis liez Google depuis votre profil.');
+        }
+
+        $localAccount->forceFill([
+            'provider'    => 'google',
+            'provider_id' => $providerId,
+        ])->save();
+
+        AuditLog::record('social_link', 'User', $localAccount->id, [
+            'provider' => 'google',
+            'ip'       => (string) $request->ip(),
+            'via'      => 'auto_link_verified_email',
+        ], $localAccount);
+
+        return $this->loginSocialUser($request, $localAccount);
     }
 
     /**

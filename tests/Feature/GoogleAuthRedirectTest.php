@@ -198,13 +198,14 @@ class GoogleAuthRedirectTest extends TestCase
         return $user;
     }
 
-    private function fakeGoogle(string $providerId, ?string $email): void
+    private function fakeGoogle(string $providerId, ?string $email, bool $emailVerified = true): void
     {
-        $socialUser = new class($providerId, $email)
+        $socialUser = new class($providerId, $email, $emailVerified)
         {
             public function __construct(
                 private readonly string $id,
                 private readonly ?string $email,
+                private readonly bool $emailVerified,
             ) {}
 
             public function getId(): string
@@ -225,6 +226,11 @@ class GoogleAuthRedirectTest extends TestCase
             public function getAvatar(): ?string
             {
                 return null;
+            }
+
+            public function getRaw(): array
+            {
+                return ['email' => $this->email, 'email_verified' => $this->emailVerified];
             }
         };
 
