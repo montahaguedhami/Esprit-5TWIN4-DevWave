@@ -114,4 +114,3 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Intervention::observe(InterventionObserver::class);
     }
 }
-```
