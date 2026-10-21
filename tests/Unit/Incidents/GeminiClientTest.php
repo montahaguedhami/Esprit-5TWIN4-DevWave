@@ -18,6 +18,7 @@ class GeminiClientTest extends TestCase
         config([
             'services.gemini.api_key' => 'test-key',
             'services.gemini.model' => 'gemini-test',
+            'services.gemini.fallback_model' => 'gemini-fallback',
             'services.gemini.base_url' => 'https://generativelanguage.googleapis.com/v1beta',
         ]);
     }
@@ -123,6 +124,26 @@ class GeminiClientTest extends TestCase
         Http::fake(['*' => Http::response([], 500)]);
 
         $this->assertFailsWith('n’a pas pu traiter');
+    }
+
+    public function test_overloaded_primary_model_uses_fallback_model(): void
+    {
+        $sequence = Http::sequence()
+            ->push(['error' => ['message' => 'high demand']], 503)
+            ->push(['candidates' => [['content' => ['parts' => [['text' => '{"ok":true}']]]]]]);
+        Http::fake(['*' => $sequence]);
+
+        $this->assertSame(['ok' => true], $this->generate());
+        Http::assertSent(fn (HttpRequest $request) => str_contains($request->url(), '/models/gemini-fallback:generateContent'));
+    }
+
+    public function test_persistent_overload_has_a_specific_message(): void
+    {
+        Http::fake(['*' => Http::sequence()
+            ->push(['error' => ['message' => 'high demand']], 503)
+            ->push(['error' => ['message' => 'high demand']], 503)]);
+
+        $this->assertFailsWith('temporairement surchargés');
     }
 
     public function test_connection_failure_throws(): void

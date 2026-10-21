@@ -30,8 +30,7 @@ class GeminiClient
         }
 
         $model = (string) config('services.gemini.model', 'gemini-3.8-flash');
-        $url = rtrim((string) config('services.gemini.base_url'), '/') . '/models/' . rawurlencode($model) . ':generateContent';
-
+        $baseUrl = rtrim((string) config('services.gemini.base_url'), '/');
         $payload = [
             'system_instruction' => ['parts' => [['text' => $systemInstruction]]],
             'contents' => [['role' => 'user', 'parts' => [['text' => $userPrompt]]]],
@@ -41,12 +40,25 @@ class GeminiClient
                 'responseSchema' => $responseSchema,
             ],
         ];
-
-        try {
-            $response = Http::withHeaders(['x-goog-api-key' => (string) config('services.gemini.api_key')])
+        $sendRequest = function (string $requestModel) use ($baseUrl, $payload) {
+            return Http::withHeaders(['x-goog-api-key' => (string) config('services.gemini.api_key')])
                 ->acceptJson()
                 ->timeout((int) config('services.gemini.timeout', 30))
-                ->post($url, $payload);
+                ->post($baseUrl . '/models/' . rawurlencode($requestModel) . ':generateContent', $payload);
+        };
+
+        try {
+            $response = $sendRequest($model);
+
+            $fallbackModel = (string) config('services.gemini.fallback_model', '');
+            if ($response->status() === 503 && filled($fallbackModel) && $fallbackModel !== $model) {
+                Log::warning('Gemini: modèle principal surchargé, essai du modèle de secours', [
+                    'model' => $model,
+                    'fallback_model' => $fallbackModel,
+                ]);
+                $model = $fallbackModel;
+                $response = $sendRequest($model);
+            }
         } catch (ConnectionException $e) {
             Log::warning('Gemini: connexion impossible', ['error' => $e->getMessage()]);
             throw new AiUnavailableException('Le service IA est momentanément injoignable.');
@@ -55,12 +67,14 @@ class GeminiClient
         if ($response->failed()) {
             // Never log the API key; only status and Google's error message.
             Log::warning('Gemini: réponse en erreur', [
+                'model' => $model,
                 'status' => $response->status(),
                 'error' => $response->json('error.message'),
             ]);
 
             $message = match ($response->status()) {
                 429 => 'Le quota de l’assistant IA est atteint. Réessayez dans quelques instants.',
+                503 => 'Les modèles Gemini sont temporairement surchargés. Réessayez dans quelques instants.',
                 400, 401, 403 => 'Clé API Gemini invalide ou non autorisée (vérifiez GEMINI_API_KEY).',
                 404 => 'Modèle Gemini introuvable (vérifiez GEMINI_MODEL).',
                 default => 'Le service IA n’a pas pu traiter la demande.',
