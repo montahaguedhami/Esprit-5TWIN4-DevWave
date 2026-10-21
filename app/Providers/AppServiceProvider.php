@@ -1,4 +1,4 @@
-```php
+
 <?php
 
 namespace App\Providers;
@@ -23,12 +23,8 @@ use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        // Payment simulation: a LOCAL provider only.
         $this->app->singleton(SimulatedPaymentProvider::class, function () {
             $driver = (string) config('financement.driver', 'simulated');
 
@@ -46,19 +42,14 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Schema::defaultStringLength(191);
 
-        // Render utilise HTTPS en production.
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }
 
-        // Lien de vérification d'e-mail : URL signée temporaire.
         VerifyEmail::createUrlUsing(fn (object $notifiable): string => URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes((int) config('auth.verification.expire', 60)),
@@ -68,11 +59,9 @@ class AppServiceProvider extends ServiceProvider
             ]
         ));
 
-        // Register Policies
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(MesureQualite::class, MesureQualitePolicy::class);
 
-        // Super-admin bypass for all gates, unless specific policy returns strict deny
         Gate::before(function ($user, $ability) {
             if ($user instanceof User && $user->isAdministrator()) {
                 if (in_array($ability, ['delete', 'assignRoles', 'toggleStatus'], true)) {
@@ -85,7 +74,6 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        // Dynamic gate resolution for granular permission strings
         Gate::after(function ($user, $ability, $result) {
             if ($result !== null) {
                 return $result;
@@ -98,7 +86,6 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        // Blade Directives for RBAC
         Blade::if('role', function ($role) {
             $user = auth()->user();
 
@@ -127,3 +114,4 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Intervention::observe(InterventionObserver::class);
     }
 }
+```
