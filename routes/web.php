@@ -283,22 +283,44 @@ Route::middleware('role:citoyen')->group(function () {
     Route::get('/citizen/reports/create',   fn () => view('citizen.reports.create'))->name('citizen.reports.create');
     Route::post('/citizen/reports',         fn () => redirect()->route('citizen.dashboard')->with('success', 'Déclaration envoyée avec succès'))->name('citizen.reports.store');
     Route::get('/citizen/reports/{id}',     fn ($id) => view('citizen.reports.show', ['id' => $id]))->name('citizen.reports.show');
-    Route::get('/citizen/notifications',    fn () => view('citizen.notifications'))->name('citizen.notifications');
+    Route::get('/citizen/notifications', function () {
+        $incidentNotifications = auth()->user()
+            ? auth()->user()->notifications()
+                ->where('type', \App\Notifications\ActionCorrectiveCreated::class)
+                ->latest()
+                ->limit(20)
+                ->get()
+            : collect();
+
+        return view('citizen.notifications', compact('incidentNotifications'));
+    })->name('citizen.notifications');
+
     // Polling alertes en temps réel (main)
     Route::get('/citizen/alerts/poll', function () {
         $user = auth()->user();
+
         if (! $user) {
             return response()->json(['unread_count' => 0, 'notifications' => []]);
         }
+
         $notifications = $user->notifications()->latest()->limit(8)->get();
+
         return response()->json([
-            'unread_count'  => $user->notifications()->whereNull('read_at')->count(),
-            'notifications' => $notifications->map(fn ($n) => [
-                'id'      => $n->id,
-                'message' => $n->data['message'] ?? '',
-                'read'    => ! is_null($n->read_at),
-                'url'     => $n->data['url'] ?? null,
-            ]),
+            'unread_count' => $user->notifications()->whereNull('read_at')->count(),
+            'notifications' => $notifications->map(function ($notification) {
+                $data = $notification->data ?? [];
+
+                return [
+                    'id' => (string) $notification->id,
+                    'title' => isset($data['action_title'])
+                        ? 'Nouvelle action corrective : ' . $data['action_title']
+                        : ($data['incident_title'] ?? 'Nouvelle notification'),
+                    'message' => $data['message'] ?? 'Une mise à jour est disponible.',
+                    'read' => $notification->read_at !== null,
+                    'time' => $notification->created_at?->diffForHumans() ?? 'Récemment',
+                    'url' => isset($data['incident_id']) ? route('incidents.show', $data['incident_id']) : null,
+                ];
+            })->values(),
         ]);
     })->name('citizen.alerts.poll');
     Route::get('/citizen/invoices',         fn () => view('citizen.invoices.index'))->name('citizen.invoices.index');
@@ -339,6 +361,7 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(
     Route::get('/incidents/{incident}/edit',  [IncidentController::class, 'edit'])->name('incidents.edit');
     Route::put('/incidents/{incident}',       [IncidentController::class, 'update'])->name('incidents.update');
     Route::delete('/incidents/{incident}',    [IncidentController::class, 'destroy'])->name('incidents.destroy');
+    Route::get('/incidents/{incident}/attachment', [IncidentController::class, 'attachment'])->name('incidents.attachment');
     Route::get('/incidents/{incident}',       [IncidentController::class, 'show'])->name('incidents.show');
     // IA conseil citoyen (main)
     Route::post('/incidents/ai-advice/preview',          [\App\Http\Controllers\IncidentAiController::class, 'citizenPreview'])->name('incidents.ai.preview');
@@ -347,6 +370,7 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':citizen')->group(
 
 Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(function () {
     Route::get('/manager/incidents',                          [IncidentController::class, 'managerIndex'])->name('manager.incidents');
+    Route::get('/manager/incidents/{incident}/attachment',     [IncidentController::class, 'attachment'])->name('manager.incidents.attachment');
     Route::get('/manager/incidents/{incident}',               [IncidentController::class, 'managerShow'])->name('manager.incidents.show');
     // IA analyse incident (main)
     Route::post('/manager/incidents/{incident}/ai-analysis',  [\App\Http\Controllers\IncidentAiController::class, 'managerAnalysis'])
@@ -469,6 +493,8 @@ Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
     Route::get('infrastructures/{infrastructure}/export/pdf', [InventaireExportController::class, 'exportInfrastructurePdf'])->name('infrastructures.export.pdf');
     Route::resource('zones', ZoneController::class)->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
+    Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
     Route::resource('infrastructures', InfrastructureController::class)->only(['index', 'show', 'create', 'store', 'edit', 'update', 'destroy']);
 });
 
@@ -636,7 +662,7 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::get('interventions/{intervention}/pdf', [InterventionController::class, 'pdf'])
         ->name('interventions.pdf');
     // Recommandation IA manager (main)
-    Route::post('interventions/{intervention}/recommandation', [\App\Http\Controllers\InterventionIaController::class, 'recommander'])
+    Route::post('interventions/recommandation-ia', [\App\Http\Controllers\InterventionIaController::class, 'recommander'])
         ->name('interventions.recommandation');
     // Statistiques & rapport mensuel maintenance (main)
     Route::get('maintenance/statistiques',    [\App\Http\Controllers\MaintenanceDashboardController::class, 'index'])->name('maintenance.statistiques');

@@ -105,15 +105,10 @@ class ChatbotRbacTest extends TestCase
         $citoyen = $this->createUserWithRole(Role::CITOYEN, ['email' => 'secret@test.tn']);
         $this->actingAs($citoyen);
 
-        // Désactiver la clé et rebinder un mock GroqClient non configuré
+        // Désactiver la clé et vider les instances en cache
         config()->set('chatbot.groq.api_key', '');
-        $this->app->bind(\App\Services\Chatbot\GroqClient::class, function () {
-            // Nouvelle instance avec clé vide depuis config
-            return new \App\Services\Chatbot\GroqClient();
-        });
-        $this->app->bind(\App\Services\Chatbot\ChatbotOrchestrator::class, function ($app) {
-            return $app->make(\App\Services\Chatbot\ChatbotOrchestrator::class);
-        });
+        $this->app->forgetInstance(\App\Services\Chatbot\GroqClient::class);
+        $this->app->forgetInstance(\App\Services\Chatbot\ChatbotOrchestrator::class);
 
         $response = $this->post(route('chatbot.ask'), ['message' => 'Test']);
         $content = json_decode($response->getContent(), true);

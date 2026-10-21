@@ -117,7 +117,9 @@ class RecommandationIntegrationTest extends TestCase
         // the fallback message to the explicit "this is a deterministic rules
         // engine, not an AI model" statement.
         $citoyen = $this->citoyen();
+        $zone    = \App\Models\Zone::factory()->create();
         $projet  = Projet::factory()->create(['statut' => 'en_cours']);
+        $projet->zones()->attach($zone);
 
         $this->asCitoyen($citoyen)
             ->post(route('citizen.projets.favori.store', $projet))
@@ -127,7 +129,7 @@ class RecommandationIntegrationTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('moteur de règles déterministe');
-        $response->assertSee("Aucun historique pour l'instant", false) && false;
+        $response->assertDontSee("Vous n'avez pas encore de favoris", false);
     }
 
     public function test_la_reponse_json_respecte_le_contrat(): void

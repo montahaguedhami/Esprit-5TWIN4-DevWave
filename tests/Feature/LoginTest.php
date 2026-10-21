@@ -83,11 +83,13 @@ class LoginTest extends TestCase
 
     public function test_registered_citizen_can_login_with_their_password(): void
     {
+        $password = 'Nour@2026Secure!';
+
         $this->post(route('register.post'), [
             'name' => 'Nour Ben Salah',
             'email' => 'nour@example.tn',
-            'password' => 'secret12',
-            'password_confirmation' => 'secret12',
+            'password' => $password,
+            'password_confirmation' => $password,
             'terms' => '1',
         ])->assertRedirect(route('auth.login'));
 
@@ -96,7 +98,7 @@ class LoginTest extends TestCase
 
         $this->post(route('login.post'), [
             'email' => 'nour@example.tn',
-            'password' => 'secret12',
+            'password' => $password,
         ])
             ->assertRedirect(route('citizen.dashboard'))
             ->assertSessionHas('user.role', Role::CITOYEN);
