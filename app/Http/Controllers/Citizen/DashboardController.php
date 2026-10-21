@@ -17,7 +17,7 @@ class DashboardController extends Controller
         abort_unless($user, 401);
 
         $citizenReports = Incident::query()->where('user_id', $user->id);
-$resolvedStatuses = ['resolu', 'cloture'];
+        $resolvedStatuses = ['resolu', 'cloture'];
         $reports = (clone $citizenReports)
             ->with(['zone:id,nom', 'infrastructure:id,nom'])
             ->orderByDesc('date_signalement')
@@ -39,6 +39,7 @@ $resolvedStatuses = ['resolu', 'cloture'];
             ? InfrastructureAlerte::query()
                 ->with('infrastructure.zone')
                 ->where('resolue', false)
+                ->where('type', '!=', 'risque_panne')
                 ->latest()
                 ->limit(3)
                 ->get()
