@@ -13,9 +13,7 @@ class Governorate extends Model
 
     protected $table = 'tunibeach_governorates';
 
-    protected $fillable = [
-        'name', 'slug', 'is_verified', 'is_published',
-    ];
+    protected $fillable = ['name', 'slug', 'is_verified', 'is_published'];
 
     protected function casts(): array
     {

@@ -629,6 +629,7 @@ Route::middleware('role:administrateur')->group(function () {
             'reclamations', 'resHistory', 'distData'
         ));
     })->name('admin.dashboard');
+    Route::get('/admin/roles', fn () => view('admin.roles'))->name('admin.roles');
     Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');

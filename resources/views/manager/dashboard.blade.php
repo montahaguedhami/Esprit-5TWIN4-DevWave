@@ -47,7 +47,6 @@
 
 @section('manager-content')
 <div class="space-y-6 manager-dashboard">
-
     {{-- Welcome & Subtitle --}}
     <div class="glass rounded-xl p-5 border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

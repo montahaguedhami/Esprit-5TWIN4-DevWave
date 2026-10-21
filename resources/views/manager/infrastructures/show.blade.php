@@ -581,4 +581,12 @@
     }
 </script>
 @endpush
+    @unless(request()->routeIs('admin.*'))
+        <x-infrastructure.risk-card
+            :risk="$risk"
+            :history="$riskHistory"
+            :infrastructure="$infrastructure"
+            route-prefix="manager"
+        />
+    @endunless
 @endsection

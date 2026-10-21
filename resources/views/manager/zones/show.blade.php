@@ -7,6 +7,20 @@
     $inventoryRoutePrefix = request()->routeIs('admin.*') ? 'admin' : 'manager';
 @endphp
 <div class="mx-auto max-w-7xl space-y-6">
+    <section class="rounded-2xl border border-amber-400/20 bg-slate-900/40 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="font-bold">Risque moyen</h2>
+            <span>{{ $riskAverage !== null ? $riskAverage.' %' : 'Aucune estimation disponible' }}</span>
+        </div>
+        <h3 class="mt-4 text-sm font-semibold">Top 5 des infrastructures à risque</h3>
+        <ul class="mt-2 space-y-2 text-sm">
+            @forelse($topRiskInfrastructures as $infrastructure)
+                <li class="flex justify-between"><span>{{ $infrastructure->nom }}</span><span>{{ $infrastructure->latestRiskPrediction->level }} · {{ $infrastructure->latestRiskPrediction->probability }} %</span></li>
+            @empty
+                <li class="text-slate-400">Aucune prédiction disponible.</li>
+            @endforelse
+        </ul>
+    </section>
     {{-- En-tête de la zone --}}
     <div class="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-cyan-400/15 bg-slate-900/40 p-5 shadow-sm">
         <div class="space-y-1">
