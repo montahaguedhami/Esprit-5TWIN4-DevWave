@@ -16,6 +16,7 @@ use App\Http\Controllers\Manager\WaterQualityController;
 use App\Http\Controllers\InfrastructureController;
 use App\Http\Controllers\Manager\InventaireExportController;
 use App\Http\Controllers\ZoneController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 // Landing Page (Public)
 Route::get('/', function () {
@@ -23,93 +24,11 @@ Route::get('/', function () {
 })->name('landing');
 
 // Auth routes — GET
-Route::get('/login',           fn () => view('auth.login'))->name('auth.login');
+Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('auth.login');
 Route::get('/register',        fn () => view('auth.register'))->name('auth.register');
 Route::get('/forgot-password', fn () => view('auth.forgot-password'))->name('auth.forgot-password');
 
-// Login
-Route::post('/login', function (Request $request) {
-    // Brute-force guard, checked before validation and before any credential
-    // check: a locked identifier must keep being refused whether the password
-    // it sends is right or wrong. 5 failures -> 30 s lockout, server side.
-    $limiter = app(\App\Services\LoginRateLimiter::class);
-    $identifier = (string) $request->input('email');
-    $ip = (string) $request->ip();
-
-    if ($limiter->isBlocked($identifier, $ip)) {
-        return back()
-            ->withInput($request->only('email'))
-            ->with('error', $limiter->message($identifier, $ip))
-            ->with('retry_after', $limiter->secondsRemaining($identifier, $ip));
-    }
-
-    $credentials = $request->validate([
-        'email'    => ['required', 'email'],
-        'password' => ['required', 'string'],
-    ]);
-
-    if (! \Illuminate\Support\Facades\Auth::attempt($credentials, false)) {
-        // Counted against this account and against the source IP: the second
-        // counter absorbs a spray of many addresses tried from one host.
-        $limiter->hit($identifier, $ip);
-
-        return back()
-            ->withInput($request->only('email'))
-            ->with('error', 'Email ou mot de passe incorrect.');
-    }
-
-    /** @var \App\Models\User $user */
-    $user = \Illuminate\Support\Facades\Auth::user();
-
-    if ($user->is_active === false) {
-        \Illuminate\Support\Facades\Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return back()
-            ->withInput($request->only('email'))
-            ->with('error', 'Votre compte a été désactivé par un administrateur.');
-    }
-
-    $user->load('roles');
-    $roleSlugs = $user->getRoleSlugs();
-
-    if (empty($roleSlugs)) {
-        \Illuminate\Support\Facades\Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return back()
-            ->withInput($request->only('email'))
-            ->with('error', 'Aucun rôle assigné à ce compte. Contactez l\'administrateur.');
-    }
-
-    $request->session()->regenerate();
-    $primaryRole = $user->primary_role;
-
-    session([
-        'user' => [
-            'id'       => $user->id,
-            'name'     => $user->name,
-            'email'    => $user->email,
-            'role'     => $primaryRole,
-            'role_key' => $primaryRole,
-            'roles'    => $roleSlugs,
-        ],
-    ]);
-
-    \App\Models\AuditLog::record('user_login', 'User', $user->id, [
-        'role' => $primaryRole,
-        'ip'   => $request->ip(),
-    ], $user);
-
-    // The credentials were right: the failure counter must not follow the
-    // account into the next session, otherwise one success still leaves the
-    // user one attempt away from a lockout.
-    $limiter->clear($identifier, $ip);
-
-    return redirect()->intended(route(\App\Models\Role::homeRoute($primaryRole)));
-})->name('login.post');
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.post');
 
 // Passwords that are rejected outright, whatever else they contain. The last
 // entries satisfy every mechanical rule (length, case, digit, symbol) and are
@@ -269,13 +188,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Logout
-Route::post('/logout', function (Request $request) {
-    \Illuminate\Support\Facades\Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    return redirect()->route('landing');
-})->name('logout');
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
 // ── Citoyen ───────────────────────────────────────────────────────────────────
 Route::middleware('role:citoyen')->group(function () {
