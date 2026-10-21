@@ -77,7 +77,6 @@ Route::middleware(JwtAuthenticate::class)->group(function (): void {
 Route::middleware('throttle:60,1')->group(function (): void {
     Route::get('/zones', [ZoneApiController::class, 'index'])->name('api.zones.index');
     Route::get('/zones/{zone}', [ZoneApiController::class, 'show'])->name('api.zones.show');
-    // Public inventory responses intentionally omit operational risk details.
     Route::get('/infrastructures', [InfrastructureApiController::class, 'index'])->name('api.infrastructures.index');
     Route::get('/infrastructures/{infrastructure}', [InfrastructureApiController::class, 'show'])->name('api.infrastructures.show');
 });
