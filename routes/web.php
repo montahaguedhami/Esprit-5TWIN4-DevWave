@@ -390,20 +390,31 @@ Route::middleware('role:manager')->group(function () {
         // Variables requises par la vue manager.dashboard
         $riskTop5  = collect();
         $riskByZone = [];
+        $topRiskInfrastructures = collect();
 
-        // Charger depuis FailureRiskService si disponible
+        // Top 5 & risque moyen par zone : prédictions enregistrées (module infrastructures)
         try {
-            if (class_exists(\App\Services\FailureRiskService::class)) {
-                $riskService = app(\App\Services\FailureRiskService::class);
-                if (method_exists($riskService, 'top5')) {
-                    $riskTop5 = $riskService->top5();
-                }
-                if (method_exists($riskService, 'byZone')) {
-                    $riskByZone = $riskService->byZone();
-                }
-            }
+            $predictions = \App\Models\Infrastructure::with(['zone', 'latestRiskPrediction'])->get()
+                ->filter(fn ($i) => $i->latestRiskPrediction);
+
+            $topRiskInfrastructures = $predictions
+                ->sortByDesc(fn ($i) => $i->latestRiskPrediction->probability)
+                ->take(5)
+                ->values();
+
+            $riskTop5 = $topRiskInfrastructures;
+
+            // Format attendu par la vue : [['zone' => nom, 'average' => pourcentage], ...]
+            $riskByZone = $predictions
+                ->groupBy(fn ($i) => $i->zone?->nom ?? 'Sans zone')
+                ->map(fn ($items, $zone) => [
+                    'zone'    => $zone,
+                    'average' => (int) round($items->avg(fn ($i) => $i->latestRiskPrediction->probability)),
+                ])
+                ->values()
+                ->all();
         } catch (\Throwable $e) {
-            // Service indisponible — valeurs par défaut
+            // Module indisponible — valeurs par défaut
         }
 
         // Statistiques incidents
@@ -427,7 +438,7 @@ Route::middleware('role:manager')->group(function () {
         $reclamations   = collect();
 
         return view('manager.dashboard', compact(
-            'riskTop5', 'riskByZone',
+            'riskTop5', 'riskByZone', 'topRiskInfrastructures',
             'totalInc', 'pendingInc', 'inProgressInc', 'resolvedInc',
             'projects', 'funding', 'firstName', 'municipalities',
             'monthly', 'qualityData', 'stats', 'reclamations'
@@ -478,11 +489,15 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
     Route::resource('infrastructures', InfrastructureController::class);
     // Recalcul risque infrastructure (main)
+    Route::get('infrastructures/{infrastructure}/risk', [\App\Http\Controllers\InfrastructureRiskController::class, 'show'])->name('infrastructures.risk');
     Route::post('infrastructures/{infrastructure}/risk/recompute', [\App\Http\Controllers\InfrastructureRiskController::class, 'recompute'])->name('infrastructures.risk.recompute');
     Route::post('infrastructures/risk/recompute-all', [\App\Http\Controllers\InfrastructureRiskController::class, 'recomputeAll'])->name('infrastructures.risk.recompute-all');
 });
 
 Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('settings/infrastructure-risk', [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'index'])->name('settings.infrastructure-risk');
+    Route::put('settings/infrastructure-risk', [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'update'])->name('settings.infrastructure-risk.update');
+    Route::post('settings/infrastructure-risk/recompute', [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'recomputeAll'])->name('settings.infrastructure-risk.recompute');
     Route::get('budget', [\App\Http\Controllers\Admin\ConsultationController::class, 'budget'])->name('budget');
     Route::get('projets', [\App\Http\Controllers\Admin\ConsultationController::class, 'projets'])->name('projets.index');
     Route::get('qualite', [\App\Http\Controllers\Admin\ConsultationController::class, 'qualite'])->name('qualite');
@@ -499,6 +514,7 @@ Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group
 });
 
 Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
+    Route::get('/beaches', [\App\Http\Controllers\Citizen\BeachMapController::class, 'index'])->name('beaches.index');
     Route::get('/zones', [\App\Http\Controllers\Citizen\ZoneController::class, 'index'])->name('zones.index');
     Route::get('/zones/{zone}', [\App\Http\Controllers\Citizen\ZoneController::class, 'show'])->name('zones.show');
     Route::get('/infrastructures', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'index'])->name('infrastructures.index');
@@ -550,16 +566,24 @@ if (app()->environment(['local', 'testing'])) {
 Route::middleware('role:administrateur')->group(function () {
     Route::get('/admin/dashboard', function () {
         // Variables requises par la vue admin.dashboard
+        // Distribution des risques : agrégation des dernières prédictions enregistrées,
+        // complétée par les 4 clés attendues par la vue (Faible / Moyen / Élevé / Critique).
         $riskDistribution = ['Faible' => 0, 'Moyen' => 0, 'Élevé' => 0, 'Critique' => 0];
 
         try {
-            if (class_exists(\App\Services\FailureRiskService::class)) {
-                $riskService = app(\App\Services\FailureRiskService::class);
-                if (method_exists($riskService, 'distribution')) {
-                    $riskDistribution = $riskService->distribution();
+            $counts = \App\Models\InfrastructureRiskPrediction::query()
+                ->get()
+                ->groupBy('level')
+                ->map->count();
+
+            foreach ($counts as $level => $count) {
+                if (array_key_exists($level, $riskDistribution)) {
+                    $riskDistribution[$level] = $count;
                 }
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+            // Tables de prédictions indisponibles — valeurs par défaut
+        }
 
         // Statistiques incidents
         $totalRec    = \App\Models\Incident::count();
@@ -599,25 +623,6 @@ Route::middleware('role:administrateur')->group(function () {
             'reclamations', 'resHistory', 'distData'
         ));
     })->name('admin.dashboard');
-
-    // Route paramètres du modèle de risque infrastructure
-    Route::get('/admin/settings/infrastructure-risk',
-        [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'index']
-    )->name('admin.settings.infrastructure-risk');
-    Route::put('/admin/settings/infrastructure-risk',
-        [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'update']
-    )->name('admin.settings.infrastructure-risk.update');
-    Route::post('/admin/settings/infrastructure-risk/recompute',
-        [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'recomputeAll']
-    )->name('admin.settings.infrastructure-risk.recompute');
-    // Recalcul risque individuel depuis admin
-    Route::post('/admin/infrastructures/{infrastructure}/risk/recompute',
-        [\App\Http\Controllers\InfrastructureRiskController::class, 'recompute']
-    )->name('admin.infrastructures.risk.recompute');
-    // Recalcul risque global depuis admin
-    Route::post('/admin/infrastructures/risk/recompute-all',
-        [\App\Http\Controllers\InfrastructureRiskController::class, 'recomputeAll']
-    )->name('admin.infrastructures.risk.recompute-all');
     Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
