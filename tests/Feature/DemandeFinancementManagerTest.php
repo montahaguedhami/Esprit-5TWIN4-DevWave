@@ -72,6 +72,25 @@ class DemandeFinancementManagerTest extends TestCase
             ->assertSee('Refusée');
     }
 
+    /* ── Détail ───────────────────────────────────────────────────────────── */
+
+    public function test_le_manager_consulte_le_detail_d_une_demande(): void
+    {
+        $manager = $this->createUserWithRole(Role::MANAGER);
+        $citoyen = $this->createUserWithRole(Role::CITOYEN);
+        $projet  = $this->projet();
+        $demande = $this->demande($projet, $citoyen, 'en_attente', 5000);
+
+        $this->actingAs($manager)
+            ->get('/manager/demandes/'.$demande->id)
+            ->assertOk();
+
+        // Un citoyen reste refusé sur le détail manager.
+        $this->actingAs($citoyen)
+            ->get('/manager/demandes/'.$demande->id)
+            ->assertForbidden();
+    }
+
     /* ── Acceptation ──────────────────────────────────────────────────────── */
 
     public function test_le_manager_peut_accepter_une_demande_en_attente(): void

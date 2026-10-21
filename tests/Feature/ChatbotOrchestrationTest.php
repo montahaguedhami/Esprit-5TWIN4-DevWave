@@ -51,6 +51,29 @@ class ChatbotOrchestrationTest extends TestCase
         return $mock;
     }
 
+    // ── Route publique de statut ──────────────────────────────────────────
+
+    public function test_la_route_de_statut_est_publique_et_renvoie_l_etat_de_groq(): void
+    {
+        // Aucun authentification requise : le client JS vérifie le statut avant login.
+        $response = $this->getJson(route('chatbot.status'));
+
+        $response->assertOk()
+            ->assertJsonStructure(['enabled', 'groq_available'])
+            ->assertJsonPath('enabled', (bool) config('chatbot.enabled', true));
+
+        $this->assertIsBool($response->json('groq_available'));
+    }
+
+    public function test_le_statut_reflete_la_configuration_groq(): void
+    {
+        config()->set('chatbot.enabled', false);
+
+        $this->getJson(route('chatbot.status'))
+            ->assertOk()
+            ->assertJsonPath('enabled', false);
+    }
+
     // ── Niveau 1 — TOOL_DIRECT (0 token LLM) ──────────────────────────────
 
     public function test_outil_direct_ne_consomme_aucun_token_llm(): void

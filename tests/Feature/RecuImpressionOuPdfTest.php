@@ -90,6 +90,29 @@ class RecuImpressionOuPdfTest extends TestCase
         $response->assertSee('no-print');
     }
 
+    /* ── 1b. Page résultat du paiement simulé ────────────────────────────── */
+
+    public function test_la_page_resultat_affiche_le_statut_de_la_simulation(): void
+    {
+        $citoyen  = $this->createUserWithRole(Role::CITOYEN);
+        $paiement = $this->paiement($citoyen, Paiement::CONFIRME);
+
+        $response = $this->actingAs($citoyen)
+            ->get(route('citizen.demandes.paiement.resultat', $paiement));
+
+        $response->assertOk();
+
+        // La mention de simulation reste obligatoire sur la page résultat.
+        $response->assertSee('Simulation');
+        $response->assertSee($paiement->reference_interne);
+
+        // Un autre citoyen ne peut pas consulter le résultat.
+        $intrus = $this->createUserWithRole(Role::CITOYEN);
+        $this->actingAs($intrus)
+            ->get(route('citizen.demandes.paiement.resultat', $paiement))
+            ->assertForbidden();
+    }
+
     /* ── 2. Téléchargement du PDF ────────────────────────────────────────── */
 
     public function test_le_citoyen_proprietaire_telecharge_un_vrai_pdf_nomme_par_reference(): void
