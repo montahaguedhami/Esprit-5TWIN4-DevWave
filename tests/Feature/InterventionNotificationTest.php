@@ -141,6 +141,64 @@ class InterventionNotificationTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    // ── Contenu des messages ──────────────────────────────────────────────────
+
+    public function test_rescheduled_and_cancelled_messages_describe_the_change(): void
+    {
+        Notification::fake();
+        $intervention = $this->intervention(['date' => today()->addDays(5)->toDateString()]);
+        $ancienneDate = today()->addDays(2);
+
+        $replanifiee = new InterventionModifiee($intervention, $ancienneDate);
+        $mail = $replanifiee->toMail($this->compteTechnicien);
+        $donnees = $replanifiee->toArray($this->compteTechnicien);
+
+        $this->assertSame("Intervention #{$intervention->id} replanifiée", $mail->subject);
+        $this->assertSame('L\'intervention (hors infrastructure) est déplacée du '.$ancienneDate->format('d/m/Y')
+            .' au '.today()->addDays(5)->format('d/m/Y').'.', $mail->introLines[0]);
+        $this->assertSame(route('technician.interventions.show', $intervention->id), $mail->actionUrl);
+        $this->assertSame(['amber', 'calendar-range'], [$donnees['couleur'], $donnees['icone']]);
+
+        // Annulée : plus de lien vers une intervention qui n'a plus lieu
+        $intervention->statut = 'Annulée';
+        $annulee = new InterventionModifiee($intervention);
+        $mail = $annulee->toMail($this->compteTechnicien);
+        $donnees = $annulee->toArray($this->compteTechnicien);
+
+        $this->assertSame("Intervention #{$intervention->id} annulée", $mail->subject);
+        $this->assertStringContainsString('a été annulée', $mail->introLines[0]);
+        $this->assertNull($mail->actionUrl);
+        $this->assertNull($donnees['url']);
+        $this->assertSame('rose', $donnees['couleur']);
+    }
+
+    public function test_finished_message_gives_the_cost_and_the_next_preventive_date(): void
+    {
+        Notification::fake();
+        $station = Infrastructure::factory()->create([
+            'zone_id' => Zone::create(['nom' => 'Zone Sud', 'localisation' => 'Sfax'])->id,
+            'nom' => 'Station Sfax Nord',
+            'type' => InfrastructureType::StationPompage,
+            'date_prochaine_maintenance' => today()->addMonths(3)->toDateString(),
+        ]);
+        $intervention = $this->intervention([
+            'infrastructure_id' => $station->id,
+            'type' => Intervention::TYPE_PREVENTIVE,
+            'date' => today()->toDateString(),
+            'cout' => 1250.5,
+        ]);
+
+        $notification = new InterventionTerminee($intervention->fresh(['technicien', 'infrastructure']));
+        $mail = $notification->toMail($this->gestionnaire);
+
+        $this->assertSame("Intervention #{$intervention->id} terminée", $mail->subject);
+        $this->assertSame('Sami Gharbi a terminé l\'intervention préventive du '.today()->format('d/m/Y')
+            .' (Station Sfax Nord).', $mail->introLines[0]);
+        $this->assertSame('Coût : 1 250,50 DT', $mail->introLines[1]);
+        $this->assertSame('Prochaine maintenance préventive : '.today()->addMonths(3)->format('d/m/Y').'.', $mail->introLines[2]);
+        $this->assertSame(route('manager.interventions.show', $intervention->id), $notification->toArray($this->gestionnaire)['url']);
+    }
+
     public function test_technician_without_account_is_skipped_silently(): void
     {
         Notification::fake();
