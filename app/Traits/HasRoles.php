@@ -29,10 +29,16 @@ trait HasRoles
             $this->roles()->syncWithoutDetaching([$roleModel->id]);
             $this->flushPermissionCache();
 
-            AuditLog::record('role_assigned', 'User', $this->id, [
-                'role' => $roleModel->slug,
-                'user_email' => $this->email,
-            ]);
+            try {
+                AuditLog::record('role_assigned', 'User', $this->id, [
+                    'role' => $roleModel->slug,
+                    'user_email' => $this->email,
+                ]);
+            } catch (\Throwable $e) {
+                // Audit logging must not make a successful role assignment
+                // look like a failed registration.
+                report($e);
+            }
         }
 
         return $this;
@@ -194,7 +200,13 @@ trait HasRoles
      */
     public function flushPermissionCache(): void
     {
-        Cache::forget("user_permissions_{$this->id}");
+        try {
+            Cache::forget("user_permissions_{$this->id}");
+        } catch (\Throwable $e) {
+            // Cached permissions are derived data; cache outages should not
+            // block account creation or role changes.
+            report($e);
+        }
     }
 
     public function isAdministrator(): bool

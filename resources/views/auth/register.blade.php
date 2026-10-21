@@ -15,7 +15,8 @@
     .aqua-auth-page [class*="border-cyan-400/"] { border-color: #d5e2eb !important; }
     .aqua-auth-page input:not([type="checkbox"]), .aqua-auth-page select { color: #102a43; background: #f8fafc; border-color: #cbd9e5; }
     /* Keep values clear of leading icons even if utility CSS is purged. */
-    .aqua-auth-page .relative > input:not([type="checkbox"]) { padding-left: 2.75rem; padding-right: 2.75rem; }
+    .aqua-auth-page .relative > input:not([type="checkbox"]) { padding-left: 2.75rem !important; padding-right: 2.75rem !important; }
+    .aqua-auth-page .relative > i { z-index: 1; pointer-events: none; }
     .aqua-auth-page input::placeholder { color: #94a3b8; }
     .aqua-auth-page [class*="bg-gradient-to-r"],
     .aqua-auth-page [class*="bg-gradient-to-r"] [class~="text-white"],
@@ -109,6 +110,7 @@
                         id="name"
                         required 
                         minlength="3"
+                        value="{{ old('name') }}"
                         placeholder="Ex. Yassine Hamdi" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -129,6 +131,7 @@
                         type="email" 
                         name="email" 
                         id="email"
+                        value="{{ old('email') }}"
                         required 
                         placeholder="vous@exemple.tn" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
@@ -481,6 +484,11 @@
     // ── Form validation ───────────────────────────────────────────────────────
     const registerForm = document.getElementById('registerForm');
     const registerClientError = document.getElementById('register-client-error');
+    const registerSubmit = document.getElementById('register-submit');
+    const showRegisterError = () => {
+        registerClientError.classList.remove('hidden');
+        registerClientError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
     registerForm.addEventListener('input', () => registerClientError.classList.add('hidden'));
     registerForm.addEventListener('submit', function (e) {
         registerClientError.classList.add('hidden');
@@ -488,7 +496,7 @@
         if (passwordInput.value !== confirmInput.value) {
             e.preventDefault();
             registerClientError.textContent = 'Les deux mots de passe doivent \u00eatre identiques.';
-            registerClientError.classList.remove('hidden');
+            showRegisterError();
             renderMatchFeedback();
             confirmInput.focus();
             return;
@@ -498,7 +506,7 @@
         if (Object.values(passed).some(ok => ! ok)) {
             e.preventDefault();
             registerClientError.textContent = 'Le mot de passe ne respecte pas encore toutes les r\u00e8gles indiqu\u00e9es.';
-            registerClientError.classList.remove('hidden');
+            showRegisterError();
             renderPasswordFeedback();
             passwordInput.focus();
             return;
@@ -513,9 +521,13 @@
         if (firstBad) {
             e.preventDefault();
             registerClientError.textContent = 'V\u00e9rifiez les champs signal\u00e9s avant de cr\u00e9er votre compte.';
-            registerClientError.classList.remove('hidden');
+            showRegisterError();
             document.getElementById(firstBad).focus();
+            return;
         }
+        registerSubmit.disabled = true;
+        registerSubmit.setAttribute('aria-busy', 'true');
+        registerSubmit.textContent = 'Création du compte…';
     });
 
     // Initial paint (also corrects state after a server-side redirect).
