@@ -58,7 +58,7 @@
                         ['value' => 'maintenance', 'label' => 'Maintenance', 'icon' => 'wrench', 'count' => 1],
                         ['value' => 'invoice', 'label' => 'Factures', 'icon' => 'receipt', 'count' => 1],
                     ] as $filter)
-                    <button class="filter-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors {{ $filter['value'] === 'all' ? 'bg-cyan-500/10 text-white' : 'text-cyan-100/60 hover:bg-white/5' }}" data-filter="{{ $filter['value'] }}">
+                    <button class="filter-btn w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors {{ $filter['value'] === 'all' ? 'bg-cyan-500/10 text-white is-active' : 'text-cyan-100/60 hover:bg-white/5' }}" data-filter="{{ $filter['value'] }}">
                         <div class="flex items-center gap-3">
                             <i data-lucide="{{ $filter['icon'] }}" class="w-4 h-4"></i>
                             <span class="text-sm font-medium">{{ $filter['label'] }}</span>

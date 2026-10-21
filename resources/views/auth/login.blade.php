@@ -137,11 +137,7 @@
                 </div>
             @endif
 
-            <aside class="auth-login__demo">
-                <strong>Compte de démonstration</strong>
-                <span>Email : <b>admin@aquasecure.tn</b></span>
-                <span>Utilisez le mot de passe associé à ce compte.</span>
-            </aside>
+
         </section>
     </div>
 </div>
@@ -446,21 +442,6 @@
         font-size: .82rem;
     }
 
-    .auth-login__demo {
-        display: flex;
-        flex-direction: column;
-        gap: .35rem;
-        margin-top: 1.5rem;
-        padding: .95rem 1rem;
-        border: 1px solid #d8f0f3;
-        border-radius: .85rem;
-        color: #62798b;
-        background: #f3fbfc;
-        font-size: .72rem;
-    }
-
-    .auth-login__demo strong { margin-bottom: .1rem; color: #167f93; font-size: .76rem; }
-    .auth-login__demo b { color: #34556c; font-weight: 700; }
 
     .auth-login__divider {
         display: flex;

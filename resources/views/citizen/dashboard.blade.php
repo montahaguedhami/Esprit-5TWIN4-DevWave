@@ -18,7 +18,7 @@
     <section class="citizen-stats" aria-label="R&eacute;sum&eacute; de votre activit&eacute;">
         @foreach([
             ['val' => $reportCount, 'label' => 'Mes signalements', 'icon' => 'file-text', 'tone' => 'cyan', 'sub' => 'Au total'],
-            ['val' => $activeReportCount, 'label' => 'En traitement', 'icon' => 'clock-3', 'tone' => 'amber', 'sub' => 'Pas encore resolus'],
+            ['val' => $activeReportCount, 'label' => 'En traitement', 'icon' => 'clock-3', 'tone' => 'amber', 'sub' => 'Non résolus'],
             ['val' => $unreadNotificationCount, 'label' => 'Notifications', 'icon' => 'bell', 'tone' => 'blue', 'sub' => 'Non lues'],
         ] as $kpi)
             <article class="citizen-stat-card citizen-tone-{{ $kpi['tone'] }}">
@@ -48,11 +48,11 @@
                     $normalizedStatus = \Illuminate\Support\Str::ascii(\Illuminate\Support\Str::lower((string) $report->statut));
                     $isResolved = str_contains($normalizedStatus, 'resolu') || str_contains($normalizedStatus, 'clotur');
                     $isInProgress = str_contains($normalizedStatus, 'cours') || str_contains($normalizedStatus, 'traitement');
-                    $statusLabel = $isResolved ? 'Resolu' : ($isInProgress ? 'En cours' : 'En attente');
+                    $statusLabel = $isResolved ? 'Résolu' : ($isInProgress ? 'En cours' : 'En attente');
                     $statusClasses = $isResolved
                         ? 'bg-teal-500/15 text-teal-300'
                         : ($isInProgress ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-500/15 text-blue-300');
-                    $location = $report->localisation ?: ($report->zone?->nom ?? $report->infrastructure?->nom ?? 'Localisation non precisee');
+                    $location = $report->localisation ?: ($report->zone?->nom ?? $report->infrastructure?->nom ?? 'Localisation non précisée');
                 @endphp
                 <a href="{{ route('incidents.show', $report) }}" class="citizen-report-row">
                     <span class="citizen-report-marker"><span class="{{ $isResolved ? 'bg-teal-400' : ($isInProgress ? 'bg-amber-400' : 'bg-blue-400') }}"></span></span>
@@ -84,7 +84,7 @@
                         <span class="citizen-notification-icon bg-amber-500/15"><i data-lucide="triangle-alert" class="text-amber-400"></i></span>
                         <span>
                             <strong>{{ $alert->infrastructure?->nom ?? 'Information r&eacute;seau' }}</strong>
-                            <span>{{ $alert->message }}</span>
+                            <span>{{ $alert->type === 'maintenance_proche' ? 'Une maintenance est prévue prochainement sur le réseau.' : ($alert->type === 'duree_vie_depassee' ? 'Une vérification de cet équipement est à prévoir.' : 'Une intervention de maintenance concerne cet équipement.') }}</span>
                             @if($alert->infrastructure?->zone?->nom)<span>Secteur : {{ $alert->infrastructure->zone->nom }}</span>@endif
                         </span>
                     </article>
@@ -93,7 +93,7 @@
                 @endforelse
             </section>
 
-            <section class="citizen-panel citizen-notifications">
+            <section class="citizen-panel citizen-notification-panel">
                 <header class="citizen-panel-header citizen-panel-header-compact">
                     <div><h2>Mes notifications</h2></div>
                     <a href="{{ route('citizen.notifications') }}" class="citizen-text-action">Tout voir <i data-lucide="arrow-right"></i></a>
@@ -101,7 +101,7 @@
                 @forelse($notifications as $notification)
                     @php
                         $notificationData = $notification->data ?? [];
-                        $notificationTitle = $notificationData['action_title'] ?? $notificationData['incident_title'] ?? 'Mise a jour de votre compte';
+                        $notificationTitle = $notificationData['action_title'] ?? $notificationData['incident_title'] ?? 'Mise à jour de votre compte';
                         $notificationMessage = $notificationData['message'] ?? 'Une nouvelle information est disponible.';
                     @endphp
                     <article class="citizen-notification-row">
