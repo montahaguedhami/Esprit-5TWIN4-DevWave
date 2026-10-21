@@ -46,16 +46,7 @@
     @yield('content')
 </div>
 
-{{-- ── Demo-mode banner ── --}}
-@unless (request()->routeIs('auth.login', 'auth.register', 'auth.forgot-password'))
-<div class="demo-banner" role="status" aria-label="Mode démonstration">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-    <span><strong>Démo</strong><span class="hide-mobile"> · Données fictives</span></span>
-</div>
-@endunless
 
-{{-- ── AI Assistant ── --}}
-<x-ai-assistant />
 
 {{-- ── Toast container ── --}}
 <div id="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>

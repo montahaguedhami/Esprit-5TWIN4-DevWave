@@ -29,6 +29,19 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
 fi
 
 # Données de démonstration : seulement au premier démarrage (table users vide)
+# The APAL catalogue is additive and idempotent; load it on existing databases too.
+php artisan db:seed --class='Database\Seeders\TuniBeachApalSeeder' --force
+# Load the dated historical advisory list only when it is absent, preserving manager edits afterwards.
+points_historiques=$(php -r '
+    $pdo = new PDO("mysql:host=".getenv("DB_HOST").";port=".(getenv("DB_PORT") ?: 3306).";dbname=".getenv("DB_DATABASE"), getenv("DB_USERNAME"), getenv("DB_PASSWORD"));
+    $statement = $pdo->prepare("SELECT COUNT(*) FROM tunibeach_historical_advisory_points WHERE reported_at = ?");
+    $statement->execute(["2026-06-20"]);
+    echo $statement->fetchColumn();')
+if [ "$points_historiques" = "0" ]; then
+    echo "[entrypoint] Import du releve historique des plages..."
+    php artisan db:seed --class='Database\Seeders\TuniBeachHistoricalAdvisorySeeder' --force
+fi
+
 if [ "${SEED_DEMO_DATA:-true}" = "true" ]; then
     utilisateurs=$(php -r '
         $pdo = new PDO("mysql:host=".getenv("DB_HOST").";port=".(getenv("DB_PORT") ?: 3306).";dbname=".getenv("DB_DATABASE"),
