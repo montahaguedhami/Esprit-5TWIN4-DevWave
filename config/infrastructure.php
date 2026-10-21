@@ -17,56 +17,47 @@ return [
         'alerte_jours_avant' => 7,
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Modèle de risque de panne à 30 jours
-    |--------------------------------------------------------------------------
-    |
-    | Les poids multiplient des caractéristiques normalisées entre 0 et 1.
-    | Les seuils sont exprimés en pourcentage de probabilité.
-    |
-    */
     'risk' => [
-        'bias' => -3.2,
+        'bias' => -3.8,
         'weights' => [
-            'age_ratio' => 1.0,
-            'maintenance_delay' => 1.5,
-            'etat' => 2.0,
+            'etat' => 2.4,
+            'age_ratio' => 1.2,
+            'maintenance_delay' => 1.7,
             'interventions' => 0.8,
             'incidents' => 1.4,
-            'criticite' => 0.7,
-            'flapping' => 1.2,
+            'criticite' => 0.9,
+            'flapping' => 1.0,
         ],
-        'thresholds' => [
-            'moyen' => 25,
-            'eleve' => 50,
-            'critique' => 75,
+        'etat' => [
+            'En service' => 0.0,
+            'En maintenance' => 0.45,
+            'Hors service' => 1.0,
+        ],
+        'criticality' => [
+            'faible' => 0.15,
+            'moyen' => 0.5,
+            'critique' => 1.0,
         ],
         'normalizers' => [
-            'days_per_year' => 365.2425,
-            'maintenance_delay_days' => 90,
-            'interventions_12_months' => 10,
-            'incidents_12_months' => 5,
-            'flapping_90_days' => 10,
+            'days_per_year' => 365.25,
+            'maintenance_delay_days' => 180,
+            'interventions_12_months' => 6,
+            'incidents_12_months' => 4,
+            'flapping_90_days' => 4,
         ],
         'periods' => [
             'interventions_months' => 12,
             'incidents_months' => 12,
             'flapping_days' => 90,
         ],
-        'criticality' => [
-            'faible' => 0.0,
-            'moyen' => 0.5,
-            'critique' => 1.0,
-        ],
-        'etat' => [
-            'En service' => 0.0,
-            'En maintenance' => 0.5,
-            'Hors service' => 1.0,
+        'thresholds' => [
+            'moyen' => 30,
+            'eleve' => 55,
+            'critique' => 75,
         ],
         'recommendation' => [
             'max_factors' => 2,
-            'days' => 7,
+            'days' => 14,
         ],
     ],
 ];

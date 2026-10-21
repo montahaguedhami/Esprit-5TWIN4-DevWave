@@ -8,6 +8,7 @@ use App\Http\Requests\StoreZoneRequest;
 use App\Http\Requests\UpdateZoneRequest;
 use App\Models\User;
 use App\Models\Zone;
+use App\Models\InfrastructureRiskPrediction;
 use App\Services\WaterQualityService;
 use App\Services\ZoneStatsService;
 use Illuminate\Http\RedirectResponse;
@@ -74,8 +75,8 @@ class ZoneController extends Controller
             'responsable',
             'infrastructures' => fn ($query) => $query
                 ->when($etat !== null, fn ($q) => $q->dEtat($etat))
+                ->with('latestRiskPrediction')
                 ->orderBy('nom'),
-            'infrastructures.latestRiskPrediction',
             'incidents' => fn ($q) => $q->whereNotIn('statut', ['resolu', 'cloture'])->latest('date_signalement'),
             'pointsMesure.derniereMesure',
             'projets' => fn ($q) => $q->orderByDesc('created_at'),
@@ -94,20 +95,24 @@ class ZoneController extends Controller
         }
 
         $stats = $statsService->statsZone($zone);
-        $riskInfrastructures = $zone->infrastructures
-            ->filter(fn ($infrastructure) => $infrastructure->latestRiskPrediction !== null)
+        $topRiskInfrastructures = $zone->infrastructures()
+            ->when($etat !== null, fn ($query) => $query->dEtat($etat))
+            ->with('latestRiskPrediction')
+            ->whereHas('latestRiskPrediction')
+            ->get()
             ->sortByDesc(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability)
-            ->values();
-        $riskAverage = $riskInfrastructures->isNotEmpty()
-            ? (int) round($riskInfrastructures->avg(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability))
-            : null;
+            ->take(5);
+        $riskAverage = $topRiskInfrastructures->isEmpty()
+            ? null
+            : (int) round($topRiskInfrastructures->avg(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability));
 
         return view('manager.zones.show', [
             'zone' => $zone,
             'stats' => $stats,
             'selectedEtat' => $etat?->value ?? '',
             'etats' => InfrastructureEtat::cases(),
-            'riskTop5' => $riskInfrastructures->take(5),
+            'topRiskInfrastructures' => $topRiskInfrastructures,
+            'riskTop5' => $topRiskInfrastructures,
             'riskAverage' => $riskAverage,
         ]);
     }

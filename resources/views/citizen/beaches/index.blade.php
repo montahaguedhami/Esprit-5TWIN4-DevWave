@@ -1,4 +1,4 @@
-@extends('layouts.frontoffice')
+﻿@extends('layouts.frontoffice')
 
 @section('title', 'Plages tunisiennes — AquaSecure')
 

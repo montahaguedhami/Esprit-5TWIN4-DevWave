@@ -52,10 +52,9 @@ class InfrastructureController extends Controller
             ->when($etat !== null, fn ($query) => $query->dEtat($etat))
             ->when($santeFiltre === 'retard', fn ($query) => $query->enRetardMaintenance())
             ->when($santeFiltre === 'critique', fn ($query) => $query->santeCritique())
-            ->when(
-                in_array($riskFilter, ['Faible', 'Moyen', 'Élevé', 'Critique'], true),
-                fn ($query) => $query->whereHas('latestRiskPrediction', fn ($riskQuery) => $riskQuery->where('level', $riskFilter)),
-            );
+            ->when(in_array($riskFilter, ['Faible', 'Moyen', 'Élevé', 'Critique'], true), fn ($query) => $query->whereHas(
+                'latestRiskPrediction', fn ($riskQuery) => $riskQuery->where('level', $riskFilter)
+            ));
 
         if ($sort === 'risk') {
             $query->orderBy(
@@ -95,7 +94,7 @@ class InfrastructureController extends Controller
                 'type' => $type?->value ?? '',
                 'etat' => $etat?->value ?? '',
                 'sante' => $santeFiltre ?? '',
-                'risk' => in_array($riskFilter, ['Faible', 'Moyen', 'Élevé', 'Critique'], true) ? $riskFilter : '',
+                'risk' => is_string($riskFilter) ? $riskFilter : '',
                 'sort' => $sort,
                 'direction' => $direction,
             ],
@@ -129,7 +128,7 @@ class InfrastructureController extends Controller
             ->with('success', 'Infrastructure créée avec succès.');
     }
 
-    public function show(Infrastructure $infrastructure, FailureRiskService $riskService, \App\Services\AiExplanationService $aiExplanation): View
+    public function show(Request $request, Infrastructure $infrastructure, FailureRiskService $riskService): View
     {
         $infrastructure->load([
             'zone',
@@ -149,17 +148,16 @@ class InfrastructureController extends Controller
                 'factors' => $riskPrediction->factors ?? [],
             ]
             : $riskService->predict($infrastructure);
-        $risk['recommendation'] = $riskService->recommendationFor($risk['factors'], $risk['level'], null, $infrastructure->id);
-        $fallbackExplanation = implode('. ', array_map(
-            static fn (string $factor): string => rtrim($factor, '. '),
-            array_slice(array_column($risk['factors'], 'explanation'), 0, 2),
+        $risk['recommendation'] = $riskPrediction
+            ? $riskService->recommendationFor($risk['factors'], $risk['level'], null, $infrastructure->id)
+            : $risk['recommendation'];
+        $risk['explanation'] = implode('. ', array_map(
+            static fn (array $factor): string => rtrim($factor['explanation'], '. '),
+            array_slice($risk['factors'], 0, 2),
         ));
-        if ($fallbackExplanation === '') {
-            $fallbackExplanation = 'Les données disponibles indiquent une estimation du risque. Complétez les informations de maintenance pour affiner ce résultat.';
-        } else {
-            $fallbackExplanation .= '.';
+        if ($risk['explanation'] === '') {
+            $risk['explanation'] = 'Estimation indicative calculée à partir des données disponibles.';
         }
-        $risk['explanation'] = $aiExplanation->explain($infrastructure->id, $risk['factors'], $fallbackExplanation);
         $riskHistory = $infrastructure->riskPredictions()->limit(12)->get()->reverse()->values();
 
         return view('manager.infrastructures.show', [
