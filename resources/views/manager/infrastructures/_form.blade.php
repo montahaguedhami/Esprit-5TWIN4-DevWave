@@ -3,7 +3,7 @@
 @php
     $niveauxCriticite   = $niveauxCriticite ?? \App\Enums\NiveauCriticite::cases();
     $unitesCapacite     = $unitesCapacite   ?? ['m3', 'm3/h', 'l/s'];
-    $inventoryRoutePrefix = $inventoryRoutePrefix ?? (session('user.role') === 'admin' ? 'admin' : 'manager');
+    $inventoryRoutePrefix = $inventoryRoutePrefix ?? (request()->routeIs('admin.*') ? 'admin' : 'manager');
     $etatInitialValue   = $infrastructure?->etat?->value ?? '';
 @endphp
 

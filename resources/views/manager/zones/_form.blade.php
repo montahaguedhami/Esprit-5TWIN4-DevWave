@@ -3,7 +3,7 @@
 @php
     $statuts = $statuts ?? \App\Enums\ZoneStatut::cases();
     $users   = $users   ?? \App\Models\User::orderBy('name')->get(['id', 'name', 'email']);
-    $inventoryRoutePrefix = $inventoryRoutePrefix ?? (session('user.role') === 'admin' ? 'admin' : 'manager');
+    $inventoryRoutePrefix = $inventoryRoutePrefix ?? (request()->routeIs('admin.*') ? 'admin' : 'manager');
 @endphp
 
 {{-- ── Bannière récapitulative d'erreurs (affichée seulement après soumission) ── --}}

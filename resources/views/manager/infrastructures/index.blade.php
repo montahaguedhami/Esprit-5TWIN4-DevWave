@@ -1,10 +1,10 @@
-@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
+@extends(request()->routeIs('admin.*') ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', 'Infrastructures — AquaSecure')
 
-@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
+@section(request()->routeIs('admin.*') ? 'admin-content' : 'manager-content')
 @php
-    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
+    $inventoryRoutePrefix = request()->routeIs('admin.*') ? 'admin' : 'manager';
 @endphp
 <div class="manager-catalog-page mx-auto max-w-7xl space-y-5">
     {{-- En-tête de la page --}}

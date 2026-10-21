@@ -54,6 +54,19 @@ services:
       MAIL_FROM_NAME: AquaSecure
       OLLAMA_URL: ${OLLAMA_DOCKER_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      # Assistants IA des incidents (Gemini) : clé lue dans le .env local, jamais copiée dans l'image
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.8-flash}
+      GEMINI_FALLBACK_MODEL: ${GEMINI_FALLBACK_MODEL:-gemini-3.5-flash-lite}
+      GEMINI_TIMEOUT: ${GEMINI_TIMEOUT:-30}
+      GEMINI_CACHE_MINUTES: ${GEMINI_CACHE_MINUTES:-360}
+      # reCAPTCHA (connexion, inscription, mot de passe oublié) : clés lues dans le .env local ;
+      # sans clé, la vérification est désactivée pour la démo locale
+      RECAPTCHA_ENABLED: ${RECAPTCHA_ENABLED:-false}
+      RECAPTCHA_VERSION: ${RECAPTCHA_VERSION:-v3}
+      RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
+      RECAPTCHA_MIN_SCORE: ${RECAPTCHA_MIN_SCORE:-0.5}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

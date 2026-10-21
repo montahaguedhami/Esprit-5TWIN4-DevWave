@@ -536,4 +536,38 @@ class InfrastructureCrudTest extends TestCase
             'date_prochaine_maintenance' => now()->subDays(20)->format('Y-m-d'),
         ])->assertSessionHasErrors(['date_prochaine_maintenance']);
     }
+
+    /**
+     * Même code pour les deux rôles : seule la route change. L'administrateur (rôle réel
+     * « administrateur », tel qu'enregistré à la connexion) reste dans /admin, le gestionnaire dans /manager.
+     */
+    public function test_inventory_pages_stay_on_the_route_of_the_connected_role(): void
+    {
+        $zone = Zone::create(['nom' => 'Zone Route', 'description' => null, 'localisation' => 'Tunis']);
+        $infrastructure = Infrastructure::factory()->create(['nom' => 'Réservoir Route', 'zone_id' => $zone->id]);
+
+        $pages = fn (string $p) => [
+            route("{$p}.zones.index"),
+            route("{$p}.zones.create"),
+            route("{$p}.zones.edit", $zone),
+            route("{$p}.zones.show", $zone),
+            route("{$p}.infrastructures.index"),
+            route("{$p}.infrastructures.create"),
+            route("{$p}.infrastructures.edit", $infrastructure),
+            route("{$p}.infrastructures.show", $infrastructure),
+        ];
+
+        foreach (['administrateur' => ['admin', 'manager', 'admin-sidebar'], 'manager' => ['manager', 'admin', 'mgr-sidebar']] as $role => [$prefixe, $autre, $menu]) {
+            $this->withSession(['user' => ['name' => 'Compte '.$role, 'email' => $role.'@aquasecure.tn', 'role' => $role]]);
+
+            foreach ($pages($prefixe) as $url) {
+                $this->get($url)
+                    ->assertOk()
+                    ->assertSee('id="'.$menu.'"', false)
+                    // Aucun lien ni formulaire vers l'espace de l'autre rôle
+                    ->assertDontSee(url("/{$autre}/zones"), false)
+                    ->assertDontSee(url("/{$autre}/infrastructures"), false);
+            }
+        }
+    }
 }
