@@ -117,4 +117,17 @@ class ChatbotRbacTest extends TestCase
         $this->assertFalse($content['gemini_available']);
         $this->assertStringNotContainsString('500', $response->getContent());
     }
+
+    public function test_le_widget_du_chatbot_est_affiche_dans_l_espace_citoyen(): void
+    {
+        // Régression : le composant <x-ai-assistant /> avait disparu du layout principal
+        $citoyen = $this->createUserWithRole(Role::CITOYEN);
+
+        $this->actingAs($citoyen)
+            ->withSession(['user' => ['id' => $citoyen->id, 'name' => $citoyen->name, 'email' => $citoyen->email, 'role' => Role::CITOYEN]])
+            ->get(route('citizen.dashboard'))
+            ->assertOk()
+            ->assertSee('id="ai-chat-form"', false)
+            ->assertSee(route('chatbot.ask'), false);
+    }
 }

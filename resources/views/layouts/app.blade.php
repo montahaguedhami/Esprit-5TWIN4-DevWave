@@ -47,7 +47,8 @@
     @yield('content')
 </div>
 
-
+{{-- ── AI Assistant (chatbot Projets et Financements) ── --}}
+<x-ai-assistant />
 
 {{-- ── Toast container ── --}}
 <div id="toast-container" role="region" aria-label="Notifications" aria-live="polite"></div>
