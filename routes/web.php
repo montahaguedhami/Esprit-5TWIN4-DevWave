@@ -73,7 +73,14 @@ Route::post('/register', function (Request $request) use ($commonPasswords) {
         'terms'    => ['accepted'],
     ]);
 
-    $citoyenRole = \App\Models\Role::where('slug', \App\Models\Role::CITOYEN)->first();
+    $citoyenRole = \App\Models\Role::firstOrCreate(
+        ['slug' => \App\Models\Role::CITOYEN],
+        [
+            'name' => 'Citoyen',
+            'description' => 'Compte citoyen créé depuis le formulaire public.',
+            'color' => 'emerald',
+        ]
+    );
 
     if (! $citoyenRole) {
         return back()
@@ -106,7 +113,7 @@ Route::post('/register', function (Request $request) use ($commonPasswords) {
 
     return redirect()->route('auth.login')
         ->with('success', 'Compte créé avec succès. Vérifiez votre email pour activer votre compte.');
-})->name('register.post');
+})->middleware('throttle:5,1')->name('register.post');
 
 // Google OAuth
 Route::get('/auth/google',          [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
