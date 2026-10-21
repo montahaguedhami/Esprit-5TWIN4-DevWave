@@ -323,12 +323,20 @@
         'azerty12345!', 'admin12345!', 'letmein12345!', 'motdepasse1234!',
     ];
     const RULES = {
-        len:     (v) => v.length >= 12,
-        lower:   (v) => /[a-z]/.test(v),
-        upper:   (v) => /[A-Z]/.test(v),
-        digit:   (v) => /[0-9]/.test(v),
-        symbol:  (v) => /[^A-Za-z0-9]/.test(v),
+        len:     (v) => [...v].length >= 12,
+        lower:   (v) => /\p{Ll}/u.test(v),
+        upper:   (v) => /\p{Lu}/u.test(v),
+        digit:   (v) => /\p{N}/u.test(v),
+        symbol:  (v) => /[\p{Z}\p{S}\p{P}]/u.test(v),
         common:  (v) => ! COMMON_PASSWORDS.includes(v.toLowerCase()),
+    };
+    const RULE_LABELS = {
+        len: '12 caractères minimum',
+        lower: 'une lettre minuscule',
+        upper: 'une lettre majuscule',
+        digit: 'un chiffre',
+        symbol: 'un caractère spécial',
+        common: 'un mot de passe différent des mots courants',
     };
     const OK_COLOR = '#34d399';
 
@@ -347,9 +355,8 @@
         return passed;
     }
 
-    function renderPasswordFeedback() {
+    function renderPasswordFeedback(passed = evaluatePassword(passwordInput.value)) {
         const value = passwordInput.value;
-        const passed = evaluatePassword(value);
         const satisfied = Object.values(passed).filter(Boolean).length;
 
         ruleItems.forEach(item => {
@@ -383,6 +390,7 @@
 
         // The user has typed a password: re-check the confirmation too.
         renderMatchFeedback();
+        return passed;
     }
 
     function renderMatchFeedback() {
@@ -502,12 +510,14 @@
             return;
         }
         // Stop an obviously weak password before the round-trip to the server.
-        const passed = evaluatePassword(passwordInput.value);
-        if (Object.values(passed).some(ok => ! ok)) {
+        const passed = renderPasswordFeedback();
+        const failedRules = Object.entries(passed)
+            .filter(([, ok]) => ! ok)
+            .map(([rule]) => RULE_LABELS[rule]);
+        if (failedRules.length) {
             e.preventDefault();
-            registerClientError.textContent = 'Le mot de passe ne respecte pas encore toutes les r\u00e8gles indiqu\u00e9es.';
+            registerClientError.textContent = `Règle(s) à corriger : ${failedRules.join(', ')}.`;
             showRegisterError();
-            renderPasswordFeedback();
             passwordInput.focus();
             return;
         }
