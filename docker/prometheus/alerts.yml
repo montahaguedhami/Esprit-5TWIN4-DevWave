@@ -1,0 +1,68 @@
+# Règles d'alerte AquaSecure (visibles dans Prometheus → Alerts et dans le tableau de bord Grafana)
+groups:
+  - name: disponibilite
+    rules:
+      - alert: ApplicationHorsLigne
+        expr: up{job="aquasecure"} == 0
+        for: 1m
+        labels:
+          severity: critique
+        annotations:
+          summary: "L'application AquaSecure ne répond plus à Prometheus"
+          description: "La collecte de {{ $labels.instance }} échoue depuis plus d'une minute."
+
+      - alert: SiteIndisponible
+        expr: probe_success{job="disponibilite"} == 0
+        for: 1m
+        labels:
+          severity: critique
+        annotations:
+          summary: "Page inaccessible : {{ $labels.instance }}"
+          description: "La sonde HTTP échoue depuis plus d'une minute."
+
+      - alert: SiteLent
+        expr: probe_duration_seconds{job="disponibilite"} > 2
+        for: 5m
+        labels:
+          severity: avertissement
+        annotations:
+          summary: "Temps de réponse élevé : {{ $labels.instance }}"
+          description: "Plus de 2 secondes depuis 5 minutes ({{ $value | humanizeDuration }})."
+
+      - alert: BaseDeDonneesInjoignable
+        expr: aquasecure_database_up == 0 or mysql_up == 0
+        for: 1m
+        labels:
+          severity: critique
+        annotations:
+          summary: "La base MySQL est injoignable"
+          description: "L'application ou l'exporteur MySQL ne parvient plus à joindre la base."
+
+  - name: metier
+    rules:
+      - alert: TachesEnEchec
+        expr: aquasecure_queue_jobs_failed_total > 0
+        for: 5m
+        labels:
+          severity: avertissement
+        annotations:
+          summary: "{{ $value }} tâche(s) de la file en échec"
+          description: "Des notifications n'ont pas pu être envoyées (table failed_jobs)."
+
+      - alert: InterventionsEnRetard
+        expr: aquasecure_interventions_overdue_total > 5
+        for: 15m
+        labels:
+          severity: avertissement
+        annotations:
+          summary: "{{ $value }} interventions actives sont en retard"
+          description: "Des interventions planifiées ou en cours ont dépassé leur date."
+
+      - alert: AssistantIALocalIndisponible
+        expr: aquasecure_ollama_up == 0
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Le serveur IA local (Ollama) ne répond pas"
+          description: "Les assistants IA de maintenance basculent sur leur calcul de secours."

@@ -56,6 +56,11 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI', '/auth/google/callback'),
     ],
 
+    // Supervision : jeton exigé par /metrics (Prometheus) ; vide = point de collecte désactivé
+    'metrics' => [
+        'token' => env('METRICS_TOKEN'),
+    ],
+
     // Service IA des collègues (analyse risque infrastructure)
     'gemini' => [
         'api_key'       => env('GEMINI_API_KEY'),

@@ -1,0 +1,50 @@
+# Prometheus — collecte des métriques AquaSecure (profil docker compose « supervision »)
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    projet: aquasecure
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  # Prometheus lui-même
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Métriques de l'application (Laravel /metrics, jeton Bearer écrit au démarrage depuis METRICS_TOKEN)
+  - job_name: aquasecure
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /prometheus/metrics_token
+    static_configs:
+      - targets: ["app:8080"]
+        labels:
+          service: application
+
+  # Base MySQL (mysqld-exporter)
+  - job_name: mysql
+    static_configs:
+      - targets: ["mysqld-exporter:9104"]
+        labels:
+          service: base-de-donnees
+
+  # Disponibilité vue de l'extérieur : sondes HTTP (blackbox-exporter)
+  - job_name: disponibilite
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://app:8080/up
+          - http://app:8080/login
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115

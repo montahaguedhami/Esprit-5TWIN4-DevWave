@@ -14,6 +14,10 @@
 # Analyse de qualité (SonarQube) :
 #   docker compose --profile qualite up -d      → http://localhost:9000
 #   docker compose --profile qualite down
+#
+# Supervision (Prometheus + Grafana) :
+#   docker compose --profile supervision up -d  → Grafana http://localhost:3000 (admin / GRAFANA_ADMIN_PASSWORD, « admin » par défaut)
+#                                                  Prometheus http://localhost:9090 (cibles : Status → Targets, alertes : Alerts)
 
 services:
   app:
@@ -67,6 +71,8 @@ services:
       RECAPTCHA_SITE_KEY: ${RECAPTCHA_SITE_KEY:-}
       RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
       RECAPTCHA_MIN_SCORE: ${RECAPTCHA_MIN_SCORE:-0.5}
+      # Jeton de /metrics, partagé avec Prometheus (réseau Docker interne)
+      METRICS_TOKEN: ${METRICS_TOKEN:-aquasecure-metrics-local}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -110,6 +116,79 @@ services:
     container_name: aquasecure-ollama
     volumes:
       - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  # ── Supervision ─────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    profiles: ["supervision"]
+    container_name: aquasecure-prometheus
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      METRICS_TOKEN: ${METRICS_TOKEN:-aquasecure-metrics-local}
+    # Le jeton est écrit dans un fichier au démarrage (Prometheus ne lit pas les variables d'environnement)
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        printf '%s' "$$METRICS_TOKEN" > /prometheus/metrics_token &&
+        exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml
+        --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=15d --web.enable-lifecycle
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:9090/-/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    profiles: ["supervision"]
+    container_name: aquasecure-grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/aquasecure.json
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.20.0
+    profiles: ["supervision"]
+    container_name: aquasecure-mysqld-exporter
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: ${DOCKER_DB_ROOT_PASSWORD:-root}
+    command: ["--mysqld.address=mysql:3306", "--mysqld.username=root"]
+    restart: unless-stopped
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.29.0
+    profiles: ["supervision"]
+    container_name: aquasecure-blackbox-exporter
     restart: unless-stopped
 
   sonarqube:
@@ -161,6 +240,8 @@ volumes:
   app_storage:
   mysql_data:
   ollama_data:
+  prometheus_data:
+  grafana_data:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
