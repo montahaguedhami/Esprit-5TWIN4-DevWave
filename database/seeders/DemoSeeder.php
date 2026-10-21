@@ -7,6 +7,7 @@ use App\Enums\InfrastructureType;
 use App\Enums\NiveauCriticite;
 use App\Models\Incident;
 use App\Models\Infrastructure;
+use App\Models\InfrastructureRiskPrediction;
 use App\Models\Intervention;
 use App\Models\PointMesure;
 use App\Models\Projet;
@@ -104,6 +105,26 @@ class DemoSeeder extends Seeder
                     $selectedZones = $zones->random(min(rand(1, 2), $zones->count()));
                     $projet->zones()->syncWithoutDetaching($selectedZones->pluck('id'));
                 }
+            }
+        }
+
+        // 6. Historique de risque de démonstration : répartition et évolution sur 60 jours.
+        $riskLevels = ['Faible', 'Moyen', 'Élevé', 'Critique'];
+        foreach ($allInfrastructures->values() as $index => $infrastructure) {
+            $levelIndex = match (true) {
+                $index < (int) ceil($allInfrastructures->count() * 0.60) => 0,
+                $index < (int) ceil($allInfrastructures->count() * 0.80) => 1,
+                $index < (int) ceil($allInfrastructures->count() * 0.95) => 2,
+                default => 3,
+            };
+            $level = $riskLevels[$levelIndex];
+            $base = [0 => 15, 1 => 42, 2 => 63, 3 => 84][$levelIndex];
+            foreach ([60 => -7, 30 => -3, 0 => 0] as $daysAgo => $delta) {
+                $computedAt = now()->subDays($daysAgo)->startOfDay();
+                InfrastructureRiskPrediction::query()->updateOrCreate(
+                    ['infrastructure_id' => $infrastructure->id, 'computed_at' => $computedAt],
+                    ['probability' => $base + $delta, 'level' => $level, 'factors' => []],
+                );
             }
         }
     }

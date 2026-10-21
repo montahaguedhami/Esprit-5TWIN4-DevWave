@@ -67,6 +67,8 @@
         </div>
     </div>
 
+    <x-infrastructure.risk-technician-summary :risk="$risk" />
+
     {{-- Alerte si intervention en cours --}}
     @if($hasOpenIntervention && $openIntervention)
     <div class="glass rounded-2xl p-4 border border-amber-500/30 bg-amber-500/5">

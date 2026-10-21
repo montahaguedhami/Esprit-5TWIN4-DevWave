@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Infrastructure;
 use App\Services\QrCodeService;
 use App\Services\TechnicianScopeService;
+use App\Services\FailureRiskService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 
@@ -78,7 +79,7 @@ class InfrastructureController extends Controller
      * Fiche technique de l'infrastructure (accès restreint au périmètre du technicien).
      * 403 Forbidden si l'ouvrage n'est pas dans ses interventions.
      */
-    public function show(Infrastructure $infrastructure)
+    public function show(Infrastructure $infrastructure, FailureRiskService $failureRiskService)
     {
         $technicien = TechnicianScopeService::currentTechnicien();
         abort_unless($technicien, 403, 'Compte technicien introuvable.');
@@ -91,6 +92,9 @@ class InfrastructureController extends Controller
         );
 
         $infrastructure->load(['zone', 'historiques', 'alertesActives']);
+        $risk = $infrastructure->latestRiskPrediction
+            ? ['probability' => $infrastructure->latestRiskPrediction->probability, 'level' => $infrastructure->latestRiskPrediction->level]
+            : $failureRiskService->predict($infrastructure);
 
         // Récupérer UNIQUEMENT les interventions de ce technicien sur cet ouvrage (sans les coûts)
         $interventions = $infrastructure->interventions()
@@ -114,6 +118,7 @@ class InfrastructureController extends Controller
             'openIntervention',
             'qrCodeSvg',
             'etats'
+            , 'risk'
         ));
     }
 

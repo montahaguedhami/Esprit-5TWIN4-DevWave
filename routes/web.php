@@ -230,7 +230,12 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(
 
 // ── Manager ───────────────────────────────────────────────────────────────────
 Route::middleware('role:manager')->group(function () {
-    Route::get('/manager/dashboard', fn () => view('manager.dashboard'))->name('manager.dashboard');
+    Route::get('/manager/dashboard', function () {
+        $predictions = \App\Models\Infrastructure::with(['zone', 'latestRiskPrediction'])->get()->filter(fn ($i) => $i->latestRiskPrediction);
+        $topRiskInfrastructures = $predictions->sortByDesc(fn ($i) => $i->latestRiskPrediction->probability)->take(5);
+        $riskByZone = $predictions->groupBy(fn ($i) => $i->zone?->nom ?? 'Sans zone')->map(fn ($items) => (int) round($items->avg(fn ($i) => $i->latestRiskPrediction->probability)));
+        return view('manager.dashboard', compact('topRiskInfrastructures', 'riskByZone'));
+    })->name('manager.dashboard');
 
     Route::get('/manager/budget', function () {
         $projets             = \App\Models\Projet::with('financements')->get();
@@ -274,9 +279,15 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::patch('infrastructures/{infrastructure}/etat', [InfrastructureController::class, 'updateEtat'])->name('infrastructures.etat');
     Route::patch('infrastructures/alertes/{alerte}/resoudre', [InfrastructureController::class, 'resoudreAlerte'])->name('infrastructures.alertes.resoudre');
     Route::resource('infrastructures', InfrastructureController::class);
+    Route::get('infrastructures/{infrastructure}/risk', [\App\Http\Controllers\InfrastructureRiskController::class, 'show'])->name('infrastructures.risk');
+    Route::post('infrastructures/{infrastructure}/risk/recompute', [\App\Http\Controllers\InfrastructureRiskController::class, 'recompute'])->name('infrastructures.risk.recompute');
+    Route::post('infrastructures/risk/recompute-all', [\App\Http\Controllers\InfrastructureRiskController::class, 'recomputeAll'])->name('infrastructures.risk.recompute-all');
 });
 
 Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('settings/infrastructure-risk', [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'index'])->name('settings.infrastructure-risk');
+    Route::put('settings/infrastructure-risk', [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'update'])->name('settings.infrastructure-risk.update');
+    Route::post('settings/infrastructure-risk/recompute', [\App\Http\Controllers\Admin\InfrastructureRiskSettingsController::class, 'recomputeAll'])->name('settings.infrastructure-risk.recompute');
     Route::get('budget', [\App\Http\Controllers\Admin\ConsultationController::class, 'budget'])->name('budget');
     Route::get('projets', [\App\Http\Controllers\Admin\ConsultationController::class, 'projets'])->name('projets.index');
     Route::get('qualite', [\App\Http\Controllers\Admin\ConsultationController::class, 'qualite'])->name('qualite');
@@ -291,6 +302,7 @@ Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group
 });
 
 Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
+    Route::get('/beaches', [\App\Http\Controllers\Citizen\BeachMapController::class, 'index'])->name('beaches.index');
     Route::get('/zones', [\App\Http\Controllers\Citizen\ZoneController::class, 'index'])->name('zones.index');
     Route::get('/zones/{zone}', [\App\Http\Controllers\Citizen\ZoneController::class, 'show'])->name('zones.show');
     Route::get('/infrastructures', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'index'])->name('infrastructures.index');
@@ -339,7 +351,11 @@ if (app()->environment(['local', 'testing'])) {
 
 // ── Administrateur ────────────────────────────────────────────────────────────
 Route::middleware('role:administrateur')->group(function () {
-    Route::get('/admin/dashboard',   fn () => view('admin.dashboard'))->name('admin.dashboard');
+    Route::get('/admin/dashboard', function () {
+        $predictions = \App\Models\Infrastructure::with('latestRiskPrediction')->get()->pluck('latestRiskPrediction')->filter();
+        $riskDistribution = $predictions->groupBy('level')->map->count();
+        return view('admin.dashboard', compact('riskDistribution'));
+    })->name('admin.dashboard');
     Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');

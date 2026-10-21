@@ -80,7 +80,7 @@
         <input type="hidden" name="sort" value="{{ $filters['sort'] }}">
         <input type="hidden" name="direction" value="{{ $filters['direction'] }}">
 
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
             <div class="sm:col-span-2 lg:col-span-1">
                 <label for="q" class="sr-only">Recherche</label>
                 <x-ui.search-input
@@ -126,12 +126,21 @@
                     <option value="critique" @selected($filters['sante'] === 'critique')>🚨 Santé critique / Hors service</option>
                 </select>
             </div>
+            <div>
+                <label for="risk" class="sr-only">Risque de panne</label>
+                <select id="risk" name="risk" class="w-full rounded-xl border border-cyan-400/20 bg-slate-950/40 px-3 py-2.5 text-sm text-white outline-none transition focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20">
+                    <option value="">Tous les risques</option>
+                    @foreach(['Faible', 'Moyen', 'Élevé', 'Critique'] as $riskLevel)
+                        <option value="{{ $riskLevel }}" @selected(($filters['risk'] ?? '') === $riskLevel)>{{ $riskLevel }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
             <p class="text-xs font-medium text-cyan-100/70">{{ $infrastructures->total() }} {{ $infrastructures->total() > 1 ? 'infrastructures trouvées' : 'infrastructure trouvée' }}</p>
             <div class="flex items-center gap-2">
-                @if($filters['q'] !== '' || $filters['zone_id'] !== '' || $filters['type'] !== '' || $filters['etat'] !== '' || $filters['sante'] !== '' || $filters['sort'] !== 'nom' || $filters['direction'] !== 'asc')
+                @if($filters['q'] !== '' || $filters['zone_id'] !== '' || $filters['type'] !== '' || $filters['etat'] !== '' || $filters['sante'] !== '' || ($filters['risk'] ?? '') !== '' || $filters['sort'] !== 'nom' || $filters['direction'] !== 'asc')
                     <a href="{{ route($inventoryRoutePrefix . '.infrastructures.index') }}" class="rounded-lg border border-cyan-400/20 px-3 py-1.5 text-xs font-medium text-cyan-200 hover:bg-white/5 hover:text-white transition">
                         Réinitialiser
                     </a>

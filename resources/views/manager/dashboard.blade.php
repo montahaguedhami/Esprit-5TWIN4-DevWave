@@ -46,6 +46,22 @@
 
 @section('manager-content')
 <div class="space-y-6 manager-dashboard">
+    <section class="grid gap-4 lg:grid-cols-2">
+        <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+            <h2 class="font-bold">Top 5 des infrastructures à risque</h2>
+            <ul class="mt-3 space-y-2 text-sm">
+                @forelse($topRiskInfrastructures as $infrastructure)
+                    <li class="flex justify-between gap-3"><span>{{ $infrastructure->nom }}</span><span>{{ $infrastructure->latestRiskPrediction->level }} · {{ $infrastructure->latestRiskPrediction->probability }} %</span></li>
+                @empty
+                    <li class="text-slate-400">Aucune prédiction disponible.</li>
+                @endforelse
+            </ul>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+            <h2 class="font-bold">Risque moyen par zone</h2>
+            <ul class="mt-3 space-y-2 text-sm">@forelse($riskByZone as $zoneName => $average)<li class="flex justify-between"><span>{{ $zoneName }}</span><span>{{ $average }} %</span></li>@empty<li class="text-slate-400">Aucune prédiction disponible.</li>@endforelse</ul>
+        </div>
+    </section>
 
     {{-- Welcome & Subtitle --}}
     <div class="glass rounded-xl p-5 border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

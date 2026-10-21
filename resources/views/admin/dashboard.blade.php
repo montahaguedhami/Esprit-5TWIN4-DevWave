@@ -94,6 +94,14 @@
 @endpush
 
 @section('admin-content')
+<section class="mb-6 rounded-2xl border border-white/10 bg-slate-900/40 p-5">
+    <h2 class="text-lg font-bold">Risque de panne — supervision globale</h2>
+    <div class="mt-3 flex flex-wrap gap-3 text-sm">
+        @foreach(['Faible', 'Moyen', 'Élevé', 'Critique'] as $riskLevel)
+            <span class="rounded-lg bg-white/5 px-3 py-2">{{ $riskLevel }} : {{ $riskDistribution[$riskLevel] ?? 0 }}</span>
+        @endforeach
+    </div>
+</section>
 <div class="space-y-6 max-w-7xl mx-auto">
 
 {{-- ══════════════════════════════════════════════════════════

@@ -4,10 +4,50 @@ use App\Http\Controllers\Api\InfrastructureApiController;
 use App\Http\Controllers\Api\JwtAuthController;
 use App\Http\Controllers\Api\WaterQualityController;
 use App\Http\Controllers\Api\ZoneApiController;
+use App\Http\Controllers\Api\V1\BeachController;
+use App\Http\Controllers\Api\V1\BeachHistoricalAdvisoryController;
+use App\Http\Controllers\Api\V1\BeachMeasurementController;
+use App\Models\Governorate;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+/* Public beach catalogue. */
+Route::prefix('v1')->name('api.v1.')->group(function () {
+    Route::get('/governorates', function (Request $request) {
+        $filters = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+        $page = (int) ($filters['page'] ?? 1);
+        $perPage = (int) ($filters['per_page'] ?? 20);
+        $governorates = Governorate::query()
+            ->where('is_verified', true)
+            ->where('is_published', true)
+            ->orderBy('name')
+            ->paginate($perPage, ['id', 'name', 'slug'], 'page', $page);
+
+        return response()->json([
+            'data' => $governorates->getCollection()->map(fn (Governorate $governorate): array => [
+                'id' => $governorate->id,
+                'name' => $governorate->name,
+                'slug' => $governorate->slug,
+            ])->values(),
+            'meta' => [
+                'current_page' => $governorates->currentPage(),
+                'last_page' => $governorates->lastPage(),
+                'per_page' => $governorates->perPage(),
+                'total' => $governorates->total(),
+            ],
+        ]);
+    })->name('governorates.index');
+
+    Route::get('/beaches', [BeachController::class, 'index'])->name('beaches.index');
+    Route::get('/beaches/{beach}/measurements', [BeachMeasurementController::class, 'index'])->name('beaches.measurements.index');
+    Route::get('/beaches/{beach}', [BeachController::class, 'show'])->name('beaches.show');
+    Route::get('/historical-advisories', [BeachHistoricalAdvisoryController::class, 'index'])->name('historical-advisories.index');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -29,12 +69,19 @@ Route::middleware('jwt.authenticate')->group(function () {
     Route::get('/zones/{zone}', [ZoneApiController::class, 'show'])
         ->name('api.zones.show');
 
-    Route::get('/infrastructures', [InfrastructureApiController::class, 'index'])
-        ->name('api.infrastructures.index');
-
     Route::get('/infrastructures/{infrastructure}', [InfrastructureApiController::class, 'show'])
         ->name('api.infrastructures.show');
 });
+
+// Catalogue public des infrastructures : la ressource ne contient aucune donnée de risque.
+Route::get('/infrastructures', [InfrastructureApiController::class, 'index'])
+    ->name('api.infrastructures.index');
+
+// Le risque opérationnel est réservé aux gestionnaires et techniciens connectés par session.
+Route::middleware(['web', 'role:manager,technician'])->get(
+    '/infrastructures/{infrastructure}/risk',
+    [\App\Http\Controllers\Api\InfrastructureRiskApiController::class, 'show'],
+)->name('api.infrastructures.risk');
 
 /*
 |--------------------------------------------------------------------------

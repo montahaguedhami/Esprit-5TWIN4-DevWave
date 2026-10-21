@@ -8,6 +8,7 @@ use App\Http\Requests\StoreZoneRequest;
 use App\Http\Requests\UpdateZoneRequest;
 use App\Models\User;
 use App\Models\Zone;
+use App\Models\InfrastructureRiskPrediction;
 use App\Services\WaterQualityService;
 use App\Services\ZoneStatsService;
 use Illuminate\Http\RedirectResponse;
@@ -93,12 +94,23 @@ class ZoneController extends Controller
         }
 
         $stats = $statsService->statsZone($zone);
+        $topRiskInfrastructures = $zone->infrastructures()
+            ->with('latestRiskPrediction')
+            ->whereHas('latestRiskPrediction')
+            ->get()
+            ->sortByDesc(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability)
+            ->take(5);
+        $riskAverage = $topRiskInfrastructures->isEmpty()
+            ? null
+            : (int) round($topRiskInfrastructures->avg(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability));
 
         return view($request->routeIs('admin.*') ? 'admin.inventory.zones.show' : 'manager.zones.show', [
             'zone' => $zone,
             'stats' => $stats,
             'selectedEtat' => $etat?->value ?? '',
             'etats' => InfrastructureEtat::cases(),
+            'topRiskInfrastructures' => $topRiskInfrastructures,
+            'riskAverage' => $riskAverage,
         ]);
     }
 
