@@ -1,0 +1,65 @@
+4 files changed
++120
+-19
+app/Models/Governorate.php
+resources/views/citizen/beaches/index.blade.php
+routes/api.php
+use App\Http\Controllers\Api\JwtAuthController;
+use App\Http\Controllers\Api\WaterQualityController;
+use App\Http\Controllers\Api\ZoneApiController;
+use App\Http\Controllers\Api\V1\BeachController;
+use App\Http\Controllers\Api\V1\BeachHistoricalAdvisoryController;
+use App\Http\Controllers\Api\V1\BeachMeasurementController;
+use App\Models\Governorate;
+use App\Models\Permission;
+use App\Models\Role;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+/* Public beach catalogue. */
+Route::prefix('v1')->name('api.v1.')->group(function () {
+    Route::get('/governorates', function (Request $request) {
+        $filters = $request->validate([
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+        $page = (int) ($filters['page'] ?? 1);
+        $perPage = (int) ($filters['per_page'] ?? 20);
+        $governorates = Governorate::query()
+            ->where('is_verified', true)
+            ->where('is_published', true)
+            ->orderBy('name')
+            ->paginate($perPage, ['id', 'name', 'slug'], 'page', $page);
+
+        return response()->json([
+            'data' => $governorates->getCollection()->map(fn (Governorate $governorate): array => [
+                'id' => $governorate->id,
+                'name' => $governorate->name,
+                'slug' => $governorate->slug,
+            ])->values(),
+            'meta' => [
+                'current_page' => $governorates->currentPage(),
+                'last_page' => $governorates->lastPage(),
+                'per_page' => $governorates->perPage(),
+                'total' => $governorates->total(),
+            ],
+        ]);
+    })->name('governorates.index');
+
+    Route::get('/beaches', [BeachController::class, 'index'])->name('beaches.index');
+    Route::get('/beaches/{beach}/measurements', [BeachMeasurementController::class, 'index'])->name('beaches.measurements.index');
+    Route::get('/beaches/{beach}', [BeachController::class, 'show'])->name('beaches.show');
+    Route::get('/historical-advisories', [BeachHistoricalAdvisoryController::class, 'index'])->name('historical-advisories.index');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Public authentication endpoints
+routes/web.php
+});
+
+Route::middleware('role:citoyen')->prefix('citizen')->name('citizen.')->group(function () {
+    Route::get('/beaches', [\App\Http\Controllers\Citizen\BeachMapController::class, 'index'])->name('beaches.index');
+    Route::get('/zones', [\App\Http\Controllers\Citizen\ZoneController::class, 'index'])->name('zones.index');
+    Route::get('/zones/{zone}', [\App\Http\Controllers\Citizen\ZoneController::class, 'show'])->name('zones.show');
+    Route::get('/infrastructures', [\App\Http\Controllers\Citizen\InfrastructureController::class, 'index'])->name('infrastructures.index');
