@@ -48,7 +48,8 @@
                    class="fo-nav-link {{ request()->routeIs('citizen.travaux.*') ? 'is-active' : '' }}">
                     <i data-lucide="construction"></i>
                     <span>Travaux</span>
-                </a>                <a href="{{ route('citizen.beaches.index') }}"
+                </a>
+                <a href="{{ route('citizen.beaches.index') }}"
                    class="fo-nav-link {{ request()->routeIs('citizen.beaches.*') ? 'is-active' : '' }}">
                     <i data-lucide="waves"></i>
                     <span>Plages</span>
