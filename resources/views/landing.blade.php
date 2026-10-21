@@ -105,6 +105,7 @@
                             <span>Découvrir la solution</span>
                             <i data-lucide="arrow-right" style="width:var(--icon-sm);height:var(--icon-sm);" class="group-hover:translate-x-1 transition-transform"></i>
                         </a>
+                        <a href="{{ route('auth.register') }}" class="btn-primary-lg border-2 border-cyan-500/30 bg-white text-cyan-700 shadow-sm hover:-translate-y-0.5">Créer un compte</a>
                         <a href="#features"
                            class="btn-primary-lg bg-white/80 hover:bg-white text-cyan-700 font-bold border-2 border-cyan-400/40 shadow-sm hover:-translate-y-0.5">
                             En savoir plus

@@ -8,14 +8,15 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ $title ?? 'AquaSecure' }} — Gestion du réseau d'eau">
     <meta property="og:description" content="AquaSecure, plateforme de suivi de la qualité de l'eau et du réseau.">
-    <meta property="og:image" content="{{ asset('assets/aquasecure-thumbnail.jpg') }}">
-    <meta property="og:image:width" content="1024">
-    <meta property="og:image:height" content="1024">
-    <meta property="og:image:alt" content="AquaSecure — Water Quality Monitoring Platform">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image" content="{{ asset('assets/aquasecure-social-thumbnail.jpg') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="AquaSecure - water quality and network monitoring">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $title ?? 'AquaSecure' }} — Gestion du réseau d'eau">
     <meta name="twitter:description" content="AquaSecure, plateforme de suivi de la qualité de l'eau et du réseau.">
-    <meta name="twitter:image" content="{{ asset('assets/aquasecure-thumbnail.jpg') }}">
+    <meta name="twitter:image" content="{{ asset('assets/aquasecure-social-thumbnail.jpg') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
