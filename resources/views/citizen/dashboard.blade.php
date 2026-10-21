@@ -149,6 +149,17 @@
                 </div>
             </section>
         </aside>
-    </div>
+        <section class="citizen-panel mt-6">
+            <header class="citizen-panel-header">
+                <div>
+                    <span class="citizen-section-kicker">Information locale</span>
+                    <h2>Plages tunisiennes</h2>
+                    <p>Recherchez une plage et filtrez les résultats par gouvernorat.</p>
+                </div>
+                <a href="{{ route('citizen.beaches.index') }}" class="citizen-text-action">
+                    <i data-lucide="waves"></i><span>Consulter les plages</span>
+                </a>
+            </header>
+        </section>    </div>
 </div>
 @endsection

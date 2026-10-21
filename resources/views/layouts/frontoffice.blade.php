@@ -48,6 +48,10 @@
                    class="fo-nav-link {{ request()->routeIs('citizen.travaux.*') ? 'is-active' : '' }}">
                     <i data-lucide="construction"></i>
                     <span>Travaux</span>
+                </a>                <a href="{{ route('citizen.beaches.index') }}"
+                   class="fo-nav-link {{ request()->routeIs('citizen.beaches.*') ? 'is-active' : '' }}">
+                    <i data-lucide="waves"></i>
+                    <span>Plages</span>
                 </a>
                 <a href="{{ route('citizen.zones.index') }}"
                    class="fo-nav-link {{ request()->routeIs('citizen.zones.*') ? 'is-active' : '' }}">
@@ -101,6 +105,7 @@
                             <a href="{{ route('incidents.index') }}"         class="fo-nav-link" style="border-radius:8px;">Mes incidents</a>
                             <a href="{{ route('citizen.invoices.index') }}"  class="fo-nav-link" style="border-radius:8px;">Factures</a>
                             <a href="{{ route('citizen.travaux.index') }}"   class="fo-nav-link" style="border-radius:8px;">Travaux</a>
+                            <a href="{{ route('citizen.beaches.index') }}"   class="fo-nav-link" style="border-radius:8px;">Plages</a>
                             <a href="{{ route('citizen.zones.index') }}"      class="fo-nav-link" style="border-radius:8px;">Zones</a>
                             <a href="{{ route('citizen.infrastructures.index') }}" class="fo-nav-link" style="border-radius:8px;">Infrastructure</a>
                             <a href="{{ route('citizen.projets.index') }}"   class="fo-nav-link" style="border-radius:8px;">Projets</a>
