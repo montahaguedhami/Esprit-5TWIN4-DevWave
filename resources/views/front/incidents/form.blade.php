@@ -48,7 +48,7 @@
 </div>
 <div>
     <label for="localisation" class="block text-sm font-semibold text-slate-700">Localisation</label>
-    <input id="localisation" type="text" name="localisation" data-validation-rules="required|max:255" value="{{ $fieldValues['localisation'] }}" autocomplete="street-address" placeholder="Rue, quartier, ville" class="mt-1 w-full rounded-xl border border-slate-300 p-3 bg-white text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100">
+    <input id="localisation" type="text" name="localisation" data-validation-rules="required|max:255" value="{{ $fieldValues['localisation'] }}" autocomplete="address-line1" placeholder="Rue, quartier, ville" class="mt-1 w-full rounded-xl border border-slate-300 p-3 bg-white text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100">
     <input id="incident-latitude" type="hidden" name="latitude" value="{{ old('latitude', $incident->latitude ?? '') }}">
     <input id="incident-longitude" type="hidden" name="longitude" value="{{ old('longitude', $incident->longitude ?? '') }}">
     @error('localisation') <p data-laravel-error-for="localisation" class="mt-1 text-xs font-normal text-red-600">{{ $message }}</p> @enderror
@@ -132,11 +132,11 @@
 </script>
 
 @push('styles')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
 @endpush
 
 @push('scripts')
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const mapElement = document.getElementById('citizen-incident-map');

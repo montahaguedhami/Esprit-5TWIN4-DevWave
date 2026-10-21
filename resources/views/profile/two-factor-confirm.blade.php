@@ -53,8 +53,8 @@
             </p>
 
             <div class="mb-6">
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Code à 6 chiffres</label>
-                <input type="text" 
+                <label for="code" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Code à 6 chiffres</label>
+                <input id="code" type="text" 
                        name="code" 
                        maxlength="6" 
                        pattern="[0-9]{6}"

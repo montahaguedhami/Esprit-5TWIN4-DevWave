@@ -17,12 +17,12 @@
     <div class="mb-6 rounded-xl border border-slate-700 bg-slate-900/40 p-4">
         <form method="GET" action="{{ route('manager.actions.index', $incident) }}" class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
             <div class="xl:col-span-2">
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Recherche</label>
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Titre, description, responsable" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+                <label for="q" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Recherche</label>
+                <input id="q" type="text" name="q" value="{{ request('q') }}" placeholder="Titre, description, responsable" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
             </div>
             <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Statut</label>
-                <select name="status" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                <label for="status" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Statut</label>
+                <select id="status" name="status" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
                     <option value="">Tous</option>
                     @foreach(['a_faire' => 'À faire', 'en_cours' => 'En cours', 'terminee' => 'Terminée'] as $value => $label)
                         <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
@@ -30,12 +30,12 @@
                 </select>
             </div>
             <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Responsable</label>
-                <input type="text" name="responsable" value="{{ request('responsable') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+                <label for="responsable" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Responsable</label>
+                <input id="responsable" type="text" name="responsable" value="{{ request('responsable') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
             </div>
             <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Tri</label>
-                <select name="sort_by" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                <label for="sort-by" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Tri</label>
+                <select id="sort-by" name="sort_by" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
                     <option value="created_at" @selected(request('sort_by', 'created_at') === 'created_at')>Date de création</option>
                     <option value="date_prevue" @selected(request('sort_by') === 'date_prevue')>Échéance</option>
                     <option value="statut" @selected(request('sort_by') === 'statut')>Statut</option>
@@ -43,17 +43,18 @@
                 </select>
             </div>
             <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Ordre</label>
-                <select name="sort_dir" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                <label for="sort-dir" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Ordre</label>
+                <select id="sort-dir" name="sort_dir" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
                     <option value="desc" @selected(request('sort_dir', 'desc') === 'desc')>Décroissant</option>
                     <option value="asc" @selected(request('sort_dir') === 'asc')>Croissant</option>
                 </select>
             </div>
             <div class="md:col-span-2 xl:col-span-2">
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Échéance</label>
+                <label for="date-from" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Échéance</label>
                 <div class="flex gap-2">
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+                    <input id="date-from" type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
+                    <label for="date-to" class="sr-only">date to</label>
+                    <input id="date-to" type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" />
                 </div>
             </div>
             <div class="md:col-span-2 xl:col-span-2 flex items-end gap-2">

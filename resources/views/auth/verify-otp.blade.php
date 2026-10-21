@@ -100,7 +100,7 @@
             @endif
 
             <div>
-                <label class="text-xs font-semibold text-cyan-100/70 mb-2 block">Code de vérification</label>
+                <label for="otp" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Code de vérification</label>
                 <input
                     type="text"
                     name="otp"

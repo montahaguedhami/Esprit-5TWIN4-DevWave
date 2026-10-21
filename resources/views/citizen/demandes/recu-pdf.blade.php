@@ -47,8 +47,8 @@
         }
 
         table.fields { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
-        table.fields td { padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
-        table.fields td.label { color: #64748b; width: 42%; font-size: 10px; text-transform: uppercase; }
+        table.fields td, table.fields th { padding: 5px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        table.fields th.label { text-align: left; font-weight: normal; color: #64748b; width: 42%; font-size: 10px; text-transform: uppercase; }
         table.fields td.value { color: #0f172a; font-weight: bold; text-align: right; }
 
         .project-name { font-size: 13px; font-weight: bold; color: #0f172a; }
@@ -124,11 +124,11 @@
     <div class="section-title">Bénéficiaire de la contribution</div>
     <table class="fields">
         <tr>
-            <td class="label">Nom</td>
+            <th scope="row" class="label">Nom</th>
             <td class="value">{{ $paiement->citoyen?->name ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">E-mail</td>
+            <th scope="row" class="label">E-mail</th>
             <td class="value">{{ $paiement->citoyen?->email ?? '—' }}</td>
         </tr>
     </table>
@@ -141,7 +141,7 @@
     @endif
 
     {{-- ── Montant ── --}}
-    <table class="amount-box">
+    <table class="amount-box" role="presentation">
         <tr>
             <td>
                 <div class="amount-label">Montant de la contribution</div>
@@ -157,7 +157,7 @@
     <div class="section-title">Détail de l'opération</div>
     <table class="fields">
         <tr>
-            <td class="label">Statut</td>
+            <th scope="row" class="label">Statut</th>
             <td class="value">
                 <span class="badge {{ $paiement->estConfirme() ? 'badge-green' : 'badge-red' }}">
                     {{ $paiement->libelleStatut() }}
@@ -165,28 +165,28 @@
             </td>
         </tr>
         <tr>
-            <td class="label">Demande liée</td>
+            <th scope="row" class="label">Demande liée</th>
             <td class="value">n° {{ $paiement->demande_id }}</td>
         </tr>
         <tr>
-            <td class="label">Référence interne</td>
+            <th scope="row" class="label">Référence interne</th>
             <td class="value" style="font-family: monospace;">{{ $paiement->reference_interne }}</td>
         </tr>
         <tr>
-            <td class="label">Demandée le</td>
+            <th scope="row" class="label">Demandée le</th>
             <td class="value">{{ $paiement->demande?->created_at?->format('d/m/Y à H:i') ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Décidée par</td>
+            <th scope="row" class="label">Décidée par</th>
             <td class="value">{{ $paiement->demande?->decideur?->name ?? '—' }}</td>
         </tr>
         <tr>
-            <td class="label">Traitée le</td>
+            <th scope="row" class="label">Traitée le</th>
             <td class="value">{{ ($paiement->confirmed_at ?? $paiement->created_at)->format('d/m/Y à H:i') }}</td>
         </tr>
         @if($paiement->motif)
         <tr>
-            <td class="label">Observation</td>
+            <th scope="row" class="label">Observation</th>
             <td class="value" style="font-weight: normal;">{{ $paiement->motif }}</td>
         </tr>
         @endif

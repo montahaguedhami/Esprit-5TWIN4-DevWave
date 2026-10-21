@@ -74,7 +74,7 @@ TXT;
             . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
             . "\n</incident>\nDonne tes conseils temporaires.";
 
-        $cacheKey = 'ai:citizen:' . sha1(json_encode($context));
+        $cacheKey = 'ai:citizen:' . hash('sha256', json_encode($context));
 
         return $this->remember($cacheKey, $refresh, function () use ($system, $prompt) {
             $raw = $this->client->generateJson($system, $prompt, $this->citizenSchema(), 0.3);
@@ -148,7 +148,7 @@ TXT;
             . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
             . "\n</incident>";
 
-        $cacheKey = 'ai:manager:' . $incident->id . ':' . sha1(json_encode($context));
+        $cacheKey = 'ai:manager:' . $incident->id . ':' . hash('sha256', json_encode($context));
 
         return $this->remember($cacheKey, $refresh, function () use ($system, $prompt) {
             $raw = $this->client->generateJson($system, $prompt, $this->managerSchema(), 0.2);

@@ -74,8 +74,8 @@
                 <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Confirmez votre mot de passe pour désactiver l'authentification à deux facteurs.</p>
                 
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mot de passe</label>
-                    <input type="password" name="password" required
+                    <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mot de passe</label>
+                    <input id="password" type="password" name="password" required
                            class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-cyan-500 dark:bg-slate-700 dark:text-slate-100">
                     @error('password')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
