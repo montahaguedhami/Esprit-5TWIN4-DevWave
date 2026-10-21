@@ -1,0 +1,11 @@
+# Tableaux de bord chargés depuis docker/grafana/dashboards (versionnés avec le code)
+apiVersion: 1
+
+providers:
+  - name: AquaSecure
+    folder: AquaSecure
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards

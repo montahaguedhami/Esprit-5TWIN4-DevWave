@@ -18,6 +18,9 @@ use App\Http\Controllers\Manager\InventaireExportController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
+// Supervision : métriques Prometheus (jeton METRICS_TOKEN, désactivé sans jeton)
+Route::get('/metrics', \App\Http\Controllers\MetricsController::class)->middleware('throttle:120,1')->name('metrics');
+
 // Landing Page (Public)
 Route::get('/', function () {
     return view('landing');

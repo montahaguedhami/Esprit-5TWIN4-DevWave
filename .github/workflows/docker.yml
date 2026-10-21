@@ -1,7 +1,8 @@
 name: AquaSecure Docker
 
 # Construit l'image de l'application, l'analyse avec Trivy, démarre la plateforme complète
-# (docker compose) pour un test de fumée, puis publie l'image sur GHCR après un merge sur main.
+# (docker compose) pour un test de fumée, vérifie la supervision (Prometheus, règles d'alerte, Grafana),
+# puis publie l'image sur GHCR après un merge sur main.
 
 on:
   push:
@@ -20,6 +21,7 @@ concurrency:
 env:
   TRIVY_IMAGE: aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
   LOCAL_TAG: aquasecure-app:local
+  PROMETHEUS_IMAGE: prom/prometheus:v3.15.0
 
 jobs:
   image:
@@ -90,13 +92,30 @@ jobs:
       - name: Smoke test
         run: sh docker/smoke-test.sh
 
+      # --- Supervision (Prometheus + Grafana) ---------------------------------
+      - name: Prometheus — configuration et règles d'alerte (promtool)
+        run: |
+          mkdir -p /tmp/prom-check && printf 'jeton-ci' > /tmp/prom-check/metrics_token
+          for cmd in "check config /etc/prometheus/prometheus.yml" "check rules /etc/prometheus/alerts.yml"; do
+            # shellcheck disable=SC2086
+            docker run --rm --entrypoint /bin/promtool \
+              -v "$GITHUB_WORKSPACE/docker/prometheus:/etc/prometheus:ro" -v /tmp/prom-check:/prometheus:ro \
+              "$PROMETHEUS_IMAGE" $cmd
+          done
+
+      - name: Start supervision (Prometheus, Grafana, exporteurs)
+        run: docker compose --profile supervision up -d --no-build --wait --wait-timeout 300 prometheus grafana mysqld-exporter blackbox-exporter
+
+      - name: Supervision check
+        run: sh docker/supervision-check.sh
+
       - name: Platform logs
         if: failure()
-        run: docker compose logs --no-color app mysql
+        run: docker compose --profile supervision logs --no-color app mysql prometheus grafana
 
       - name: Stop platform
         if: always()
-        run: docker compose down -v
+        run: docker compose --profile supervision down -v
 
       # --- Publication (uniquement après merge sur main) -----------------------
       - name: Image metadata
