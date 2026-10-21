@@ -14,6 +14,8 @@
     .aqua-auth-page [class*="bg-slate-950"] { background-color: #f5f8fb !important; }
     .aqua-auth-page [class*="border-cyan-400/"] { border-color: #d5e2eb !important; }
     .aqua-auth-page input:not([type="checkbox"]), .aqua-auth-page select { color: #102a43; background: #f8fafc; border-color: #cbd9e5; }
+    /* Keep values clear of leading icons even if utility CSS is purged. */
+    .aqua-auth-page .relative > input:not([type="checkbox"]) { padding-left: 2.75rem; padding-right: 2.75rem; }
     .aqua-auth-page input::placeholder { color: #94a3b8; }
     .aqua-auth-page [class*="bg-gradient-to-r"],
     .aqua-auth-page [class*="bg-gradient-to-r"] [class~="text-white"],
@@ -253,12 +255,8 @@
                 </p>
             </div>
 
-            <div class="rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-3 text-xs text-cyan-100/70">
-                L'inscription publique crée un compte <span class="font-semibold text-cyan-200">citoyen</span>.
-                Les comptes technicien, gestionnaire et administrateur sont créés par un administrateur.
-            </div>
-
-            <!-- Terms Checkbox -->
+            
+<!-- Terms Checkbox -->
             <div class="flex items-start gap-3 p-4 rounded-xl bg-cyan-500/5 border border-cyan-400/10">
                 <input 
                     type="checkbox" 
@@ -273,11 +271,12 @@
                 </label>
             </div>
 
-            <x-ripple-button type="submit" size="lg" class="w-full flex items-center justify-center gap-2">
+            <p id="register-client-error" role="alert" aria-live="assertive" class="hidden rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200"></p>
+            <button type="submit" id="register-submit" class="ripple-btn rounded-xl font-semibold transition-all duration-300 cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 px-8 py-4 text-lg w-full flex items-center justify-center gap-2">
                 <i data-lucide="user-plus" class="w-5 h-5"></i>
                 Créer mon compte
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </x-ripple-button>
+            </button>
         </form>
 
         <p class="text-xs text-cyan-100/40 mt-4 text-center">
@@ -480,9 +479,16 @@
     };
 
     // ── Form validation ───────────────────────────────────────────────────────
-    document.getElementById('registerForm').addEventListener('submit', function (e) {
+    const registerForm = document.getElementById('registerForm');
+    const registerClientError = document.getElementById('register-client-error');
+    registerForm.addEventListener('input', () => registerClientError.classList.add('hidden'));
+    registerForm.addEventListener('submit', function (e) {
+        registerClientError.classList.add('hidden');
+        registerClientError.textContent = '';
         if (passwordInput.value !== confirmInput.value) {
             e.preventDefault();
+            registerClientError.textContent = 'Les deux mots de passe doivent \u00eatre identiques.';
+            registerClientError.classList.remove('hidden');
             renderMatchFeedback();
             confirmInput.focus();
             return;
@@ -491,6 +497,8 @@
         const passed = evaluatePassword(passwordInput.value);
         if (Object.values(passed).some(ok => ! ok)) {
             e.preventDefault();
+            registerClientError.textContent = 'Le mot de passe ne respecte pas encore toutes les r\u00e8gles indiqu\u00e9es.';
+            registerClientError.classList.remove('hidden');
             renderPasswordFeedback();
             passwordInput.focus();
             return;
@@ -504,6 +512,8 @@
         }
         if (firstBad) {
             e.preventDefault();
+            registerClientError.textContent = 'V\u00e9rifiez les champs signal\u00e9s avant de cr\u00e9er votre compte.';
+            registerClientError.classList.remove('hidden');
             document.getElementById(firstBad).focus();
         }
     });
