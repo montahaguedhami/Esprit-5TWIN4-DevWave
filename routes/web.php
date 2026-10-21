@@ -253,17 +253,8 @@ Route::middleware('role:technicien')->group(function () {
     Route::post('/technician/interventions/{id}/report', [\App\Http\Controllers\Technician\InterventionController::class, 'storeReport'])->name('technician.interventions.report.store');
     // Rapport IA (module Maintenance — collègues)
     Route::post('/technician/interventions/{id}/report/ia', [\App\Http\Controllers\Technician\InterventionController::class, 'assistantRapport'])->name('technician.interventions.report.ia');
-    // Recommandation IA technicien (module Maintenance — collègues)
-    Route::post('interventions/recommandation-ia', [\App\Http\Controllers\InterventionIaController::class, 'recommander'])->name('interventions.recommandation');
-    // Planning (module Maintenance — collègues)
-    Route::get('planning',                              [\App\Http\Controllers\PlanningController::class, 'index'])->name('planning.index');
-    Route::get('planning/evenements',                   [\App\Http\Controllers\PlanningController::class, 'evenements'])->name('planning.evenements');
-    Route::patch('planning/interventions/{intervention}', [\App\Http\Controllers\PlanningController::class, 'deplacer'])->name('planning.deplacer');
-    Route::post('planning/preventive',                  [\App\Http\Controllers\PlanningController::class, 'preventive'])->name('planning.preventive');
-    // Tableau de bord maintenance (module Maintenance — collègues)
-    Route::get('maintenance/statistiques',    [\App\Http\Controllers\MaintenanceDashboardController::class, 'index'])->name('maintenance.statistiques');
-    Route::get('maintenance/rapport-mensuel', [\App\Http\Controllers\MaintenanceDashboardController::class, 'rapportMensuel'])->name('maintenance.rapport-mensuel');
-    Route::get('/technician/equipment',              fn () => view('technician.equipment'))->name('technician.equipment');
+    // Planning, statistiques et recommandation IA : réservés au gestionnaire (groupe role:manager, préfixe /manager)
+    Route::get('/technician/equipment',             fn () => view('technician.equipment'))->name('technician.equipment');
 });
 
 // ── Incidents (citoyen = declare, manager = handle) ───────────────────────────

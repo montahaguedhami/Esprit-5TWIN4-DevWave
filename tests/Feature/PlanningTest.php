@@ -181,4 +181,21 @@ class PlanningTest extends TestCase
         $this->withSession(['user' => ['name' => 'Amira', 'role' => 'technicien']]);
         $this->get(route('manager.planning.index'))->assertForbidden();
     }
+
+    public function test_technician_cannot_reach_manager_maintenance_tools_by_another_url(): void
+    {
+        $intervention = $this->intervention();
+        $this->withSession(['user' => ['name' => 'Amira', 'role' => 'technicien']]);
+
+        // Aucune copie hors du préfixe /manager ne doit exister pour le planning, les statistiques ou l'IA
+        foreach (['/planning', '/planning/evenements', '/maintenance/statistiques', '/maintenance/rapport-mensuel'] as $url) {
+            $this->assertContains($this->get($url)->status(), [403, 404], "GET {$url} accessible à un technicien");
+        }
+        $this->assertContains($this->postJson('/planning/preventive')->status(), [403, 404, 405]);
+        $this->assertContains($this->postJson('/interventions/recommandation-ia', ['date' => today()->toDateString()])->status(), [403, 404, 405]);
+
+        $deplacement = $this->patchJson("/planning/interventions/{$intervention->id}", ['date' => today()->addDays(9)->toDateString()]);
+        $this->assertContains($deplacement->status(), [403, 404, 405]);
+        $this->assertSame(today()->addDays(3)->toDateString(), $intervention->fresh()->date->toDateString());
+    }
 }
