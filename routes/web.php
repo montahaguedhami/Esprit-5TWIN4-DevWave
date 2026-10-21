@@ -287,32 +287,10 @@ Route::middleware(\App\Http\Middleware\IncidentRole::class . ':manager')->group(
 // ── Manager ───────────────────────────────────────────────────────────────────
 Route::middleware('role:manager')->group(function () {
     Route::get('/manager/dashboard', function () {
-<<<<<<< HEAD
         $predictions = \App\Models\Infrastructure::with(['zone', 'latestRiskPrediction'])->get()->filter(fn ($i) => $i->latestRiskPrediction);
         $topRiskInfrastructures = $predictions->sortByDesc(fn ($i) => $i->latestRiskPrediction->probability)->take(5);
         $riskByZone = $predictions->groupBy(fn ($i) => $i->zone?->nom ?? 'Sans zone')->map(fn ($items) => (int) round($items->avg(fn ($i) => $i->latestRiskPrediction->probability)));
         return view('manager.dashboard', compact('topRiskInfrastructures', 'riskByZone'));
-=======
-        $riskTop5 = \App\Models\Infrastructure::query()
-            ->with(['latestRiskPrediction', 'zone'])
-            ->get()
-            ->filter(fn ($infrastructure) => $infrastructure->latestRiskPrediction !== null)
-            ->sortByDesc(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability)
-            ->take(5)
-            ->values();
-        $riskByZone = \App\Models\Infrastructure::query()
-            ->with(['latestRiskPrediction', 'zone'])
-            ->get()
-            ->filter(fn ($infrastructure) => $infrastructure->latestRiskPrediction !== null)
-            ->groupBy('zone_id')
-            ->map(fn ($items) => [
-                'zone' => $items->first()->zone?->nom ?? 'Zone inconnue',
-                'average' => (int) round($items->avg(fn ($infrastructure) => $infrastructure->latestRiskPrediction->probability)),
-            ])
-            ->values();
-
-        return view('manager.dashboard', compact('riskTop5', 'riskByZone'));
->>>>>>> origin/amelioration_qualite_v2
     })->name('manager.dashboard');
 
     Route::get('/manager/budget', function () {
