@@ -111,7 +111,7 @@
 
     {{-- ── 1. Indicateurs clés ── --}}
     <div class="section-title">Indicateurs clés</div>
-    <table class="kpi-table">
+    <table class="kpi-table" role="presentation">
         <tr>
             <td>
                 <div class="kpi-lbl">Budget total des projets</div>

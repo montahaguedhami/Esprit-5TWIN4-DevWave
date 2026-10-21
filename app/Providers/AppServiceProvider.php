@@ -12,9 +12,11 @@ use App\Observers\ZoneObserver;
 use App\Policies\MesureQualitePolicy;
 use App\Policies\UserPolicy;
 use App\Services\Payments\SimulatedPaymentProvider;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use RuntimeException;
 
@@ -51,6 +53,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Lien de vérification d'e-mail : empreinte SHA-256 de l'adresse (au lieu du SHA-1 par défaut),
+        // contrôlée par la route verification.verify ; l'URL reste signée et limitée dans le temps
+        VerifyEmail::createUrlUsing(fn (object $notifiable): string => URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes((int) config('auth.verification.expire', 60)),
+            ['id' => $notifiable->getKey(), 'hash' => hash('sha256', $notifiable->getEmailForVerification())]
+        ));
 
         // Register Policies
         Gate::policy(User::class, UserPolicy::class);

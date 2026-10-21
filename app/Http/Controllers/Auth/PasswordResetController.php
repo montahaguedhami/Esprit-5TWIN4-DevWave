@@ -48,7 +48,7 @@ class PasswordResetController extends Controller
         $ip    = (string) $request->ip();
 
         // Anti-abuse: limit how often a single address can ask for a code.
-        $throttleKey = 'password-reset-request:'.md5($email);
+        $throttleKey = 'password-reset-request:'.hash('sha256', $email);
         if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = max(1, RateLimiter::availableIn($throttleKey));
 
@@ -187,7 +187,7 @@ class PasswordResetController extends Controller
                 ->with('status', 'Si un compte est associé à cette adresse, un code de vérification a été envoyé.');
         }
 
-        $throttleKey = 'password-reset-resend:'.md5($record->email);
+        $throttleKey = 'password-reset-resend:'.hash('sha256', $record->email);
         if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = max(1, RateLimiter::availableIn($throttleKey));
 

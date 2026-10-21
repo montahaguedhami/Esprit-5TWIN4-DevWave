@@ -122,6 +122,7 @@
         <div class="p-4 border-t border-white/10 bg-[#04121b]/80 backdrop-blur-md">
             <form id="ai-chat-form" onsubmit="aqChat.sendMessage(event)" class="flex items-end gap-2">
                 <div class="relative flex-1">
+                    <label for="ai-input" class="sr-only">Votre question à l'assistant</label>
                     <textarea
                         id="ai-input"
                         placeholder="Posez votre question sur Projets et Financements..."
@@ -232,7 +233,7 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js" integrity="sha384-odPBjvtXVM/5hOYIr3A1dB+flh0c3wAT3bSesIOqEGmyUA4JoKf/YTWy0XKOYAY7" crossorigin="anonymous"></script>
 <script>
     window.aqChat = {
         messages: [],   // historique [{role, content}] pour le contexte serveur

@@ -189,7 +189,8 @@
                                 <i data-lucide="alert-circle" class="w-3 h-3"></i>{{ $message }}
                             </p>
                             @enderror
-                            <textarea
+                            <label for="motif-refus" class="sr-only">Motif du refus (obligatoire, visible par le citoyen)</label>
+                            <textarea id="motif-refus"
                                 name="motif_refus"
                                 rows="3"
                                 required

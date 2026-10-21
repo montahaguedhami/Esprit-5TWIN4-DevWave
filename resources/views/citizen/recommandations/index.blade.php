@@ -49,8 +49,7 @@
                 'en_cours'  => ['bg'=>'bg-amber-500/15','text'=>'text-amber-300','label'=>'En cours'],
             ][$r->statut] ?? ['bg'=>'bg-slate-500/15','text'=>'text-slate-300','label'=>$r->statut];
         @endphp
-        <article class="glass rounded-2xl p-5 hover-lift cursor-pointer"
-                 onclick="window.location='{{ route('citizen.projets.show', $r) }}'">
+        <article class="relative glass rounded-2xl p-5 hover-lift cursor-pointer">
 
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $ss['bg'] }} {{ $ss['text'] }}">
@@ -63,7 +62,7 @@
                 @endif
             </div>
 
-            <h2 class="text-white font-display font-bold text-base leading-snug mb-2">{{ $r->nom }}</h2>
+            <h2 class="text-white font-display font-bold text-base leading-snug mb-2"><a href="{{ route('citizen.projets.show', $r) }}" class="after:absolute after:inset-0 after:rounded-2xl focus:outline-none focus-visible:underline">{{ $r->nom }}</a></h2>
 
             @if($r->zones->isNotEmpty())
             <p class="text-cyan-100/50 text-xs mb-3 flex items-center gap-1">

@@ -40,8 +40,8 @@
     <div class="glass rounded-2xl p-4">
         <form method="GET" action="{{ route('manager.demandes.index') }}" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[180px]">
-                <label class="block text-xs text-cyan-100/50 mb-1.5 font-medium">Statut</label>
-                <select name="statut"
+                <label for="statut" class="block text-xs text-cyan-100/50 mb-1.5 font-medium">Statut</label>
+                <select id="statut" name="statut"
                         class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-cyan-400/50 focus:outline-none">
                     <option value="">Tous les statuts</option>
                     @foreach(['en_attente' => 'En attente', 'acceptee' => 'Acceptée', 'refusee' => 'Refusée', 'payee' => 'Payée'] as $s => $l)
@@ -50,8 +50,8 @@
                 </select>
             </div>
             <div class="flex-1 min-w-[180px]">
-                <label class="block text-xs text-cyan-100/50 mb-1.5 font-medium">Projet</label>
-                <select name="projet_id"
+                <label for="projet-id" class="block text-xs text-cyan-100/50 mb-1.5 font-medium">Projet</label>
+                <select id="projet-id" name="projet_id"
                         class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-cyan-400/50 focus:outline-none">
                     <option value="">Tous les projets</option>
                     @foreach($projets as $p)

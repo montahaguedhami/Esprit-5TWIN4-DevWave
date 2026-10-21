@@ -35,10 +35,11 @@
                 </select>
             </div>
             <div class="md:col-span-2 xl:col-span-2">
-                <label class="mb-1 block text-xs font-semibold uppercase text-slate-400">Date de signalement</label>
+                <label for="date-from" class="mb-1 block text-xs font-semibold uppercase text-slate-400">Date de signalement</label>
                 <div class="flex gap-2">
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" aria-label="Date de début" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" aria-label="Date de fin" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                    <input id="date-from" type="date" name="date_from" value="{{ request('date_from') }}" aria-label="Date de début" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
+                    <label for="date-to" class="sr-only">Date de fin</label>
+                    <input id="date-to" type="date" name="date_to" value="{{ request('date_to') }}" aria-label="Date de fin" class="w-full rounded-lg border border-slate-600 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
                 </div>
             </div>
             <div class="md:col-span-2 xl:col-span-3 flex items-end gap-2">

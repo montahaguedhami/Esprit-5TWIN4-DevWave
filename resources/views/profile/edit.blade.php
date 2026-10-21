@@ -55,10 +55,10 @@
                     @csrf
                     @method('PATCH')
                     <div style="margin-bottom:1rem;">
-                        <label style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.5rem;">
+                        <label for="avatar" style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.5rem;">
                             Nouvelle photo (JPEG, PNG, WebP — max 2 Mo)
                         </label>
-                        <input type="file" name="avatar" accept="image/jpeg,image/png,image/jpg,image/webp" required
+                        <input id="avatar" type="file" name="avatar" accept="image/jpeg,image/png,image/jpg,image/webp" required
                                style="width:100%;padding:.5rem .75rem;border:1px solid #cbd8e4;border-radius:.625rem;font-size:.875rem;background:#f8fbfd;color:#152b42;">
                         @error('avatar')
                         <p style="color:#dc2626;font-size:.75rem;margin-top:.25rem;">{{ $message }}</p>
@@ -97,10 +97,10 @@
 
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:1.5rem;">
                         <div>
-                            <label style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
+                            <label for="name" style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
                                 Nom complet <span style="color:#dc2626;">*</span>
                             </label>
-                            <input type="text" name="name" value="{{ old('name', $user->name) }}" required
+                            <input id="name" type="text" name="name" value="{{ old('name', $user->name) }}" required
                                    style="width:100%;background:#f8fbfd;border:1px solid #cbd8e4;border-radius:.625rem;padding:.5rem .75rem;font-size:.875rem;color:#152b42;box-sizing:border-box;">
                             @error('name')
                             <p style="color:#dc2626;font-size:.75rem;margin-top:.25rem;">{{ $message }}</p>
@@ -108,10 +108,10 @@
                         </div>
 
                         <div>
-                            <label style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
+                            <label for="email" style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
                                 Adresse email <span style="color:#dc2626;">*</span>
                             </label>
-                            <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                            <input id="email" type="email" name="email" value="{{ old('email', $user->email) }}" required
                                    style="width:100%;background:#f8fbfd;border:1px solid #cbd8e4;border-radius:.625rem;padding:.5rem .75rem;font-size:.875rem;color:#152b42;box-sizing:border-box;">
                             @error('email')
                             <p style="color:#dc2626;font-size:.75rem;margin-top:.25rem;">{{ $message }}</p>
@@ -139,10 +139,10 @@
 
                     <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:1.5rem;">
                         <div>
-                            <label style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
+                            <label for="current-password" style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
                                 Mot de passe actuel <span style="color:#dc2626;">*</span>
                             </label>
-                            <input type="password" name="current_password" required
+                            <input id="current-password" type="password" name="current_password" required
                                    style="width:100%;background:#f8fbfd;border:1px solid #cbd8e4;border-radius:.625rem;padding:.5rem .75rem;font-size:.875rem;color:#152b42;box-sizing:border-box;">
                             @error('current_password')
                             <p style="color:#dc2626;font-size:.75rem;margin-top:.25rem;">{{ $message }}</p>
@@ -150,10 +150,10 @@
                         </div>
 
                         <div>
-                            <label style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
+                            <label for="password" style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
                                 Nouveau mot de passe <span style="color:#dc2626;">*</span>
                             </label>
-                            <input type="password" name="password" required minlength="8"
+                            <input id="password" type="password" name="password" required minlength="8"
                                    style="width:100%;background:#f8fbfd;border:1px solid #cbd8e4;border-radius:.625rem;padding:.5rem .75rem;font-size:.875rem;color:#152b42;box-sizing:border-box;">
                             <p style="font-size:.75rem;color:#475569;margin-top:.35rem;">Min. 8 caractères, avec majuscule, minuscule, chiffre et symbole.</p>
                             @error('password')
@@ -162,10 +162,10 @@
                         </div>
 
                         <div>
-                            <label style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
+                            <label for="password-confirmation" style="display:block;font-size:.8125rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#334155;margin-bottom:.35rem;">
                                 Confirmer le nouveau mot de passe <span style="color:#dc2626;">*</span>
                             </label>
-                            <input type="password" name="password_confirmation" required
+                            <input id="password-confirmation" type="password" name="password_confirmation" required
                                    style="width:100%;background:#f8fbfd;border:1px solid #cbd8e4;border-radius:.625rem;padding:.5rem .75rem;font-size:.875rem;color:#152b42;box-sizing:border-box;">
                         </div>
                     </div>
@@ -213,10 +213,10 @@
                     @method('DELETE')
 
                     <div style="margin-bottom:1rem;">
-                        <label style="display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#991b1b;margin-bottom:.35rem;">
+                        <label for="password-2" style="display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#991b1b;margin-bottom:.35rem;">
                             Confirmez votre mot de passe <span style="color:#dc2626;">*</span>
                         </label>
-                        <input type="password" name="password" required
+                        <input id="password-2" type="password" name="password" required
                                style="width:100%;background:#fff;border:1px solid #fca5a5;border-radius:.625rem;padding:.5rem .75rem;font-size:.875rem;color:#152b42;box-sizing:border-box;max-width:320px;">
                         @error('password')
                         <p style="color:#dc2626;font-size:.75rem;margin-top:.25rem;">{{ $message }}</p>

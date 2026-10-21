@@ -25,12 +25,12 @@
     <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <form method="GET" action="{{ route('incidents.index') }}" class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
             <div class="xl:col-span-2">
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Recherche</label>
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Titre, description, localisation" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100" />
+                <label for="q" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Recherche</label>
+                <input id="q" type="text" name="q" value="{{ request('q') }}" placeholder="Titre, description, localisation" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100" />
             </div>
             <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Type</label>
-                <select name="type" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100">
+                <label for="type" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Type</label>
+                <select id="type" name="type" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100">
                     <option value="">Tous</option>
                     @foreach(['fuite' => 'Fuite', 'pollution' => 'Pollution', 'panne' => 'Panne', 'rupture' => 'Rupture', 'contamination' => 'Contamination'] as $value => $label)
                         <option value="{{ $value }}" @selected(request('type') === $value)>{{ $label }}</option>
@@ -38,8 +38,8 @@
                 </select>
             </div>
             <div>
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Gravité</label>
-                <select name="gravite" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100">
+                <label for="gravite" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Gravité</label>
+                <select id="gravite" name="gravite" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100">
                     <option value="">Toutes</option>
                     @foreach(['faible' => 'Faible', 'moyenne' => 'Moyenne', 'elevee' => 'Élevée', 'critique' => 'Critique'] as $value => $label)
                         <option value="{{ $value }}" @selected(request('gravite') === $value)>{{ $label }}</option>
@@ -47,10 +47,11 @@
                 </select>
             </div>
             <div class="md:col-span-2 xl:col-span-2">
-                <label class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Période</label>
+                <label for="date-from" class="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Période</label>
                 <div class="flex gap-2">
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100" />
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100" />
+                    <input id="date-from" type="date" name="date_from" value="{{ request('date_from') }}" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100" />
+                    <label for="date-to" class="sr-only">date to</label>
+                    <input id="date-to" type="date" name="date_to" value="{{ request('date_to') }}" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-900 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100" />
                 </div>
             </div>
             <div class="md:col-span-2 xl:col-span-2 flex items-end gap-2">

@@ -42,12 +42,12 @@ class LoginRateLimiter
 
     private function identifierKey(string $identifier, string $ip): string
     {
-        return sprintf('login:%s:%s', md5(self::normalize($identifier)), md5($ip));
+        return sprintf('login:%s:%s', hash('sha256', self::normalize($identifier)), hash('sha256', $ip));
     }
 
     private function ipKey(string $ip): string
     {
-        return sprintf('login-ip:%s', md5($ip));
+        return sprintf('login-ip:%s', hash('sha256', $ip));
     }
 
     /* ────────────────────────────────────────────────────────────────────────

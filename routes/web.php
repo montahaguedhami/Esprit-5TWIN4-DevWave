@@ -143,7 +143,7 @@ Route::get('/email/verify', function () {
 Route::get('/email/verify/{id}/{hash}', function (Request $request) {
     $user = \App\Models\User::findOrFail($request->route('id'));
 
-    if (! hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+    if (! hash_equals((string) $request->route('hash'), hash('sha256', $user->getEmailForVerification()))) {
         abort(403, 'Lien de vérification invalide.');
     }
 

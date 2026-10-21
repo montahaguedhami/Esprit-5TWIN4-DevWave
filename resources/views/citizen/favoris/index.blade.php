@@ -31,8 +31,7 @@
                 'annule'    => ['bg'=>'bg-red-500/15','text'=>'text-red-300','label'=>'Annulé'],
             ][$projet->statut] ?? ['bg'=>'bg-slate-500/15','text'=>'text-slate-300','label'=>$projet->statut];
         @endphp
-        <article class="glass rounded-2xl p-5 hover-lift cursor-pointer"
-                 onclick="window.location='{{ route('citizen.projets.show', $projet) }}'">
+        <article class="relative glass rounded-2xl p-5 hover-lift cursor-pointer">
 
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $ss['bg'] }} {{ $ss['text'] }}">
@@ -41,7 +40,7 @@
                 {{-- Pile de retrait. `data-url` pointe sur la route DELETE ; le
                      script envoie la bonne méthode selon l'état courant. --}}
                 <button type="button"
-                        class="favori-toggle w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-colors bg-amber-400/15 border-amber-400/40 text-amber-300 hover:text-white"
+                        class="favori-toggle relative z-10 w-8 h-8 rounded-lg inline-flex items-center justify-center border transition-colors bg-amber-400/15 border-amber-400/40 text-amber-300 hover:text-white"
                         data-projet-id="{{ $projet->id }}"
                         data-url="{{ route('citizen.projets.favori.basculer', $projet) }}"
                         data-retour="page"
@@ -53,9 +52,7 @@
                 </button>
             </div>
 
-            <h2 class="text-white font-display font-bold text-base leading-snug mb-2">
-                {{ $projet->nom }}
-            </h2>
+            <h2 class="text-white font-display font-bold text-base leading-snug mb-2"><a href="{{ route('citizen.projets.show', $projet) }}" class="after:absolute after:inset-0 after:rounded-2xl focus:outline-none focus-visible:underline">{{ $projet->nom }}</a></h2>
 
             @if($projet->zones->isNotEmpty())
             <p class="text-cyan-100/50 text-xs mb-3 flex items-center gap-1">
