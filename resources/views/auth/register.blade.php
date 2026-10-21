@@ -17,6 +17,7 @@
     /* Keep values clear of leading icons even if utility CSS is purged. */
     .aqua-auth-page .relative > input:not([type="checkbox"]) { padding-left: 2.75rem !important; padding-right: 2.75rem !important; }
     .aqua-auth-page .relative > i { z-index: 1; pointer-events: none; }
+    .aqua-auth-page input[aria-invalid="true"] { border-color: #f43f5e !important; }
     .aqua-auth-page input::placeholder { color: #94a3b8; }
     .aqua-auth-page [class*="bg-gradient-to-r"],
     .aqua-auth-page [class*="bg-gradient-to-r"] [class~="text-white"],
@@ -91,11 +92,11 @@
         </div>
 
         <!-- Register Form -->
-        <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4">
+        <form method="POST" action="{{ route('register.post') }}" id="registerForm" class="space-y-4" novalidate>
             @csrf
-        @if (session('error') || $errors->any())
+        @if (session('error'))
                 <div role="alert" class="rounded-xl border border-red-400/25 bg-red-500/10 p-3 text-sm text-red-200">
-                    {{ session('error') ?? $errors->first() }}
+                    {{ session('error') }}
                 </div>
             @endif
             
@@ -108,6 +109,7 @@
                         type="text" 
                         name="name" 
                         id="name"
+                        aria-invalid="{{ $errors->has('name') ? 'true' : 'false' }}"
                         required 
                         minlength="3"
                         value="{{ old('name') }}"
@@ -120,6 +122,9 @@
                     <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i>
                     Lettres, espaces, apostrophes, tirets et points uniquement (3 caractères minimum).
                 </p>
+                @error('name')
+                    <p class="field-server-error mt-1.5 text-xs text-rose-500" data-field-error="name" role="alert">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
@@ -131,6 +136,7 @@
                         type="email" 
                         name="email" 
                         id="email"
+                        aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}"
                         value="{{ old('email') }}"
                         required 
                         placeholder="vous@exemple.tn" 
@@ -142,6 +148,9 @@
                     <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i>
                     Adresse email invalide (ex. vous@exemple.tn).
                 </p>
+                @error('email')
+                    <p class="field-server-error mt-1.5 text-xs text-rose-500" data-field-error="email" role="alert">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
@@ -150,8 +159,10 @@
                 </label>
                 <div class="relative">
                     <input id="phone" 
+                        aria-invalid="{{ $errors->has('phone') ? 'true' : 'false' }}"
                         type="tel" 
                         name="phone" 
+                        value="{{ old('phone') }}"
                         placeholder="+216 XX XXX XXX" 
                         class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" 
                     />
@@ -161,6 +172,9 @@
                     <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i>
                     Numéro invalide. Format accepté : +216 XX XXX XXX (8 chiffres minimum).
                 </p>
+                @error('phone')
+                    <p class="field-server-error mt-1.5 text-xs text-rose-500" data-field-error="phone" role="alert">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
@@ -172,6 +186,7 @@
                         type="password" 
                         name="password" 
                         id="password" 
+                        aria-invalid="{{ $errors->has('password') ? 'true' : 'false' }}"
                         required 
                         minlength="12" 
                         placeholder="••••••••" 
@@ -183,6 +198,10 @@
                         <i data-lucide="eye-off" class="w-4 h-4 eye-off-icon-password hidden"></i>
                     </button>
                 </div>
+                @error('password')
+                    <p class="field-server-error mt-1.5 text-xs text-rose-500" data-field-error="password" role="alert">{{ $message }}</p>
+                @enderror
+                <p class="mt-1.5 hidden text-xs text-rose-500" id="password-client-error" role="alert" aria-live="polite"></p>
                 <!-- Password Strength Indicator -->
                 <div class="mt-2">
                     <div class="flex gap-1 mb-1">
@@ -241,6 +260,7 @@
                         type="password" 
                         name="password_confirmation" 
                         id="password_confirmation" 
+                        aria-invalid="{{ $errors->has('password_confirmation') ? 'true' : 'false' }}"
                         required 
                         minlength="12" 
                         placeholder="••••••••" 
@@ -256,15 +276,17 @@
                     <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline"></i>
                     Les mots de passe ne correspondent pas
                 </p>
+                @error('password_confirmation')
+                    <p class="field-server-error mt-1.5 text-xs text-rose-500" data-field-error="password_confirmation" role="alert">{{ $message }}</p>
+                @enderror
             </div>
-
-            
 <!-- Terms Checkbox -->
             <div class="flex items-start gap-3 p-4 rounded-xl bg-cyan-500/5 border border-cyan-400/10">
                 <input 
                     type="checkbox" 
                     name="terms" 
                     id="terms" 
+                    aria-invalid="{{ $errors->has('terms') ? 'true' : 'false' }}"
                     required
                     class="mt-0.5 w-4 h-4 rounded border-cyan-400/30 bg-slate-950/50 text-cyan-500 focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-0"
                 />
@@ -273,6 +295,10 @@
                     et la <a href="#" class="text-cyan-400 hover:text-cyan-300 underline">politique de confidentialité</a> d'AquaSecure
                 </label>
             </div>
+            @error('terms')
+                <p class="field-server-error -mt-3 text-xs text-rose-500" data-field-error="terms" role="alert">{{ $message }}</p>
+            @enderror
+            <p class="-mt-3 hidden text-xs text-rose-500" id="terms-client-error" role="alert" aria-live="polite"></p>
 
             <p id="register-client-error" role="alert" aria-live="assertive" class="hidden rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200"></p>
             <button type="submit" id="register-submit" class="ripple-btn rounded-xl font-semibold transition-all duration-300 cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 px-8 py-4 text-lg w-full flex items-center justify-center gap-2">
@@ -471,11 +497,13 @@
             if (empty && optional) {
                 error.classList.add('hidden');
                 input.classList.remove('border-rose-400');
+                input.setAttribute('aria-invalid', 'false');
                 return true;
             }
             const bad = empty || ! test(input.value.trim());
             error.classList.toggle('hidden', ! bad);
             input.classList.toggle('border-rose-400', bad);
+            input.setAttribute('aria-invalid', String(bad));
             return ! bad;
         };
         input.addEventListener('input', check);
@@ -493,20 +521,33 @@
     const registerForm = document.getElementById('registerForm');
     const registerClientError = document.getElementById('register-client-error');
     const registerSubmit = document.getElementById('register-submit');
+    const passwordClientError = document.getElementById('password-client-error');
+    const termsClientError = document.getElementById('terms-client-error');
     const showRegisterError = () => {
         registerClientError.classList.remove('hidden');
         registerClientError.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
-    registerForm.addEventListener('input', () => registerClientError.classList.add('hidden'));
+    registerForm.addEventListener('input', (event) => {
+        registerClientError.classList.add('hidden');
+        if (event.target.name === 'password') passwordClientError.classList.add('hidden');
+        if (event.target.name === 'terms') termsClientError.classList.add('hidden');
+        const fieldError = [...registerForm.querySelectorAll('[data-field-error]')]
+            .find((error) => error.dataset.fieldError === event.target.name);
+        if (fieldError) fieldError.remove();
+        if (event.target.name) event.target.setAttribute('aria-invalid', 'false');
+    });
     registerForm.addEventListener('submit', function (e) {
         registerClientError.classList.add('hidden');
         registerClientError.textContent = '';
         if (passwordInput.value !== confirmInput.value) {
             e.preventDefault();
-            registerClientError.textContent = 'Les deux mots de passe doivent \u00eatre identiques.';
-            showRegisterError();
-            renderMatchFeedback();
+            matchError.textContent = confirmInput.value
+                ? 'Les deux mots de passe doivent \u00eatre identiques.'
+                : 'Veuillez confirmer votre mot de passe.';
+            matchError.classList.remove('hidden');
+            confirmInput.classList.add('border-rose-400');
             confirmInput.focus();
+            matchError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
         // Stop an obviously weak password before the round-trip to the server.
@@ -516,8 +557,9 @@
             .map(([rule]) => RULE_LABELS[rule]);
         if (failedRules.length) {
             e.preventDefault();
-            registerClientError.textContent = `Règle(s) à corriger : ${failedRules.join(', ')}.`;
-            showRegisterError();
+            passwordClientError.textContent = `À corriger : ${failedRules.join(', ')}.`;
+            passwordClientError.classList.remove('hidden');
+            passwordClientError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             passwordInput.focus();
             return;
         }
@@ -533,6 +575,14 @@
             registerClientError.textContent = 'V\u00e9rifiez les champs signal\u00e9s avant de cr\u00e9er votre compte.';
             showRegisterError();
             document.getElementById(firstBad).focus();
+            return;
+        }
+        if (!document.getElementById('terms').checked) {
+            e.preventDefault();
+            termsClientError.textContent = 'Veuillez accepter les conditions pour créer votre compte.';
+            termsClientError.classList.remove('hidden');
+            termsClientError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('terms').focus();
             return;
         }
         registerSubmit.disabled = true;
