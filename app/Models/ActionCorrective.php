@@ -13,6 +13,7 @@ class ActionCorrective extends Model
 
     protected $fillable = [
         'incident_id',
+        'technicien_id',
         'titre',
         'description',
         'responsable',
@@ -30,5 +31,10 @@ class ActionCorrective extends Model
     public function incident()
     {
         return $this->belongsTo(Incident::class);
+    }
+
+    public function technicien()
+    {
+        return $this->belongsTo(Technicien::class);
     }
 }

@@ -9,6 +9,8 @@ class Incident extends Model
 {
     use HasFactory;
 
+    public ?int $ancienneInfrastructureId = null;
+
     protected $fillable = [
         'titre',
         'description',
@@ -17,9 +19,12 @@ class Incident extends Model
         'statut',
         'date_signalement',
         'localisation',
+        'latitude',
+        'longitude',
         'zone_id',
         'infrastructure_id',
         'user_id',
+        'preuve_path',
     ];
 
     protected $casts = [

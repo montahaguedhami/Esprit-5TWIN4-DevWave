@@ -5,6 +5,7 @@
     <a href="{{ route('manager.actions.index', $incident) }}" class="text-cyan-300">Retour aux actions</a>
     <h1 class="text-2xl font-bold mt-6">Ajouter une action corrective</h1>
     <p class="mt-2 text-slate-300 wrap-break-word">Incident : {{ $incident->titre }}</p>
+    @include('manager.incidents.partials.ai-assistant')
     <form action="{{ route('incidents.actions.store', $incident) }}" method="post" class="space-y-4 mt-6">
         @csrf
         @include('manager.actions.form', ['action' => null])

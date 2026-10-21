@@ -70,7 +70,8 @@ class MaintenanceCrudTest extends TestCase
 
     public function test_manager_can_create_update_and_delete_an_intervention(): void
     {
-        $technicien = Technicien::factory()->create();
+        // Disponible : un technicien en congé ne peut pas recevoir d'intervention planifiée
+        $technicien = Technicien::factory()->create(['disponibilite' => 'Disponible']);
 
         $this->get(route('manager.interventions.index'))->assertOk();
         $this->get(route('manager.interventions.create', ['technicien_id' => $technicien->id]))->assertOk();

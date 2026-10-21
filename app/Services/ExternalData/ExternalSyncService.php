@@ -200,7 +200,7 @@ class ExternalSyncService
 
         $ref = $observation->rawMeta['custom_reference'] ?? $this->buildReference($observation);
         if (MesureQualite::where('reference', $ref)->exists()) {
-            $ref = $ref . '-' . substr(md5(uniqid()), 0, 4);
+            $ref = $ref . '-' . bin2hex(random_bytes(2));
         }
 
         $source = $observation->sourceDonnee();

@@ -24,17 +24,17 @@
         <dl class="grid sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/10">
             <div class="flex items-center gap-3">
                 <i data-lucide="calendar" class="w-5 h-5 text-cyan-300"></i>
-                <div>
+                <dl>
                     <dt class="text-xs text-cyan-100/50">Date</dt>
                     <dd class="text-white">{{ $intervention->date->locale('fr')->translatedFormat('l j F Y') }}</dd>
-                </div>
+                </dl>
             </div>
             <div class="flex items-center gap-3">
                 <i data-lucide="hard-hat" class="w-5 h-5 text-cyan-300"></i>
-                <div>
+                <dl>
                     <dt class="text-xs text-cyan-100/50">Équipe en charge</dt>
                     <dd class="text-white">{{ $intervention->technicien->specialite }}</dd>
-                </div>
+                </dl>
             </div>
         </dl>
     </x-ui.card>

@@ -66,11 +66,11 @@
     {{-- ════════════════════════════════════════════════════════
          2. HERO — min-height 680px, full 2-column grid
     ════════════════════════════════════════════════════════ --}}
-    <section id="accueil" class="relative flex items-center overflow-hidden bg-gradient-to-b from-cyan-50/40 to-white"
+    <section id="accueil" class="relative flex scroll-mt-24 items-center overflow-hidden bg-gradient-to-b from-cyan-50/40 to-white"
              style="min-height: clamp(560px, 76vh, 760px); padding-top: var(--navbar-height);">
 
         <div class="absolute inset-0 z-0">
-            <img src="./assets/water-background.jpg" alt="AquaSecure Infrastructure" class="w-full h-full object-cover object-center opacity-70">
+            <img src="{{ asset('assets/water-background.jpg') }}" alt="Réseau d’eau et infrastructures AquaSecure" class="w-full h-full object-cover object-center opacity-70">
             <div class="absolute inset-0 bg-gradient-to-r from-white/95 via-white/85 to-white/20"></div>
             <div class="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-white"></div>
         </div>
@@ -197,7 +197,7 @@
     {{-- ════════════════════════════════════════════════════════
          3. FEATURES — 4-col grid
     ════════════════════════════════════════════════════════ --}}
-    <section id="features" class="bg-white border-b border-slate-100" style="padding: var(--section-py) 0;">
+    <section id="features" class="scroll-mt-24 bg-white border-b border-slate-100" style="padding: var(--section-py) 0;">
         <div class="fo-container">
 
             <div class="text-center" style="max-width:800px;margin:0 auto clamp(2.5rem,4vw,4rem);">
@@ -232,7 +232,7 @@
     {{-- ════════════════════════════════════════════════════════
          4. À PROPOS
     ════════════════════════════════════════════════════════ --}}
-    <section id="about" class="border-b border-slate-100 bg-gradient-to-b from-white to-slate-50/70" style="padding: var(--section-py) 0;">
+    <section id="about" class="scroll-mt-24 border-b border-slate-100 bg-gradient-to-b from-white to-slate-50/70" style="padding: var(--section-py) 0;">
         <div class="fo-container">
             <div class="grid lg:grid-cols-2 items-center" style="gap: clamp(3rem,5vw,6rem);">
 
@@ -272,7 +272,7 @@
     {{-- ════════════════════════════════════════════════════════
          5. AVANTAGES — 3 cols
     ════════════════════════════════════════════════════════ --}}
-    <section id="advantages" class="bg-white border-b border-slate-100" style="padding: var(--section-py) 0;">
+    <section id="advantages" class="scroll-mt-24 bg-white border-b border-slate-100" style="padding: var(--section-py) 0;">
         <div class="fo-container">
             <div class="text-center" style="max-width:900px;margin:0 auto clamp(3rem,5vw,5rem);">
                 <span class="section-label text-cyan-600 block mb-4">Pourquoi Choisir AquaSecure</span>
@@ -304,7 +304,7 @@
     {{-- ════════════════════════════════════════════════════════
          6. CONTACT
     ════════════════════════════════════════════════════════ --}}
-    <section id="contact" class="bg-slate-50/50" style="padding: var(--section-py) 0;">
+    <section id="contact" class="scroll-mt-24 bg-slate-50/50" style="padding: var(--section-py) 0;">
         <div class="fo-container">
             <div class="grid lg:grid-cols-5 items-start" style="gap:clamp(3rem,5vw,6rem);">
 
@@ -328,28 +328,29 @@
                 </div>
 
                 <div class="lg:col-span-3">
-                    <form onsubmit="event.preventDefault(); alert('Merci ! Notre équipe vous recontactera sous 24h.');" class="bg-white border border-slate-100 rounded-3xl shadow-xl" style="padding:var(--card-padding-lg);">
+                    <form data-contact-form class="bg-white border border-slate-100 rounded-3xl shadow-xl" style="padding:var(--card-padding-lg);">
                         <div class="grid sm:grid-cols-2" style="gap:var(--spacing-md);margin-bottom:var(--spacing-md);">
                             <div>
-                                <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Nom complet</label>
-                                <input type="text" required placeholder="Jean Dupont" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                                <label for="name" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Nom complet</label>
+                                <input id="name" name="name" type="text" required placeholder="Jean Dupont" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
                             </div>
                             <div>
-                                <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Email professionnel</label>
-                                <input type="email" required placeholder="j.dupont@entreprise.com" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                                <label for="email" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Email professionnel</label>
+                                <input id="email" name="email" type="email" required placeholder="j.dupont@entreprise.com" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
                             </div>
                         </div>
                         <div style="margin-bottom:var(--spacing-md);">
-                            <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Organisation / Entreprise</label>
-                            <input type="text" placeholder="Nom de votre structure" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
+                            <label for="organisation" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Organisation / Entreprise</label>
+                            <input id="organisation" name="organisation" type="text" placeholder="Nom de votre structure" class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);">
                         </div>
                         <div style="margin-bottom:var(--spacing-lg);">
-                            <label class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Message</label>
-                            <textarea rows="4" required placeholder="Décrivez votre besoin ou projet..." class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all resize-none" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);"></textarea>
+                            <label for="message" class="font-bold text-slate-700 block mb-2" style="font-size:var(--font-size-xs);">Message</label>
+                            <textarea id="message" name="message" rows="4" required placeholder="Décrivez votre besoin ou projet..." class="w-full rounded-2xl border border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 outline-none transition-all resize-none" style="padding:var(--spacing-sm) var(--spacing-md);font-size:var(--font-size-sm);"></textarea>
                         </div>
                         <button type="submit" class="btn-primary-lg w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 hover:shadow-xl" style="border-radius:9999px;">
-                            Envoyer ma demande de démonstration →
+                            Préparer ma demande par e-mail →
                         </button>
+                        <p class="mt-3 text-center text-slate-500" style="font-size:var(--font-size-xs);">Votre application de messagerie s’ouvrira avec votre demande prête à envoyer.</p>
                     </form>
                 </div>
             </div>
@@ -381,6 +382,20 @@
         const nav = document.getElementById('mobile-nav');
         nav.classList.toggle('hidden');
     }
+
+    document.querySelector('[data-contact-form]')?.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const body = [
+            `Nom : ${formData.get('name')}`,
+            `E-mail : ${formData.get('email')}`,
+            `Organisation : ${formData.get('organisation') || 'Non renseignée'}`,
+            '',
+            formData.get('message'),
+        ].join('\n');
+        const subject = encodeURIComponent('Demande de démonstration AquaSecure');
+        window.location.href = `mailto:contact@aquasecure.io?subject=${subject}&body=${encodeURIComponent(body)}`;
+    });
 </script>
 @endpush
 @endsection

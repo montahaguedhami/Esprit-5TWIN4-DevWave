@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'       => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'jwt.authenticate' => \App\Http\Middleware\JwtAuthenticate::class,
+            'jwt.auth'   => \App\Http\Middleware\JwtAuthenticate::class,
             'jwt.role'   => \App\Http\Middleware\JwtCheckRole::class,
             'manager'    => \App\Http\Middleware\EnsureManager::class,
         ]);

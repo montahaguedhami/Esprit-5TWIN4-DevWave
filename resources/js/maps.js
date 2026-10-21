@@ -118,10 +118,10 @@ export function initProjectFormMap(elementId, latInputId, lngInputId, initialLat
 
     // Update marker when inputs change
     const updateMarkerFromInputs = () => {
-        const lat = parseFloat(latInput.value);
-        const lng = parseFloat(lngInput.value);
+        const lat = Number.parseFloat(latInput.value);
+        const lng = Number.parseFloat(lngInput.value);
         
-        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        if (!Number.isNaN(lat) && !Number.isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
             if (marker) {
                 marker.setLatLng([lat, lng]);
             } else {

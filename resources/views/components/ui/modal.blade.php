@@ -20,6 +20,7 @@
     id="{{ $id }}"
     class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden"
     onclick="if(event.target === this) closeModal('{{ $id }}')"
+    onkeydown="if (event.key === 'Escape') closeModal('{{ $id }}')"
     role="dialog"
     aria-modal="true"
     aria-labelledby="{{ $id }}-title"
@@ -27,7 +28,6 @@
 >
     <div 
         class="modal-content glass-strong rounded-2xl shadow-2xl w-full {{ $sizeClasses }} max-h-[90vh] overflow-hidden flex flex-col animate-scale-in"
-        onclick="event.stopPropagation()"
     >
         <!-- Header -->
         @if($title || $closeButton)

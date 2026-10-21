@@ -9,7 +9,6 @@
     {{-- Accessibility Modal Backdrop & Dialog --}}
     <div id="aq-accessibility-modal"
          class="aq-modal-backdrop"
-         onclick="if(event.target === this) closeAccessibilityModal()"
          aria-modal="true"
          role="dialog"
          aria-labelledby="aq-acc-title"
@@ -904,6 +903,14 @@ html.aq-motion *::after {
             document.body.style.overflow = '';
         }
     };
+
+    // Fermeture au clic sur le fond (hors de la boîte de dialogue)
+    var aqModalFond = document.getElementById('aq-accessibility-modal');
+    if (aqModalFond) {
+        aqModalFond.addEventListener('click', function (e) {
+            if (e.target === aqModalFond) window.closeAccessibilityModal();
+        });
+    }
 
     window.toggleAccessibilityModal = function() {
         var modal = document.getElementById('aq-accessibility-modal');

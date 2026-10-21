@@ -142,7 +142,7 @@
     </div>
 
     {{-- Synthèse Générale --}}
-    <table class="grid">
+    <table class="grid" role="presentation">
         <tr>
             <td style="width: 50%;">
                 <div class="label">Zone d'exploitation</div>
@@ -181,7 +181,7 @@
 
     {{-- Indicateurs Opérationnels --}}
     <div class="section-title">Indicateurs Opérationnels Clés (KPI)</div>
-    <table class="kpi-table">
+    <table class="kpi-table" role="presentation">
         <tr>
             <td>
                 <div class="kpi-lbl">Total Équipements</div>

@@ -81,7 +81,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             <div class="sm:col-span-5 relative">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-cyan-100/40"></i>
-                <input type="text"
+                <label for="q" class="sr-only">Rechercher nom, référence, lieu</label>
+                <input id="q" type="text"
                        name="q"
                        value="{{ request('q') }}"
                        placeholder="Rechercher nom, référence, lieu..."
@@ -89,7 +90,8 @@
             </div>
 
             <div class="sm:col-span-3">
-                <select name="etat" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
+                <label for="etat" class="sr-only">etat</label>
+                <select id="etat" name="etat" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
                     <option value="">Tous les états</option>
                     @foreach($etats as $e)
                         <option value="{{ $e->value }}" @selected(request('etat') === $e->value)>{{ $e->label() }}</option>
@@ -98,7 +100,8 @@
             </div>
 
             <div class="sm:col-span-2">
-                <select name="type" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
+                <label for="type" class="sr-only">type</label>
+                <select id="type" name="type" class="w-full px-3 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-white text-xs focus:ring-2 focus:ring-cyan-400/50">
                     <option value="">Tous les types</option>
                     @foreach($types as $t)
                         <option value="{{ $t->value }}" @selected(request('type') === $t->value)>{{ $t->label() }}</option>

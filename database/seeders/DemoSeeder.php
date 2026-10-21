@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\InfrastructureEtat;
 use App\Enums\InfrastructureType;
 use App\Enums\NiveauCriticite;
+use App\Models\ActionCorrective;
 use App\Models\Incident;
 use App\Models\Infrastructure;
 use App\Models\InfrastructureRiskPrediction;
@@ -13,6 +14,8 @@ use App\Models\PointMesure;
 use App\Models\Projet;
 use App\Models\Technicien;
 use App\Models\Zone;
+use App\Models\User;
+use App\Services\FailureRiskService;
 use Illuminate\Database\Seeder;
 
 class DemoSeeder extends Seeder
@@ -57,10 +60,10 @@ class DemoSeeder extends Seeder
                 Intervention::create([
                     'infrastructure_id' => $infra->id,
                     'technicien_id' => $technicien->id,
-                    'date' => now()->subDays(rand(5, 60)),
+                    'date' => now()->subDays(random_int(5, 60)),
                     'description' => 'Maintenance préventive : purge, graissage et vérification des raccords hydrauliques sur ' . $infra->nom,
                     'statut' => 'Terminée',
-                    'cout' => rand(250, 1850),
+                    'cout' => random_int(250, 1850),
                 ]);
             }
         }
@@ -72,7 +75,7 @@ class DemoSeeder extends Seeder
                 $zone = $zones->random();
                 $incident->zone_id = $zone->id;
 
-                if ($zone->infrastructures->isNotEmpty() && rand(0, 1) === 1) {
+                if ($zone->infrastructures->isNotEmpty() && random_int(0, 1) === 1) {
                     $incident->infrastructure_id = $zone->infrastructures->random()->id;
                 }
 
@@ -102,10 +105,11 @@ class DemoSeeder extends Seeder
             foreach ($projets as $projet) {
                 if ($projet->zones()->count() === 0) {
                     // Rattacher 1 à 2 zones à chaque projet
-                    $selectedZones = $zones->random(min(rand(1, 2), $zones->count()));
+                    $selectedZones = $zones->random(min(random_int(1, 2), $zones->count()));
                     $projet->zones()->syncWithoutDetaching($selectedZones->pluck('id'));
                 }
             }
+
         }
 
         // 6. Historique de risque de démonstration : répartition et évolution sur 60 jours.
@@ -120,7 +124,9 @@ class DemoSeeder extends Seeder
             $level = $riskLevels[$levelIndex];
             $base = [0 => 15, 1 => 42, 2 => 63, 3 => 84][$levelIndex];
             foreach ([60 => -7, 30 => -3, 0 => 0] as $daysAgo => $delta) {
-                $computedAt = now()->subDays($daysAgo)->startOfDay();
+                $computedAt = $daysAgo === 0
+                    ? now()->addMinute()
+                    : now()->subDays($daysAgo)->startOfDay();
                 InfrastructureRiskPrediction::query()->updateOrCreate(
                     ['infrastructure_id' => $infrastructure->id, 'computed_at' => $computedAt],
                     ['probability' => $base + $delta, 'level' => $level, 'factors' => []],

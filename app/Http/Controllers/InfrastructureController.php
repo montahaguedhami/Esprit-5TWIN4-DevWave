@@ -10,8 +10,8 @@ use App\Http\Requests\UpdateInfrastructureEtatRequest;
 use App\Http\Requests\UpdateInfrastructureRequest;
 use App\Models\Infrastructure;
 use App\Models\InfrastructureAlerte;
-use App\Models\Zone;
 use App\Models\InfrastructureRiskPrediction;
+use App\Models\Zone;
 use App\Services\FailureRiskService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,7 +82,7 @@ class InfrastructureController extends Controller
             ->take(6)
             ->get();
 
-        return view($request->routeIs('admin.*') ? 'admin.inventory.infrastructures.index' : 'manager.infrastructures.index', [
+        return view('manager.infrastructures.index', [
             'infrastructures' => $infrastructures,
             'zones' => Zone::orderBy('nom')->get(['id', 'nom']),
             'types' => InfrastructureType::cases(),
@@ -160,7 +160,7 @@ class InfrastructureController extends Controller
         }
         $riskHistory = $infrastructure->riskPredictions()->limit(12)->get()->reverse()->values();
 
-        return view($request->routeIs('admin.*') ? 'admin.inventory.infrastructures.show' : 'manager.infrastructures.show', [
+        return view('manager.infrastructures.show', [
             'infrastructure' => $infrastructure,
             'sante' => $sante,
             'coutTotalMaintenance' => $coutTotalMaintenance,

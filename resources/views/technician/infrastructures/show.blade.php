@@ -1,8 +1,8 @@
-@extends('layouts.technician')
+@extends('layouts.manager')
 
 @section('title', $infrastructure->nom . ' — Fiche Technique Terrain')
 
-@section('technician-content')
+@section('manager-content')
 <div class="max-w-5xl mx-auto space-y-6">
 
     {{-- En-tête mobile avec bouton retour et actions --}}
@@ -98,6 +98,8 @@
         </div>
     </div>
     @endif
+
+    <x-infrastructure.risk-technician-summary :risk="$risk" />
 
     {{-- Grille principale : Données techniques + QR Code --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

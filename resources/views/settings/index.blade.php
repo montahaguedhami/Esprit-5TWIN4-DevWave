@@ -69,7 +69,7 @@
                         <div class="space-y-6">
                             <!-- Language -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-2">Langue</label>
+                                <label for="language" class="block text-sm font-medium text-slate-400 mb-2">Langue</label>
                                 <x-forms.select name="language">
                                     <option value="fr" selected>Français</option>
                                     <option value="ar">العربية</option>
@@ -80,7 +80,7 @@
 
                             <!-- Timezone -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-2">Fuseau horaire</label>
+                                <label for="timezone" class="block text-sm font-medium text-slate-400 mb-2">Fuseau horaire</label>
                                 <x-forms.select name="timezone">
                                     <option value="Africa/Tunis" selected>Africa/Tunis (GMT+1)</option>
                                     <option value="Europe/Paris">Europe/Paris (GMT+1)</option>
@@ -90,7 +90,7 @@
 
                             <!-- Date Format -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-2">Format de date</label>
+                                <label for="date_format" class="block text-sm font-medium text-slate-400 mb-2">Format de date</label>
                                 <x-forms.select name="date_format">
                                     <option value="dd/mm/yyyy" selected>JJ/MM/AAAA (26/09/2026)</option>
                                     <option value="mm/dd/yyyy">MM/JJ/AAAA (09/26/2026)</option>
@@ -129,7 +129,7 @@
                                     <div class="text-xs text-slate-400 mt-1">{{ $notif['desc'] }}</div>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" {{ $notif['checked'] ? 'checked' : '' }} class="sr-only peer">
+                                    <input type="checkbox" aria-label="{{ $notif['label'] }}" {{ $notif['checked'] ? 'checked' : '' }} class="sr-only peer">
                                     <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                                 </label>
                             </div>
@@ -252,7 +252,7 @@
                                     <div class="text-xs text-slate-400 mt-1">{{ $privacy['desc'] }}</div>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" {{ $privacy['checked'] ? 'checked' : '' }} class="sr-only peer">
+                                    <input type="checkbox" aria-label="{{ $privacy['label'] }}" {{ $privacy['checked'] ? 'checked' : '' }} class="sr-only peer">
                                     <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
                                 </label>
                             </div>
@@ -276,7 +276,7 @@
                         <div class="space-y-6">
                             <!-- Theme -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-3">Thème</label>
+                                <p class="block text-sm font-medium text-slate-400 mb-3">Thème</p>
                                 <div class="grid grid-cols-3 gap-4">
                                     @foreach([
                                         ['id' => 'dark', 'label' => 'Sombre', 'active' => true],
@@ -293,7 +293,7 @@
 
                             <!-- Density -->
                             <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-3">Densité</label>
+                                <label for="density" class="block text-sm font-medium text-slate-400 mb-3">Densité</label>
                                 <x-forms.select name="density">
                                     <option value="comfortable" selected>Confortable</option>
                                     <option value="compact">Compacte</option>

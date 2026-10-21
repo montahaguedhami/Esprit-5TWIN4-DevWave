@@ -1,10 +1,10 @@
-@extends('layouts.manager')
+@extends(session('user.role') === 'admin' ? 'layouts.admin' : 'layouts.manager')
 
 @section('title', 'Infrastructures — AquaSecure')
 
-@section('manager-content')
+@section(session('user.role') === 'admin' ? 'admin-content' : 'manager-content')
 @php
-    $inventoryRoutePrefix = 'manager';
+    $inventoryRoutePrefix = session('user.role') === 'admin' ? 'admin' : 'manager';
 @endphp
 <div class="manager-catalog-page mx-auto max-w-7xl space-y-5">
     {{-- En-tête de la page --}}
@@ -21,6 +21,15 @@
                 </svg>
                 Export CSV
             </a>
+            <form method="POST" action="{{ route($inventoryRoutePrefix . '.infrastructures.risk.recompute-all') }}" onsubmit="return confirm('Recalculer le modèle de risque pour toutes les infrastructures ?')" class="inline">
+                @csrf
+                <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-200 hover:bg-amber-500/20 transition">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Modèle de risque
+                </button>
+            </form>
             <a href="{{ route($inventoryRoutePrefix . '.zones.index') }}" class="rounded-lg border border-cyan-400/20 px-3.5 py-2 text-sm font-medium text-cyan-100/80 hover:bg-white/5 hover:text-white transition">
                 Voir les zones
             </a>
@@ -218,6 +227,16 @@
                             <th class="px-4 py-3">Criticité</th>
                             <th class="px-4 py-3">Santé</th>
                             <th class="px-4 py-3">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'risk', 'direction' => ($filters['sort'] === 'risk' && $filters['direction'] === 'asc') ? 'desc' : 'asc', 'page' => 1]) }}" class="inline-flex items-center gap-1.5 hover:text-white transition">
+                                    Risque
+                                    @if($filters['sort'] === 'risk')
+                                        <span class="text-cyan-300 font-bold">{{ $filters['direction'] === 'asc' ? '↑' : '↓' }}</span>
+                                    @else
+                                        <span class="text-cyan-100/30">↕</span>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-4 py-3">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'date_installation', 'direction' => ($filters['sort'] === 'date_installation' && $filters['direction'] === 'asc') ? 'desc' : 'asc', 'page' => 1]) }}" class="inline-flex items-center gap-1.5 hover:text-white transition">
                                     <span>Installation</span>
                                     @if($filters['sort'] === 'date_installation')
@@ -251,6 +270,7 @@
                                     <form id="etat-form-{{ $infrastructure->id }}" method="POST" action="{{ route($inventoryRoutePrefix . '.infrastructures.etat', $infrastructure) }}" class="inline">
                                         @csrf
                                         @method('PATCH')
+                                        <label for="etat-select-{{ $infrastructure->id }}" class="sr-only">État de {{ $infrastructure->nom }}</label>
                                         <select
                                             id="etat-select-{{ $infrastructure->id }}"
                                             name="etat"
@@ -276,6 +296,13 @@
                             </td>
                             <td class="px-4 py-3">
                                 <x-infrastructure.sante-badge :sante="$infrastructure->sante" />
+                            </td>
+                            <td class="px-4 py-3">
+                                @if($infrastructure->latestRiskPrediction)
+                                    <x-infrastructure.risk-badge :level="$infrastructure->latestRiskPrediction->level" :probability="$infrastructure->latestRiskPrediction->probability" />
+                                @else
+                                    <span class="text-xs text-slate-400">Non calculé</span>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-xs">{{ $infrastructure->date_installation->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-right">
@@ -311,39 +338,60 @@
 <script>
     function confirmDeleteInfra(id, nom, ref) {
         const badgeText = ref ? nom + ' [' + ref + ']' : nom;
-        window.openAquaConfirm({
-            variant: 'danger',
-            title: 'Supprimer l\'infrastructure',
-            message: 'Êtes-vous certain de vouloir supprimer cet équipement hydraulique ?',
-            badge: badgeText,
-            hint: 'L\'infrastructure sera archivée (Soft Delete) et retirée de la supervision active. Tout son historique d\'audit et ses interventions restent conservés.',
-            confirmText: 'Supprimer l\'équipement',
-            cancelText: 'Annuler',
-            onConfirm: function () {
-                document.getElementById('delete-infra-form-' + id).submit();
-            }
-        });
+        const impactHtml = '<div class="flex items-start gap-2 mb-1"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-emerald-400"></span><span class="text-emerald-200/90 font-medium">Archivage logique (Soft Delete)</span></div><div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-cyan-400"></span><span class="text-cyan-200/90">Historique d\'audit, interventions et mesures de qualité conservés.</span></div>';
+        const hint = 'L\'infrastructure sera archivée et retirée de la supervision active. Aucune donnée n\'est définitivement effacée.';
+
+        if (typeof window.openAquaConfirm === 'function') {
+            window.openAquaConfirm({
+                variant: 'danger',
+                title: 'Supprimer l\'infrastructure',
+                message: 'Êtes-vous certain de vouloir supprimer « ' + nom + ' » du réseau ?',
+                badge: badgeText,
+                impact: impactHtml,
+                hint: hint,
+                confirmText: 'Supprimer l\'équipement',
+                cancelText: 'Annuler',
+                footerLeft: 'Archivage logique',
+                onConfirm: function () {
+                    const form = document.getElementById('delete-infra-form-' + id);
+                    if (form) form.submit();
+                }
+            });
+        } else if (confirm('Êtes-vous certain de vouloir supprimer « ' + nom + ' » du réseau ?')) {
+            const form = document.getElementById('delete-infra-form-' + id);
+            if (form) form.submit();
+        }
     }
 
     function confirmChangeEtat(id, nom, selectEl) {
         const initialVal = selectEl.getAttribute('data-initial');
         const newVal = selectEl.value;
+        const newLabel = selectEl.options[selectEl.selectedIndex].text;
 
         if (initialVal === newVal) return;
 
+        let variant = 'warning';
+        if (newVal === 'en_service' || newVal === 'EnService') variant = 'success';
+        else if (newVal === 'hors_service' || newVal === 'HorsService' || newVal === 'à_l\'arret' || newVal === 'A_l\'arret') variant = 'danger';
+
+        const levelColors = { 'en_service': 'emerald', 'hors_service': 'rose', 'en_maintenance': 'amber', 'dégradé': 'rose', 'à_l\'arret': 'rose' };
+        const levelLabels = { 'en_service': 'En service', 'hors_service': 'Hors service', 'en_maintenance': 'En maintenance', 'dégradé': 'Dégradé', 'à_l\'arret': 'À l\'arrêt' };
+
         window.openAquaConfirm({
-            variant: 'warning',
+            variant: variant,
             title: 'Modifier l\'état opérationnel',
             message: 'Confirmez-vous le changement d\'état pour cet ouvrage ?',
-            badge: nom + ' : passage à « ' + newVal + ' »',
-            hint: 'Cette transition sera immédiatement enregistrée avec votre compte dans l\'historique d\'audit.',
-            confirmText: 'Valider la modification',
+            badge: nom + ' : « ' + (levelLabels[initialVal] || initialVal) + ' » → « ' + newLabel + ' »',
+            impact: '<div class="flex items-start gap-2"><span class="flex-shrink-0 mt-0.5 h-2 w-2 rounded-full bg-cyan-400"></span><span class="text-cyan-200/90">La transition sera enregistrée avec votre compte dans l\'historique d\'audit.</span></div>',
+            hint: 'Cette modification mettra à jour le statut opérationnel et pourra déclencher une réévaluation du score de santé.',
+            confirmText: 'Valider « ' + newLabel + ' »',
             cancelText: 'Annuler',
+            secondaryText: 'Conserver « ' + (levelLabels[initialVal] || initialVal) + ' »',
+            onSecondary: function () {
+                selectEl.value = initialVal;
+            },
             onConfirm: function () {
                 document.getElementById('etat-form-' + id).submit();
-            },
-            onCancel: function () {
-                selectEl.value = initialVal;
             }
         });
     }
