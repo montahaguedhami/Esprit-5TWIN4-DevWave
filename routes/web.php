@@ -647,7 +647,7 @@ Route::middleware('role:administrateur')->group(function () {
 Route::middleware('role:administrateur,manager,technicien,citoyen')->group(function () {
     Route::get('/settings',               fn () => view('settings.index'))->name('settings.index');
     Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
-    Route::get('/notifications',          fn () => view('notifications.index'))->name('notifications.index');
+    Route::get('/notifications',          [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     // Notifications CRUD (main)
     Route::post('/notifications/tout-lire',  [\App\Http\Controllers\NotificationController::class, 'toutLire'])->name('notifications.tout-lire');
     Route::get('/notifications/{id}/ouvrir', [\App\Http\Controllers\NotificationController::class, 'ouvrir'])->name('notifications.ouvrir');

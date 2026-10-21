@@ -48,6 +48,7 @@ class ChatbotController extends Controller
                 'response'       => $result['response'],
                 'sources'        => $result['sources']      ?? [],
                 'tool_calls'     => $result['tool_calls']   ?? [],
+                'error'          => $result['error']        ?? null,
                 'gemini_available' => $result['groq_available'] ?? $result['gemini_available'] ?? true,
                 'groq_available'   => $result['groq_available'] ?? false,
             ], 200);

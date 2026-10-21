@@ -113,6 +113,7 @@
         </main>
 
         <x-ui.confirm-modal />
+        <x-accessibility-menu />
     </div>
 </div>
 
