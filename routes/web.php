@@ -503,6 +503,12 @@ Route::middleware('role:administrateur')->prefix('admin')->name('admin.')->group
     Route::get('qualite', [\App\Http\Controllers\Admin\ConsultationController::class, 'qualite'])->name('qualite');
     Route::get('incidents', [\App\Http\Controllers\Admin\ConsultationController::class, 'incidents'])->name('incidents');
     Route::get('interventions', [\App\Http\Controllers\Admin\ConsultationController::class, 'interventions'])->name('interventions');
+    // Carte réseau admin (origin/main) : contrôleur réel au lieu d'une vue inexistante
+    Route::get('map', MapController::class)->name('map');
+    // Risque infrastructure admin (origin/main) : routes restaurées après merge
+    Route::get('infrastructures/{infrastructure}/risk', [\App\Http\Controllers\InfrastructureRiskController::class, 'show'])->name('infrastructures.risk.show');
+    Route::post('infrastructures/{infrastructure}/risk/recompute', [\App\Http\Controllers\InfrastructureRiskController::class, 'recompute'])->name('infrastructures.risk.recompute');
+    Route::post('infrastructures/risk/recompute-all', [\App\Http\Controllers\InfrastructureRiskController::class, 'recomputeAll'])->name('infrastructures.risk.recompute-all');
     Route::get('zones/export/csv', [InventaireExportController::class, 'exportZonesCsv'])->name('zones.export.csv');
     Route::get('zones/{zone}/export/pdf', [InventaireExportController::class, 'exportZonePdf'])->name('zones.export.pdf');
     Route::get('infrastructures/export/csv', [InventaireExportController::class, 'exportInfrastructuresCsv'])->name('infrastructures.export.csv');
@@ -634,7 +640,7 @@ Route::middleware('role:administrateur')->group(function () {
     Route::get('/admin/backups',     fn () => view('admin.backups'))->name('admin.backups');
     // Routes admin manquantes (main)
     Route::get('/admin/roles',       fn () => view('admin.roles'))->name('admin.roles');
-    Route::get('/admin/map',         fn () => view('admin.map'))->name('admin.map');
+    // Carte réseau admin : route redirigée vers le contrôleur réel (MapController) dans le groupe prefix('admin')
 });
 
 // ── All authenticated roles ───────────────────────────────────────────────────
