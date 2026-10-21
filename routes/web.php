@@ -417,21 +417,10 @@ if (app()->environment(['local', 'testing'])) {
 // ── Administrateur ────────────────────────────────────────────────────────────
 Route::middleware('role:administrateur')->group(function () {
     Route::get('/admin/dashboard', function () {
-<<<<<<< HEAD
         $predictions = \App\Models\Infrastructure::with('latestRiskPrediction')->get()->pluck('latestRiskPrediction')->filter();
         $riskDistribution = $predictions->groupBy('level')->map->count();
         return view('admin.dashboard', compact('riskDistribution'));
     })->name('admin.dashboard');
-=======
-        $riskDistribution = app(InfrastructureRiskSettingsController::class)->distribution();
-
-        return view('admin.dashboard', compact('riskDistribution'));
-    })->name('admin.dashboard');
-    Route::get('/admin/roles', fn () => view('admin.roles'))->name('admin.roles');
-    Route::get('/admin/settings/infrastructure-risk', [InfrastructureRiskSettingsController::class, 'index'])->name('admin.settings.infrastructure-risk');
-    Route::put('/admin/settings/infrastructure-risk', [InfrastructureRiskSettingsController::class, 'update'])->name('admin.settings.infrastructure-risk.update');
-    Route::post('/admin/settings/infrastructure-risk/recompute', [InfrastructureRiskSettingsController::class, 'recomputeAll'])->name('admin.settings.infrastructure-risk.recompute');
->>>>>>> origin/amelioration_qualite_v2
     Route::get('/admin/users',       [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users',      [\App\Http\Controllers\Admin\UserController::class, 'store'])->name('admin.users.store');
     Route::put('/admin/users/{user}',[\App\Http\Controllers\Admin\UserController::class, 'update'])->name('admin.users.update');
