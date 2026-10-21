@@ -28,12 +28,17 @@
     </section>
     <section class="space-y-4 rounded-2xl border bg-white p-5">
         <div><h2 class="text-lg font-bold">Points signalés partagés avec le citoyen</h2><p class="text-sm text-slate-600">Seuls les points « restricted » apparaissent sur la page citoyenne. Les points « unknown » restent consultables ici.</p></div>
+        <form method="GET" action="{{ route('manager.beaches.index') }}" class="grid gap-3 rounded-xl bg-slate-50 p-4 sm:grid-cols-[1fr_1fr_auto]">
+            <label class="text-sm font-medium">Rechercher par nom de point<input type="search" name="q" value="{{ request('q') }}" maxlength="255" placeholder="Nom de la plage" class="mt-1 w-full rounded-lg border-slate-300"></label>
+            <label class="text-sm font-medium">Filtrer par gouvernorat<select name="governorate_id" class="mt-1 w-full rounded-lg border-slate-300"><option value="">Tous les gouvernorats</option>@foreach($allGovernorates as $gov)<option value="{{ $gov->id }}" @selected((string) request('governorate_id') === (string) $gov->id)>{{ $gov->name }}</option>@endforeach</select></label>
+            <div class="flex items-end"><button type="submit" class="rounded-lg bg-slate-800 px-4 py-2 font-semibold text-white">Rechercher</button></div>
+        </form>
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-600"><tr><th class="p-3">Point</th><th class="p-3">Gouvernorat</th><th class="p-3">État</th><th class="p-3">Date</th><th class="p-3">Source</th></tr></thead><tbody class="divide-y">
+            <table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-600"><tr><th class="p-3">Point</th><th class="p-3">Gouvernorat</th><th class="p-3">État</th><th class="p-3">Date</th><th class="p-3">Source</th><th class="p-3">Actions</th></tr></thead><tbody class="divide-y">
                 @forelse($advisoryPoints as $point)
-                    <tr><td class="p-3 font-semibold">{{ $point->point_name }}</td><td class="p-3">{{ $point->governorate_name }}</td><td class="p-3">{{ $point->reported_status }}</td><td class="p-3">{{ $point->reported_at->format('d/m/Y') }}</td><td class="p-3"><a class="text-cyan-700 underline" href="{{ $point->source_url }}" target="_blank" rel="noopener noreferrer">{{ $point->source_name }}</a></td></tr>
+                    <tr><td class="p-3 font-semibold">{{ $point->point_name }}</td><td class="p-3">{{ $point->governorate_name }}</td><td class="p-3">@if($point->reported_status === 'restricted')Baignade restreinte (restricted)@elseif($point->reported_status === 'unknown')État inconnu (unknown)@else{{ $point->reported_status }}@endif</td><td class="p-3">{{ $point->reported_at->format('d/m/Y') }}</td><td class="p-3"><a class="text-cyan-700 underline" href="{{ $point->source_url }}" target="_blank" rel="noopener noreferrer">{{ $point->source_name }}</a></td><td class="p-3"><a class="font-semibold text-cyan-700 underline" href="{{ route('manager.beaches.advisories.edit', ['point' => $point] + request()->only('q', 'governorate_id')) }}">Modifier</a></td></tr>
                 @empty
-                    <tr><td colspan="5" class="p-6 text-center text-slate-500">Aucun point signalé enregistré.</td></tr>
+                    <tr><td colspan="6" class="p-6 text-center text-slate-500">Aucun point signalé enregistré.</td></tr>
                 @endforelse
             </tbody></table>
         </div>

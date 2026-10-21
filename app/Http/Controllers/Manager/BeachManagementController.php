@@ -15,11 +15,28 @@ use Illuminate\View\View;
 
 class BeachManagementController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'governorate_id' => ['nullable', 'integer', 'exists:tunibeach_governorates,id'],
+        ]);
+
+        $selectedGovernorate = isset($filters['governorate_id'])
+            ? Governorate::find($filters['governorate_id'])
+            : null;
+
         return view('manager.beaches.index', [
             'allGovernorates' => Governorate::orderBy('name')->get(),
-            'advisoryPoints' => BeachHistoricalAdvisoryPoint::query()->orderByDesc('reported_at')->orderBy('governorate_name')->orderBy('point_name')->paginate(50, ['*'], 'advisory_page'),
+            'search' => trim($filters['q'] ?? ''),
+            'selectedGovernorateId' => $selectedGovernorate?->id,
+            'advisoryPoints' => BeachHistoricalAdvisoryPoint::query()
+                ->when(($filters['q'] ?? '') !== '', fn ($query) => $query->where('point_name', 'like', '%'.trim($filters['q']).'%'))
+                ->when($selectedGovernorate, fn ($query) => $query->where('governorate_name', $selectedGovernorate->name))
+                ->orderBy('governorate_name')
+                ->orderBy('point_name')
+                ->paginate(20, ['*'], 'advisory_page')
+                ->withQueryString(),
         ]);
     }
 
@@ -65,6 +82,51 @@ class BeachManagementController extends Controller
                 ->filter(fn (BeachHistoricalAdvisoryPoint $point): bool => Str::slug($point->governorate_name) === $governorateSlug)
                 ->values(),
         ]);
+    }
+
+    public function editHistoricalPoint(BeachHistoricalAdvisoryPoint $point): View
+    {
+        return view('manager.beaches.advisory-edit', [
+            'point' => $point,
+            'governorates' => Governorate::orderBy('name')->get(),
+        ]);
+    }
+
+    public function updateHistoricalPoint(Request $request, BeachHistoricalAdvisoryPoint $point): RedirectResponse
+    {
+        $data = $request->validate([
+            'point_name' => ['required', 'string', 'min:2', 'max:255'],
+            'governorate_id' => ['required', 'integer', 'exists:tunibeach_governorates,id'],
+            'reported_status' => ['required', 'in:restricted,unknown'],
+            'reported_at' => ['required', 'date', 'before_or_equal:today'],
+            'source_name' => ['required', 'string', 'min:2', 'max:180'],
+            'source_url' => ['required', 'url', 'max:2000'],
+        ]);
+
+        $governorate = Governorate::findOrFail($data['governorate_id']);
+        $pointName = trim($data['point_name']);
+        $duplicate = BeachHistoricalAdvisoryPoint::query()
+            ->whereDate('reported_at', $data['reported_at'])
+            ->where('governorate_name', $governorate->name)
+            ->where('point_name', $pointName)
+            ->whereKeyNot($point->getKey())
+            ->exists();
+
+        if ($duplicate) {
+            return back()->withInput()->withErrors(['point_name' => 'Un signalement portant ce nom existe déjà pour cette date et ce gouvernorat.']);
+        }
+
+        $point->update([
+            'point_name' => $pointName,
+            'governorate_name' => $governorate->name,
+            'reported_status' => $data['reported_status'],
+            'reported_at' => $data['reported_at'],
+            'source_name' => trim($data['source_name']),
+            'source_url' => trim($data['source_url']),
+        ]);
+
+        return redirect()->route('manager.beaches.index', $request->only('q', 'governorate_id'))
+            ->with('success', 'Le signalement a été modifié. La liste citoyenne est synchronisée avec ces données.');
     }
 
     public function update(Request $request, Beach $beach): RedirectResponse

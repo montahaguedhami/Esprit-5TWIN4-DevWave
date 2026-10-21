@@ -602,6 +602,8 @@ Route::middleware('role:manager')->prefix('manager/beaches')->name('manager.beac
     Route::get('/{beach}/edit',     [\App\Http\Controllers\Manager\BeachManagementController::class, 'edit'])->name('edit');
     Route::put('/{beach}',          [\App\Http\Controllers\Manager\BeachManagementController::class, 'update'])->name('update');
     Route::post('/{beach}/statuses', [\App\Http\Controllers\Manager\BeachManagementController::class, 'storeStatus'])->name('statuses.store');
+    Route::get('/advisories/{point}/edit', [\App\Http\Controllers\Manager\BeachManagementController::class, 'editHistoricalPoint'])->name('advisories.edit');
+    Route::put('/advisories/{point}', [\App\Http\Controllers\Manager\BeachManagementController::class, 'updateHistoricalPoint'])->name('advisories.update');
 });
 
 // ── Travaux (citizen read-only)───────────────────────────────────────────────
