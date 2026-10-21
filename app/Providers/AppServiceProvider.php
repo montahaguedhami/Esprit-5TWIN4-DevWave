@@ -1,3 +1,4 @@
+```php
 <?php
 
 namespace App\Providers;
@@ -27,8 +28,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Payment simulation: a LOCAL provider only. The `PAYMENT_DRIVER` value
-        // is deliberately whitelisted so no real gateway can ever be enabled.
+        // Payment simulation: a LOCAL provider only.
         $this->app->singleton(SimulatedPaymentProvider::class, function () {
             $driver = (string) config('financement.driver', 'simulated');
 
@@ -39,7 +39,6 @@ class AppServiceProvider extends ServiceProvider
                 );
             }
 
-            // The scenario picker is a development/demo affordance only.
             $choix = (bool) config('financement.scenario_choix', false)
                 && app()->environment(['local', 'testing']);
 
@@ -54,12 +53,19 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
-        // Lien de vérification d'e-mail : empreinte SHA-256 de l'adresse (au lieu du SHA-1 par défaut),
-        // contrôlée par la route verification.verify ; l'URL reste signée et limitée dans le temps
+        // Render utilise HTTPS en production.
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+
+        // Lien de vérification d'e-mail : URL signée temporaire.
         VerifyEmail::createUrlUsing(fn (object $notifiable): string => URL::temporarySignedRoute(
             'verification.verify',
             now()->addMinutes((int) config('auth.verification.expire', 60)),
-            ['id' => $notifiable->getKey(), 'hash' => hash('sha256', $notifiable->getEmailForVerification())]
+            [
+                'id' => $notifiable->getKey(),
+                'hash' => hash('sha256', $notifiable->getEmailForVerification()),
+            ]
         ));
 
         // Register Policies
@@ -69,7 +75,6 @@ class AppServiceProvider extends ServiceProvider
         // Super-admin bypass for all gates, unless specific policy returns strict deny
         Gate::before(function ($user, $ability) {
             if ($user instanceof User && $user->isAdministrator()) {
-                // Let the policy execute its own protections for sensitive operations
                 if (in_array($ability, ['delete', 'assignRoles', 'toggleStatus'], true)) {
                     return null;
                 }
@@ -80,7 +85,7 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        // Dynamic gate resolution for granular permission strings (e.g. 'users.view', 'measurements.validate')
+        // Dynamic gate resolution for granular permission strings
         Gate::after(function ($user, $ability, $result) {
             if ($result !== null) {
                 return $result;
@@ -96,16 +101,20 @@ class AppServiceProvider extends ServiceProvider
         // Blade Directives for RBAC
         Blade::if('role', function ($role) {
             $user = auth()->user();
+
             if ($user instanceof User) {
                 return $user->hasRole($role);
             }
+
             $sessionRole = session('user.role');
 
-            return \App\Models\Role::normalizeSlug($sessionRole) === \App\Models\Role::normalizeSlug($role);
+            return \App\Models\Role::normalizeSlug($sessionRole)
+                === \App\Models\Role::normalizeSlug($role);
         });
 
         Blade::if('permission', function ($permission) {
             $user = auth()->user();
+
             if ($user instanceof User) {
                 return $user->hasPermission($permission);
             }
@@ -118,3 +127,4 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Intervention::observe(InterventionObserver::class);
     }
 }
+```
