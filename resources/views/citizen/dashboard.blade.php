@@ -1,57 +1,34 @@
 @extends('layouts.frontoffice')
 
-@section('title', 'Mon espace — AquaSecure')
-
-@php
-    use App\Data\PlaceholderData;
-    $user         = session('user', ['name' => 'Yassine Hamdi', 'email' => 'citoyen@aquasecure.tn']);
-    $reports      = PlaceholderData::citizenReports();
-    $notifs       = PlaceholderData::citizenNotifications();
-    $invoices     = PlaceholderData::citizenInvoices();
-    $zones        = PlaceholderData::zones();
-
-    $firstName    = explode(' ', $user['name'])[0];
-    $activeRep    = count(array_filter($reports, fn($r) => $r['status'] === 'in_progress'));
-    $resolvedRep  = count(array_filter($reports, fn($r) => $r['status'] === 'resolved'));
-    $pendingRep   = count(array_filter($reports, fn($r) => $r['status'] === 'pending'));
-    $unreadNotifs = count(array_filter($notifs, fn($n) => !$n['read']));
-
-    $statusStyle = [
-        'in_progress' => ['bg'=>'bg-amber-500/15','text'=>'text-amber-300','dot'=>'bg-amber-400 animate-pulse','label'=>'En cours'],
-        'resolved'    => ['bg'=>'bg-teal-500/15', 'text'=>'text-teal-300', 'dot'=>'bg-teal-400', 'label'=>'Résolu'],
-        'pending'     => ['bg'=>'bg-blue-500/15', 'text'=>'text-blue-300', 'dot'=>'bg-blue-400', 'label'=>'En attente'],
-    ];
-@endphp
+@section('title', 'Mon espace &mdash; AquaSecure')
 
 @section('frontoffice-content')
 <div class="citizen-dashboard">
     <section class="citizen-welcome">
         <div class="citizen-welcome-copy">
             <span class="citizen-eyebrow"><span></span> Portail citoyen AquaSecure</span>
-            <h1>Bonjour, {{ $firstName }} 👋</h1>
-            <p>Suivez vos signalements, consultez l'état du réseau d'eau et retrouvez vos factures depuis votre espace.</p>
+            <h1>Bonjour, {{ explode(' ', trim($userName))[0] }}</h1>
+            <p>Retrouvez vos signalements, les alertes du r&eacute;seau et les travaux pr&egrave;s de chez vous.</p>
         </div>
         <a href="{{ route('incidents.create') }}" class="citizen-primary-action">
-            <i data-lucide="plus-circle"></i>
-            <span>Signaler un problème</span>
+            <i data-lucide="plus-circle"></i><span>Signaler un probl&egrave;me</span>
         </a>
     </section>
 
-    <section class="citizen-stats" aria-label="Résumé de votre activité">
+    <section class="citizen-stats" aria-label="R&eacute;sum&eacute; de votre activit&eacute;">
         @foreach([
-            ['val'=>count($reports), 'label'=>'Mes signalements', 'icon'=>'file-text',   'tone'=>'cyan',  'sub'=>'Total déposés'],
-            ['val'=>$activeRep,      'label'=>'En cours',         'icon'=>'loader',      'tone'=>'amber', 'sub'=>'En traitement'],
-            ['val'=>$resolvedRep,    'label'=>'Résolus',          'icon'=>'check-circle','tone'=>'teal',  'sub'=>'Interventions closes'],
-            ['val'=>$unreadNotifs,   'label'=>'Notifications',    'icon'=>'bell',        'tone'=>'blue',  'sub'=>'Non lues'],
+            ['val' => $reportCount, 'label' => 'Mes signalements', 'icon' => 'file-text', 'tone' => 'cyan', 'sub' => 'Au total'],
+            ['val' => $activeReportCount, 'label' => 'En traitement', 'icon' => 'clock-3', 'tone' => 'amber', 'sub' => 'Pas encore resolus'],
+            ['val' => $unreadNotificationCount, 'label' => 'Notifications', 'icon' => 'bell', 'tone' => 'blue', 'sub' => 'Non lues'],
         ] as $kpi)
-        <article class="citizen-stat-card citizen-tone-{{ $kpi['tone'] }}">
-            <div class="citizen-stat-top">
-                <span class="citizen-stat-icon"><i data-lucide="{{ $kpi['icon'] }}"></i></span>
-                <span class="citizen-stat-sub">{{ $kpi['sub'] }}</span>
-            </div>
-            <p class="citizen-stat-value">{{ $kpi['val'] }}</p>
-            <h2>{{ $kpi['label'] }}</h2>
-        </article>
+            <article class="citizen-stat-card citizen-tone-{{ $kpi['tone'] }}">
+                <div class="citizen-stat-top">
+                    <span class="citizen-stat-icon"><i data-lucide="{{ $kpi['icon'] }}"></i></span>
+                    <span class="citizen-stat-sub">{{ $kpi['sub'] }}</span>
+                </div>
+                <p class="citizen-stat-value">{{ $kpi['val'] }}</p>
+                <h2>{{ $kpi['label'] }}</h2>
+            </article>
         @endforeach
     </section>
 
@@ -59,107 +36,107 @@
         <section class="citizen-panel citizen-reports">
             <header class="citizen-panel-header">
                 <div>
-                    <span class="citizen-section-kicker">Suivi du réseau</span>
+                    <span class="citizen-section-kicker">Mes d&eacute;marches</span>
                     <h2>Mes signalements</h2>
-                    <p>Derniers rapports transmis aux équipes techniques</p>
+                    <p>&Eacute;tat des signalements que vous avez transmis</p>
                 </div>
-                <a href="{{ route('incidents.create') }}" class="citizen-text-action">
-                    <i data-lucide="plus"></i><span>Nouveau</span>
-                </a>
+                <a href="{{ route('incidents.index') }}" class="citizen-text-action">Tout voir <i data-lucide="arrow-right"></i></a>
             </header>
 
-            @if(count($reports) === 0)
-            <div class="citizen-empty-state">
-                <span class="citizen-empty-icon"><i data-lucide="file-plus-2"></i></span>
-                <h3>Aucun signalement pour le moment</h3>
-                <p>Signalez une fuite ou une baisse de pression dans votre quartier pour la transmettre aux équipes.</p>
-                <a href="{{ route('incidents.create') }}" class="citizen-primary-action">Créer un signalement</a>
-            </div>
-            @else
-            <div class="citizen-report-list">
-                @foreach($reports as $rep)
-                @php $ss = $statusStyle[$rep['status']] ?? $statusStyle['pending']; @endphp
-                <a href="{{ route('citizen.reports.show', $rep['id']) }}" class="citizen-report-row">
-                    <span class="citizen-report-marker"><span class="{{ $ss['dot'] }}"></span></span>
+            @forelse($reports as $report)
+                @php
+                    $normalizedStatus = \Illuminate\Support\Str::ascii(\Illuminate\Support\Str::lower((string) $report->statut));
+                    $isResolved = str_contains($normalizedStatus, 'resolu') || str_contains($normalizedStatus, 'clotur');
+                    $isInProgress = str_contains($normalizedStatus, 'cours') || str_contains($normalizedStatus, 'traitement');
+                    $statusLabel = $isResolved ? 'Resolu' : ($isInProgress ? 'En cours' : 'En attente');
+                    $statusClasses = $isResolved
+                        ? 'bg-teal-500/15 text-teal-300'
+                        : ($isInProgress ? 'bg-amber-500/15 text-amber-300' : 'bg-blue-500/15 text-blue-300');
+                    $location = $report->localisation ?: ($report->zone?->nom ?? $report->infrastructure?->nom ?? 'Localisation non precisee');
+                @endphp
+                <a href="{{ route('incidents.show', $report) }}" class="citizen-report-row">
+                    <span class="citizen-report-marker"><span class="{{ $isResolved ? 'bg-teal-400' : ($isInProgress ? 'bg-amber-400' : 'bg-blue-400') }}"></span></span>
                     <span class="citizen-report-copy">
                         <span class="citizen-report-meta">
-                            <span class="citizen-report-id">{{ $rep['id'] }}</span>
-                            <span class="citizen-status-pill {{ $ss['bg'] }} {{ $ss['text'] }}">{{ $ss['label'] }}</span>
+                            <span class="citizen-report-id">#{{ $report->id }}</span>
+                            <span class="citizen-status-pill {{ $statusClasses }}">{{ $statusLabel }}</span>
                         </span>
-                        <strong>{{ $rep['type'] }}</strong>
-                        <span class="citizen-report-location"><i data-lucide="map-pin"></i>{{ $rep['zone'] }} · {{ $rep['created_at'] }}</span>
+                        <strong>{{ $report->titre }}</strong>
+                        <span class="citizen-report-location"><i data-lucide="map-pin"></i>{{ $location }} &middot; {{ $report->date_signalement?->format('d/m/Y') ?? $report->created_at?->format('d/m/Y') }}</span>
                     </span>
                     <i data-lucide="chevron-right" class="citizen-report-arrow"></i>
                 </a>
-                @endforeach
-            </div>
-            @endif
+            @empty
+                <div class="citizen-empty-state">
+                    <span class="citizen-empty-icon"><i data-lucide="file-plus-2"></i></span>
+                    <h3>Aucun signalement pour le moment</h3>
+                    <p>Vous pouvez signaler une fuite ou un probl&egrave;me d'eau dans votre quartier.</p>
+                    <a href="{{ route('incidents.create') }}" class="citizen-primary-action">Cr&eacute;er un signalement</a>
+                </div>
+            @endforelse
         </section>
 
         <aside class="citizen-side-stack">
-            @php $alertZone = array_values(array_filter($zones, fn($z)=>$z['status']==='critical'))[0] ?? null; @endphp
-            @if($alertZone)
             <section class="citizen-panel citizen-alert-panel">
-                <header class="citizen-alert-heading">
-                    <span><i data-lucide="triangle-alert"></i> Alerte réseau locale</span>
-                    <span class="citizen-alert-status"><span></span> En cours</span>
-                </header>
-                <h2>{{ $alertZone['name'] }}</h2>
-                <p>Perturbation de pression détectée dans le secteur. Des équipes de maintenance sont en cours d'intervention.</p>
-                <footer>
-                    <span>Qualité <strong>{{ $alertZone['quality'] }}%</strong></span>
-                    <span>Pression <strong>{{ $alertZone['pressure'] }} bar</strong></span>
-                </footer>
+                <header class="citizen-panel-header citizen-panel-header-compact"><div><h2>Alertes du r&eacute;seau</h2></div></header>
+                @forelse($alerts as $alert)
+                    <article class="citizen-notification-row">
+                        <span class="citizen-notification-icon bg-amber-500/15"><i data-lucide="triangle-alert" class="text-amber-400"></i></span>
+                        <span>
+                            <strong>{{ $alert->infrastructure?->nom ?? 'Information r&eacute;seau' }}</strong>
+                            <span>{{ $alert->message }}</span>
+                            @if($alert->infrastructure?->zone?->nom)<span>Secteur : {{ $alert->infrastructure->zone->nom }}</span>@endif
+                        </span>
+                    </article>
+                @empty
+                    <p class="text-sm text-cyan-100/60 px-4 py-3">Aucune alerte r&eacute;seau active pour le moment.</p>
+                @endforelse
             </section>
-            @endif
 
             <section class="citizen-panel citizen-notifications">
                 <header class="citizen-panel-header citizen-panel-header-compact">
-                    <div><h2>Dernières notifications</h2></div>
+                    <div><h2>Mes notifications</h2></div>
                     <a href="{{ route('citizen.notifications') }}" class="citizen-text-action">Tout voir <i data-lucide="arrow-right"></i></a>
                 </header>
-                <div class="citizen-notification-list">
-                    @foreach(array_slice($notifs, 0, 3) as $notif)
+                @forelse($notifications as $notification)
                     @php
-                        $nb = match($notif['color']) {
-                            'amber'   => ['bg'=>'bg-amber-500/15','ic'=>'text-amber-400'],
-                            'emerald' => ['bg'=>'bg-teal-500/15', 'ic'=>'text-teal-400'],
-                            'blue'    => ['bg'=>'bg-blue-500/15', 'ic'=>'text-blue-400'],
-                            'purple'  => ['bg'=>'bg-violet-500/15','ic'=>'text-violet-400'],
-                            default   => ['bg'=>'bg-cyan-500/15', 'ic'=>'text-cyan-400'],
-                        };
+                        $notificationData = $notification->data ?? [];
+                        $notificationTitle = $notificationData['action_title'] ?? $notificationData['incident_title'] ?? 'Mise a jour de votre compte';
+                        $notificationMessage = $notificationData['message'] ?? 'Une nouvelle information est disponible.';
                     @endphp
                     <article class="citizen-notification-row">
-                        <span class="citizen-notification-icon {{ $nb['bg'] }}"><i data-lucide="{{ $notif['icon'] }}" class="{{ $nb['ic'] }}"></i></span>
-                        <span><strong>{{ $notif['title'] }}</strong><span>{{ $notif['message'] }}</span></span>
-                        @if(!$notif['read'])<i class="citizen-unread-dot" aria-label="Non lue"></i>@endif
+                        <span class="citizen-notification-icon bg-cyan-500/15"><i data-lucide="bell" class="text-cyan-400"></i></span>
+                        <span><strong>{{ $notificationTitle }}</strong><span>{{ $notificationMessage }}</span></span>
+                        @if(!$notification->read_at)<i class="citizen-unread-dot" aria-label="Non lue"></i>@endif
                     </article>
-                    @endforeach
-                </div>
+                @empty
+                    <p class="text-sm text-cyan-100/60 px-4 py-3">Aucune notification r&eacute;cente.</p>
+                @endforelse
             </section>
 
-            <section class="citizen-panel citizen-consumption">
+            <section class="citizen-panel">
                 <header class="citizen-panel-header citizen-panel-header-compact">
-                    <div><h2>Ma consommation</h2><p>Moyenne mensuelle</p></div>
-                    <a href="{{ route('citizen.invoices.index') }}" class="citizen-text-action">Factures <i data-lucide="arrow-right"></i></a>
+                    <div><h2>Travaux et annonces</h2><p>Interventions en cours ou prochainement pr&eacute;vues</p></div>
+                    <a href="{{ route('citizen.travaux.index') }}" class="citizen-text-action">Tout voir <i data-lucide="arrow-right"></i></a>
                 </header>
-                <div class="citizen-consumption-value">
-                    <span class="citizen-consumption-icon"><i data-lucide="droplet"></i></span>
-                    <strong>19.6 <small>m³</small></strong>
-                </div>
+                @forelse($announcements as $announcement)
+                    <a href="{{ route('citizen.travaux.show', $announcement) }}" class="citizen-report-row">
+                        <span class="citizen-report-marker"><span class="bg-cyan-400"></span></span>
+                        <span class="citizen-report-copy">
+                            <strong>{{ $announcement->infrastructure?->nom ?? 'Intervention sur le r&eacute;seau' }}</strong>
+                            <span class="citizen-report-location"><i data-lucide="calendar-days"></i>{{ $announcement->statut }} &middot; {{ $announcement->date?->format('d/m/Y') }}</span>
+                        </span>
+                        <i data-lucide="chevron-right" class="citizen-report-arrow"></i>
+                    </a>
+                @empty
+                    <p class="text-sm text-cyan-100/60 px-4 py-3">Aucun travail annonc&eacute; actuellement.</p>
+                @endforelse
             </section>
+
+            <a href="{{ route('citizen.beaches.index') }}" class="citizen-panel citizen-text-action">
+                <i data-lucide="waves"></i><span>Consulter les plages tunisiennes</span><i data-lucide="arrow-right"></i>
+            </a>
         </aside>
-        <section class="citizen-panel mt-6">
-            <header class="citizen-panel-header">
-                <div>
-                    <span class="citizen-section-kicker">Information locale</span>
-                    <h2>Plages tunisiennes</h2>
-                    <p>Recherchez une plage et filtrez les résultats par gouvernorat.</p>
-                </div>
-                <a href="{{ route('citizen.beaches.index') }}" class="citizen-text-action">
-                    <i data-lucide="waves"></i><span>Consulter les plages</span>
-                </a>
-            </header>
-        </section>    </div>
+    </div>
 </div>
 @endsection

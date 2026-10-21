@@ -192,7 +192,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name
 
 // ── Citoyen ───────────────────────────────────────────────────────────────────
 Route::middleware('role:citoyen')->group(function () {
-    Route::get('/citizen/dashboard',        fn () => view('citizen.dashboard'))->name('citizen.dashboard');
+    Route::get('/citizen/dashboard',        \App\Http\Controllers\Citizen\DashboardController::class)->name('citizen.dashboard');
     Route::get('/citizen/reports/create',   fn () => view('citizen.reports.create'))->name('citizen.reports.create');
     Route::post('/citizen/reports',         fn () => redirect()->route('citizen.dashboard')->with('success', 'Déclaration envoyée avec succès'))->name('citizen.reports.store');
     Route::get('/citizen/reports/{id}',     fn ($id) => view('citizen.reports.show', ['id' => $id]))->name('citizen.reports.show');
