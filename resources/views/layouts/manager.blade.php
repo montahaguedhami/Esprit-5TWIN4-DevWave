@@ -102,6 +102,10 @@
                    class="sidebar-link {{ request()->routeIs('manager.zones.*') ? 'is-active' : '' }}">
                     <i data-lucide="map-pin"></i><span>Zones</span>
                 </a>
+                <a href="{{ route('manager.beaches.index') }}"
+                   class="sidebar-link {{ request()->routeIs('manager.beaches.*') ? 'is-active' : '' }}">
+                    <i data-lucide="waves"></i><span>Plages</span>
+                </a>
                 <a href="{{ route('manager.infrastructures.index') }}"
                    class="sidebar-link {{ request()->routeIs('manager.infrastructures.*') ? 'is-active' : '' }}">
                     <i data-lucide="layers"></i><span>Infrastructures</span>

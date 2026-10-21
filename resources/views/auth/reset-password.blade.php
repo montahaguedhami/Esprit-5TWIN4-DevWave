@@ -60,25 +60,14 @@
         @endif
 
         <!-- Reset Password Form -->
-        <form method="POST" action="{{ route('reset-password.post') }}" class="space-y-4">
+        <form method="POST" action="{{ route('password.reset.post') }}" class="space-y-4">
             @csrf
-
-            <input type="hidden" name="token" value="{{ $token }}">
-
-            <div>
-                <label for="email" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Adresse email</label>
-                <div class="relative">
-                    <input id="email" type="email" name="email" value="{{ old('email', $email ?? '') }}" required placeholder="vous@exemple.tn" autocomplete="email" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
-                    <svg class="w-4 h-4 text-cyan-100/30 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-            </div>
+            {{-- La demande vérifiée (code OTP validé) est identifiée par la session : ni jeton ni e-mail à saisir --}}
 
             <div>
                 <label for="password" class="text-xs font-semibold text-cyan-100/70 mb-2 block">Mot de passe</label>
                 <div class="relative">
-                    <input type="password" name="password" id="password" required minlength="6" autocomplete="new-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
+                    <input type="password" name="password" id="password" required minlength="12" autocomplete="new-password" class="w-full bg-slate-950/35 border border-cyan-400/15 rounded-xl pl-11 pr-11 py-3 text-sm text-white placeholder:text-cyan-100/30 focus:outline-none focus:border-cyan-400/50 transition-colors" />
                     <svg class="w-4 h-4 text-cyan-100/30 absolute right-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>

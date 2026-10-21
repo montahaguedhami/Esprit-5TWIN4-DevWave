@@ -464,6 +464,11 @@ class CsvImportProvider implements ExternalDataProviderInterface
                 if (!str_ends_with($alias, '_id') && str_ends_with($k, '_id')) {
                     continue;
                 }
+                // Les colonnes « infrastructure_* » décrivent l'ouvrage, pas la mesure
+                // (« infrastructure_reference » ne doit pas être lue comme référence de mesure)
+                if (str_starts_with($k, 'infrastructure_') && !str_starts_with($alias, 'infrastructure')) {
+                    continue;
+                }
                 if (str_contains($k, $alias)) {
                     return $v;
                 }
@@ -555,14 +560,14 @@ class CsvImportProvider implements ExternalDataProviderInterface
         }
 
         if (str_contains($raw, '/')) {
-            $formats = [
-                'd/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y',
-                'd/m/y H:i:s', 'd/m/y H:i', 'd/m/y',
-                'm/d/Y H:i:s', 'm/d/Y H:i', 'm/d/Y',
-            ];
+            // Année sur 4 chiffres : jour/mois, sinon mois/jour (format US) ; sur 2 chiffres : jour/mois/année courte.
+            // (« Y » accepterait « 26 » comme l'an 26 : l'ordre dépend donc de la longueur de l'année)
+            $formats = preg_match('#^\d{1,2}/\d{1,2}/\d{4}\b#', $raw)
+                ? ['d/m/Y H:i:s', 'd/m/Y H:i', 'd/m/Y', 'm/d/Y H:i:s', 'm/d/Y H:i', 'm/d/Y']
+                : ['d/m/y H:i:s', 'd/m/y H:i', 'd/m/y'];
             foreach ($formats as $fmt) {
-                $d = \DateTimeImmutable::createFromFormat($fmt, $raw);
-                if ($d !== false) {
+                $d = $this->strictDate($fmt, $raw);
+                if ($d !== null) {
                     return $d;
                 }
             }
@@ -574,8 +579,8 @@ class CsvImportProvider implements ExternalDataProviderInterface
                 'd-m-Y H:i:s', 'd-m-Y H:i', 'd-m-Y',
             ];
             foreach ($formats as $fmt) {
-                $d = \DateTimeImmutable::createFromFormat($fmt, $raw);
-                if ($d !== false) {
+                $d = $this->strictDate($fmt, $raw);
+                if ($d !== null) {
                     return $d;
                 }
             }
@@ -586,5 +591,22 @@ class CsvImportProvider implements ExternalDataProviderInterface
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /**
+     * Lecture stricte : une date impossible (mois 31, 30 février…) est refusée.
+     * createFromFormat() ne renvoie pas false dans ce cas : il « reporte » le surplus sur les mois
+     * suivants et ne le signale que par un avertissement.
+     */
+    private function strictDate(string $format, string $raw): ?\DateTimeImmutable
+    {
+        $date = \DateTimeImmutable::createFromFormat($format, $raw);
+        $erreurs = \DateTimeImmutable::getLastErrors();
+
+        if ($date === false || ($erreurs !== false && ($erreurs['warning_count'] > 0 || $erreurs['error_count'] > 0))) {
+            return null;
+        }
+
+        return $date;
     }
 }

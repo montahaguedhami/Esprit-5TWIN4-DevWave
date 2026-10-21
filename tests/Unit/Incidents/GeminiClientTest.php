@@ -164,4 +164,60 @@ class GeminiClientTest extends TestCase
 
         Log::shouldHaveReceived('warning')->withArgs(fn ($message, $context) => ! str_contains(json_encode($context), 'test-key'));
     }
+
+    // ── Modèle de secours (GEMINI_FALLBACK_MODEL) ─────────────────────────────
+
+    public function test_overloaded_main_model_falls_back_to_the_secondary_model(): void
+    {
+        config(['services.gemini.fallback_model' => 'gemini-secours']);
+        Http::fake([
+            '*/models/gemini-test:generateContent' => Http::response(['error' => ['message' => 'high demand']], 503),
+            '*/models/gemini-secours:generateContent' => Http::response(['candidates' => [['content' => ['parts' => [['text' => '{"ok":true}']]]]]]),
+        ]);
+
+        $this->assertSame(['ok' => true], $this->generate());
+        Http::assertSentCount(2);
+    }
+
+    public function test_quota_or_unknown_main_model_also_uses_the_fallback(): void
+    {
+        config(['services.gemini.fallback_model' => 'gemini-secours']);
+        $statut = null;
+        Http::fake(function (HttpRequest $request) use (&$statut) {
+            return str_contains($request->url(), '/gemini-test:')
+                ? Http::response(['error' => ['message' => 'indisponible']], $statut)
+                : Http::response(['candidates' => [['content' => ['parts' => [['text' => '{"statut":'.$statut.'}']]]]]]);
+        });
+
+        foreach ([429, 404] as $statut) {
+            $this->assertSame(['statut' => $statut], $this->generate());
+        }
+    }
+
+    public function test_rejected_key_does_not_try_the_fallback(): void
+    {
+        config(['services.gemini.fallback_model' => 'gemini-secours']);
+        Http::fake(['*' => Http::response(['error' => ['message' => 'API key not valid']], 400)]);
+
+        $this->assertFailsWith('Clé API Gemini invalide');
+        Http::assertSentCount(1);
+    }
+
+    public function test_both_models_overloaded_gives_a_clear_message(): void
+    {
+        config(['services.gemini.fallback_model' => 'gemini-secours']);
+        Http::fake(['*' => Http::response(['error' => ['message' => 'high demand']], 503)]);
+
+        $this->assertFailsWith('surchargé');
+        Http::assertSentCount(2);
+    }
+
+    public function test_without_fallback_model_a_single_call_is_made(): void
+    {
+        config(['services.gemini.fallback_model' => null]);
+        Http::fake(['*' => Http::response(['error' => ['message' => 'high demand']], 503)]);
+
+        $this->assertFailsWith('surchargé');
+        Http::assertSentCount(1);
+    }
 }

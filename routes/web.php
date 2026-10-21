@@ -542,7 +542,9 @@ Route::middleware('role:administrateur')->group(function () {
     Route::get('/admin/logs',        [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('admin.logs');
     Route::get('/admin/system',      fn () => view('admin.system'))->name('admin.system');
     Route::get('/admin/security',    fn () => view('admin.security'))->name('admin.security');
-    Route::get('/admin/backups',     fn () => view('admin.backups'))->name('admin.backups');
+    // Renouvellement forcé de toutes les sessions (restauré : perdu lors d'une fusion, cf. 90afde3)
+    Route::post('/admin/security/renew-sessions', [\App\Http\Controllers\Settings\SessionController::class, 'forceRenewAll'])->name('admin.security.renew-sessions');
+    Route::get('/admin/backups',    fn () => view('admin.backups'))->name('admin.backups');
     // Routes admin manquantes (main)
     Route::get('/admin/roles',       fn () => view('admin.roles'))->name('admin.roles');
     // Carte réseau admin : route redirigée vers le contrôleur réel (MapController) dans le groupe prefix('admin')
@@ -550,7 +552,10 @@ Route::middleware('role:administrateur')->group(function () {
 
 // ── All authenticated roles ───────────────────────────────────────────────────
 Route::middleware('role:administrateur,manager,technicien,citoyen')->group(function () {
-    Route::get('/settings',               fn () => view('settings.index'))->name('settings.index');
+    // Paramètres + sessions actives (restauré : perdu lors d'une fusion, cf. 90afde3)
+    Route::get('/settings',               [\App\Http\Controllers\Settings\SessionController::class, 'index'])->name('settings.index');
+    Route::delete('/settings/sessions/{sessionId}', [\App\Http\Controllers\Settings\SessionController::class, 'revoke'])->name('settings.sessions.revoke');
+    Route::post('/settings/sessions/revoke-others', [\App\Http\Controllers\Settings\SessionController::class, 'revokeOthers'])->name('settings.sessions.revoke-others');
     Route::get('/settings/notifications', fn () => view('settings.notifications'))->name('settings.notifications');
     Route::get('/notifications',          [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     // Notifications CRUD (main)
@@ -590,7 +595,16 @@ Route::middleware('role:manager')->prefix('manager')->name('manager.')->group(fu
     Route::post('planning/preventive',                  [\App\Http\Controllers\PlanningController::class, 'preventive'])->name('planning.preventive');
 });
 
-// ── Travaux (citizen read-only) ───────────────────────────────────────────────
+// ── Plages (gestionnaire) : points signalés partagés avec le citoyen, état des plages ──
+Route::middleware('role:manager')->prefix('manager/beaches')->name('manager.beaches.')->group(function () {
+    Route::get('/',                 [\App\Http\Controllers\Manager\BeachManagementController::class, 'index'])->name('index');
+    Route::post('/advisories',      [\App\Http\Controllers\Manager\BeachManagementController::class, 'storeHistoricalPoint'])->name('advisories.store');
+    Route::get('/{beach}/edit',     [\App\Http\Controllers\Manager\BeachManagementController::class, 'edit'])->name('edit');
+    Route::put('/{beach}',          [\App\Http\Controllers\Manager\BeachManagementController::class, 'update'])->name('update');
+    Route::post('/{beach}/statuses', [\App\Http\Controllers\Manager\BeachManagementController::class, 'storeStatus'])->name('statuses.store');
+});
+
+// ── Travaux (citizen read-only)───────────────────────────────────────────────
 Route::get('/citizen/travaux', [TravauxController::class, 'index'])->name('citizen.travaux.index');
 Route::get('/citizen/travaux/{intervention}', [TravauxController::class, 'show'])->name('citizen.travaux.show');
 

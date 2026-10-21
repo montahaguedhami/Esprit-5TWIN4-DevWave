@@ -60,6 +60,7 @@ return [
     'gemini' => [
         'api_key'       => env('GEMINI_API_KEY'),
         'model'         => env('GEMINI_MODEL', 'gemini-3.8-flash'),
+        // Modèle de secours utilisé si le principal est surchargé (503), en quota (429) ou introuvable (404)
         'fallback_model' => env('GEMINI_FALLBACK_MODEL', 'gemini-3.5-flash-lite'),
         'base_url'      => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
         'timeout'       => (int) env('GEMINI_TIMEOUT', 30),

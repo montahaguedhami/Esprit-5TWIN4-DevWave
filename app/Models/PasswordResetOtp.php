@@ -89,7 +89,8 @@ class PasswordResetOtp extends Model
             'attempts'      => 0,
             'max_attempts'  => static::MAX_ATTEMPTS,
             'ip_address'    => $ip,
-            'user_agent'    => $userAgent !== null ? substr($userAgent, 0, 255) : null,
+            // Colonne VARCHAR(191) (Schema::defaultStringLength) : tronqué par caractère, sans couper un accent
+            'user_agent'    => $userAgent !== null ? mb_substr($userAgent, 0, 191) : null,
         ]);
 
         return [$request, $otp];

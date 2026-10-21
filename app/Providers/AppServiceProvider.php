@@ -45,7 +45,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
-        if (app()->environment('production')) {
+        // Liens en https seulement si le site est publié en https (APP_URL) : la démo Docker
+        // tourne en production sur http://localhost, où des liens https seraient cassés
+        if (str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
 
